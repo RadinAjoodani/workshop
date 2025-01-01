@@ -2,11 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 // #include "function.h"
+
 typedef struct {
     char username[50];
     char password[50];
     char email[100];
 } User;
+
+char current_user[50] = "";  // نام کاربری وارد شده
+int current_score = 0;       // امتیاز بازیکن
+int is_logged_in = 0;        // وضعیت ورود
+
 
 void menu_sign_up();
 void menu_log_in();
@@ -45,30 +51,40 @@ void main_menu() {
         "Exit"
     };
     int n_items = sizeof(menu_items) / sizeof(menu_items[0]);
-    int choice = 0;  
+    int choice = 0;
     int key;
+    int rows, cols;
 
     while (1) {
-        clear();  
-         
+        clear();
+        getmaxyx(stdscr, rows, cols); // دریافت اندازه صفحه
+
+        // نمایش منو
         for (int i = 0; i < n_items; i++) {
             if (i == choice)
-                attron(A_REVERSE);  
-            mvprintw(i + 1, 1, "%s", menu_items[i]);  
+                attron(A_REVERSE);
+            mvprintw(i + 1, 1, "%s", menu_items[i]);
             if (i == choice)
-                attroff(A_REVERSE);  
+                attroff(A_REVERSE);
         }
 
-        key = getch();  
+        // نمایش اطلاعات کاربر وارد شده در پایین صفحه
+        if (is_logged_in) {
+            mvprintw(rows - 1, 1, "Logged in as: %s | Score: %d", current_user, current_score);
+        } else {
+            mvprintw(rows - 1, 1, "Not logged in. Please log in or sign up.");
+        }
+
+        key = getch();
 
         switch (key) {
-            case KEY_UP:  
+            case KEY_UP:
                 choice = (choice - 1 + n_items) % n_items;
                 break;
-            case KEY_DOWN:  
+            case KEY_DOWN:
                 choice = (choice + 1) % n_items;
                 break;
-            case '\n':  
+            case '\n':
                 clear();
                 switch (choice) {
                     case 0: menu_sign_up(); break;
@@ -84,6 +100,7 @@ void main_menu() {
         }
     }
 }
+
 
 void menu_sign_up() {
     int sign = 0;
@@ -187,6 +204,8 @@ void menu_log_in() {
 
         if (valid) {
             mvprintw(7, 1, "Login successful! Press any key to return to the main menu.");
+            strcpy(current_user,username);
+            is_logged_in = 1;
             getch();
             return;
         } else {
