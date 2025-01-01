@@ -7,9 +7,11 @@ typedef struct {
     char username[50];
     char password[50];
     char email[100];
+    int  score;
 } User;
 
 char current_user[50] = "";  // نام کاربری وارد شده
+char current_email[50]="";
 int current_score = 0;       // امتیاز بازیکن
 int is_logged_in = 0;        // وضعیت ورود
 
@@ -197,12 +199,15 @@ void menu_log_in() {
 
         User user;
         int valid = 0;
-        while (fscanf(fptr, "%s %s %s", user.username, user.password, user.email) != EOF) {
+        while (fscanf(fptr, "%s %s %s %d", user.username, user.password, user.email, &user.score) != EOF) {
             if (strcmp(user.username, username) == 0 && strcmp(user.password, password) == 0) {
                 valid = 1;
+                strcpy(current_email, user.email);
+                current_score = user.score;
                 break;
             }
         }
+
         fclose(fptr);
 
         if (valid) {
@@ -267,7 +272,7 @@ void menu_play_game() {
                     case 2: show_score_table(); break;
                     case 3: show_profile_status(); break;
                     case 4: settings_menu(); break;
-                    case 5: return;  // بازگشت به منوی اصلی
+                    case 5: return;
                 }
                 break;
             default:
@@ -293,10 +298,46 @@ void continue_last_game() {
 void show_score_table() {
     clear();
     mvprintw(1, 1, "Score Table:");
-    mvprintw(3, 1, "Feature not implemented yet.");
-    mvprintw(5, 1, "Press any key to return.");
+
+    FILE *file = fopen("users.txt", "r");
+    if (!file) {
+        mvprintw(3, 1, "Error: Unable to open users file.");
+        getch();
+        return;
+    }
+
+    User users[100];
+    int user_count = 0;
+
+    while (fscanf(file, "%s %s %s %d", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score) != EOF) {
+        user_count++;
+    }
+    fclose(file);
+
+    for (int i = 0; i < user_count - 1; i++) {
+        for (int j = 0; j < user_count - i - 1; j++) {
+            if (users[j].score < users[j + 1].score) {
+                User temp = users[j];
+                users[j] = users[j + 1];
+                users[j + 1] = temp;
+            }
+        }
+    }
+
+    for (int i = 0; i < user_count; i++) {
+        if (i < 3) {
+            attron(A_BOLD);
+        }
+        mvprintw(3 + i, 1, "%d. %s - Score: %d", i + 1, users[i].username, users[i].score);
+        if (i < 3) {
+            attroff(A_BOLD);
+        }
+    }
+
+    mvprintw(5 + user_count, 1, "Press any key to return.");
     getch();
 }
+
 
 void show_profile_status() {
     clear();
@@ -305,7 +346,7 @@ void show_profile_status() {
     } else {
         mvprintw(1, 1, "Profile Status:");
         mvprintw(3, 1, "Username: %s", current_user);
-        mvprintw(4, 1, "Email: [Not Available in File]");
+        mvprintw(4, 1, "Email: %s",current_email);
         mvprintw(5, 1, "Score: %d", current_score);
     }
     mvprintw(7, 1, "Press any key to return.");
@@ -322,7 +363,7 @@ void settings_menu() {
     int n_levels = sizeof(difficulty_levels) / sizeof(difficulty_levels[0]);
     int choice = 0;
     int key;
-    static int current_difficulty = 0; // پیش‌فرض Easy
+    static int current_difficulty = 0;
 
     while (1) {
         clear();
@@ -346,7 +387,7 @@ void settings_menu() {
                 choice = (choice + 1) % n_levels;
                 break;
             case '\n':
-                if (choice == n_levels - 1) return; // بازگشت
+                if (choice == n_levels - 1) return;
                 current_difficulty = choice;
                 mvprintw(n_levels + 3, 1, "Difficulty set to %s!", difficulty_levels[choice]);
                 getch();
@@ -453,6 +494,6 @@ void save_user(User *user) {
         exit(1);
     }
 
-    fprintf(file, "%s %s %s\n", user->username, user->password, user->email);
+    fprintf(file, "%s %s %s 0\n", user->username, user->password, user->email);
     fclose(file);
 }
