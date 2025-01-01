@@ -12,6 +12,7 @@ typedef struct {
 
 char current_user[50] = "";  // نام کاربری وارد شده
 char current_email[50]="";
+char current_pass[50]="";
 int current_score = 0;       // امتیاز بازیکن
 int is_logged_in = 0;        // وضعیت ورود
 
@@ -31,6 +32,8 @@ void continue_last_game();
 void show_score_table();
 void show_profile_status();
 void settings_menu();
+void select_difficulty(int *current_difficulty);
+void change_character_color(int *current_color);
 
 void main_menu();
 
@@ -203,6 +206,7 @@ void menu_log_in() {
             if (strcmp(user.username, username) == 0 && strcmp(user.password, password) == 0) {
                 valid = 1;
                 strcpy(current_email, user.email);
+                strcpy(current_pass, user.password);
                 current_score = user.score;
                 break;
             }
@@ -347,35 +351,88 @@ void show_profile_status() {
         mvprintw(1, 1, "Profile Status:");
         mvprintw(3, 1, "Username: %s", current_user);
         mvprintw(4, 1, "Email: %s",current_email);
-        mvprintw(5, 1, "Score: %d", current_score);
+        mvprintw(5, 1, "password: %s",current_pass);
+        mvprintw(6, 1, "Score: %d", current_score);
     }
     mvprintw(7, 1, "Press any key to return.");
     getch();
 }
 
 void settings_menu() {
-    char *difficulty_levels[] = {
-        "Easy",
-        "Medium",
-        "Hard",
-        "Back"
+    char *settings_items[] = {
+        "Select Difficulty Level",
+        "Change Character Color",
+        "Back to Play Menu"
     };
-    int n_levels = sizeof(difficulty_levels) / sizeof(difficulty_levels[0]);
+    int n_items = sizeof(settings_items) / sizeof(settings_items[0]);
     int choice = 0;
     int key;
-    static int current_difficulty = 0;
+
+    static int current_difficulty = 0; // پیش‌فرض: آسان
+    static int current_color = 1;      // پیش‌فرض: سفید
 
     while (1) {
         clear();
-        mvprintw(0, 1, "Settings - Select Difficulty");
+        mvprintw(0, 1, "Settings Menu");
+
+        for (int i = 0; i < n_items; i++) {
+            if (i == choice)
+                attron(A_REVERSE);
+            mvprintw(i + 2, 1, "%s", settings_items[i]);
+            if (i == choice)
+                attroff(A_REVERSE);
+        }
+
+        key = getch();
+
+        switch (key) {
+            case KEY_UP:
+                choice = (choice - 1 + n_items) % n_items;
+                break;
+            case KEY_DOWN:
+                choice = (choice + 1) % n_items;
+                break;
+            case '\n':
+                switch (choice) {
+                    case 0: // تنظیم درجه سختی
+                        select_difficulty(&current_difficulty);
+                        break;
+                    case 1: // تغییر رنگ شخصیت اصلی
+                        change_character_color(&current_color);
+                        break;
+                    case 2: // بازگشت به منوی اصلی
+                        return;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void select_difficulty(int *current_difficulty) {
+    char *difficulty_levels[] = {
+        "Easy",
+        "Medium",
+        "Hard"
+    };
+    int n_levels = sizeof(difficulty_levels) / sizeof(difficulty_levels[0]);
+    int choice = *current_difficulty;
+    int key;
+
+    while (1) {
+        clear();
+        mvprintw(0, 1, "Select Difficulty Level");
 
         for (int i = 0; i < n_levels; i++) {
             if (i == choice)
                 attron(A_REVERSE);
-            mvprintw(i + 2, 1, "%s%s", difficulty_levels[i], (i == current_difficulty) ? " (Selected)" : "");
+            mvprintw(i + 2, 1, "%s%s", difficulty_levels[i], (i == *current_difficulty) ? " (Selected)" : "");
             if (i == choice)
                 attroff(A_REVERSE);
         }
+
+        mvprintw(n_levels + 4, 1, "Press ENTER to confirm, or ESC to cancel.");
 
         key = getch();
 
@@ -387,16 +444,62 @@ void settings_menu() {
                 choice = (choice + 1) % n_levels;
                 break;
             case '\n':
-                if (choice == n_levels - 1) return;
-                current_difficulty = choice;
-                mvprintw(n_levels + 3, 1, "Difficulty set to %s!", difficulty_levels[choice]);
+                *current_difficulty = choice;
+                mvprintw(n_levels + 6, 1, "Difficulty set to %s!", difficulty_levels[choice]);
                 getch();
-                break;
-            default:
-                break;
+                return;
+            case 27: // کلید ESC
+                return;
         }
     }
 }
+
+void change_character_color(int *current_color) {
+    char *colors[] = {
+        "White",
+        "Red",
+        "Green",
+        "Blue",
+        "Yellow"
+    };
+    int n_colors = sizeof(colors) / sizeof(colors[0]);
+    int choice = *current_color;
+    int key;
+
+    while (1) {
+        clear();
+        mvprintw(0, 1, "Change Character Color");
+
+        for (int i = 0; i < n_colors; i++) {
+            if (i == choice)
+                attron(A_REVERSE);
+            mvprintw(i + 2, 1, "%s%s", colors[i], (i == *current_color) ? " (Selected)" : "");
+            if (i == choice)
+                attroff(A_REVERSE);
+        }
+
+        mvprintw(n_colors + 4, 1, "Press ENTER to confirm, or ESC to cancel.");
+
+        key = getch();
+
+        switch (key) {
+            case KEY_UP:
+                choice = (choice - 1 + n_colors) % n_colors;
+                break;
+            case KEY_DOWN:
+                choice = (choice + 1) % n_colors;
+                break;
+            case '\n':
+                *current_color = choice;
+                mvprintw(n_colors + 6, 1, "Color set to %s!", colors[choice]);
+                getch();
+                return;
+            case 27: // کلید ESC
+                return;
+        }
+    }
+}
+
 
 
 void menu_profile() {
