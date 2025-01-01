@@ -24,6 +24,11 @@ void save_user(User *user);
 int username_check(char *username);
 int pass_check(char *password);
 int email_check(char *email);
+void start_new_game();
+void continue_last_game();
+void show_score_table();
+void show_profile_status();
+void settings_menu();
 
 void main_menu();
 
@@ -57,9 +62,8 @@ void main_menu() {
 
     while (1) {
         clear();
-        getmaxyx(stdscr, rows, cols); // دریافت اندازه صفحه
+        getmaxyx(stdscr, rows, cols);
 
-        // نمایش منو
         for (int i = 0; i < n_items; i++) {
             if (i == choice)
                 attron(A_REVERSE);
@@ -68,7 +72,6 @@ void main_menu() {
                 attroff(A_REVERSE);
         }
 
-        // نمایش اطلاعات کاربر وارد شده در پایین صفحه
         if (is_logged_in) {
             mvprintw(rows - 1, 1, "Logged in as: %s | Score: %d", current_user, current_score);
         } else {
@@ -223,10 +226,137 @@ void menu_log_in() {
 
 
 void menu_play_game() {
-    mvprintw(1, 1, "Play game menu");
-    mvprintw(3, 1, "Press any key to return to the main menu...");
+    char *play_menu_items[] = {
+        "New Game",
+        "Continue Your Last Game",
+        "Score Table",
+        "Profile Status",
+        "Settings",
+        "Back to Main Menu"
+    };
+    int n_items = sizeof(play_menu_items) / sizeof(play_menu_items[0]);
+    int choice = 0;
+    int key;
+
+    while (1) {
+        clear();
+
+        mvprintw(0, 1, "Play Game Menu");
+
+        for (int i = 0; i < n_items; i++) {
+            if (i == choice)
+                attron(A_REVERSE);
+            mvprintw(i + 2, 1, "%s", play_menu_items[i]);
+            if (i == choice)
+                attroff(A_REVERSE);
+        }
+
+        key = getch();
+
+        switch (key) {
+            case KEY_UP:
+                choice = (choice - 1 + n_items) % n_items;
+                break;
+            case KEY_DOWN:
+                choice = (choice + 1) % n_items;
+                break;
+            case '\n':
+                switch (choice) {
+                    case 0: start_new_game(); break;
+                    case 1: continue_last_game(); break;
+                    case 2: show_score_table(); break;
+                    case 3: show_profile_status(); break;
+                    case 4: settings_menu(); break;
+                    case 5: return;  // بازگشت به منوی اصلی
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void start_new_game() {
+    clear();
+    mvprintw(1, 1, "Starting a new game...");
+    mvprintw(3, 1, "Press any key to return.");
     getch();
 }
+
+void continue_last_game() {
+    clear();
+    mvprintw(1, 1, "Continuing your last game...");
+    mvprintw(3, 1, "Press any key to return.");
+    getch();
+}
+
+void show_score_table() {
+    clear();
+    mvprintw(1, 1, "Score Table:");
+    mvprintw(3, 1, "Feature not implemented yet.");
+    mvprintw(5, 1, "Press any key to return.");
+    getch();
+}
+
+void show_profile_status() {
+    clear();
+    if (!is_logged_in) {
+        mvprintw(1, 1, "You are not logged in!");
+    } else {
+        mvprintw(1, 1, "Profile Status:");
+        mvprintw(3, 1, "Username: %s", current_user);
+        mvprintw(4, 1, "Email: [Not Available in File]");
+        mvprintw(5, 1, "Score: %d", current_score);
+    }
+    mvprintw(7, 1, "Press any key to return.");
+    getch();
+}
+
+void settings_menu() {
+    char *difficulty_levels[] = {
+        "Easy",
+        "Medium",
+        "Hard",
+        "Back"
+    };
+    int n_levels = sizeof(difficulty_levels) / sizeof(difficulty_levels[0]);
+    int choice = 0;
+    int key;
+    static int current_difficulty = 0; // پیش‌فرض Easy
+
+    while (1) {
+        clear();
+        mvprintw(0, 1, "Settings - Select Difficulty");
+
+        for (int i = 0; i < n_levels; i++) {
+            if (i == choice)
+                attron(A_REVERSE);
+            mvprintw(i + 2, 1, "%s%s", difficulty_levels[i], (i == current_difficulty) ? " (Selected)" : "");
+            if (i == choice)
+                attroff(A_REVERSE);
+        }
+
+        key = getch();
+
+        switch (key) {
+            case KEY_UP:
+                choice = (choice - 1 + n_levels) % n_levels;
+                break;
+            case KEY_DOWN:
+                choice = (choice + 1) % n_levels;
+                break;
+            case '\n':
+                if (choice == n_levels - 1) return; // بازگشت
+                current_difficulty = choice;
+                mvprintw(n_levels + 3, 1, "Difficulty set to %s!", difficulty_levels[choice]);
+                getch();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 
 void menu_profile() {
     mvprintw(1, 1, "Profile menu");
