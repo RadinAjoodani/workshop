@@ -1,7 +1,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
-// #include "function.h"
+#include <time.h> 
 
 typedef struct {
     char username[50];
@@ -10,11 +10,15 @@ typedef struct {
     int  score;
 } User;
 
-char current_user[50] = "";  // نام کاربری وارد شده
+typedef struct {
+    int x,y,height,width;
+}Room;
+
+char current_user[50] = "";   
 char current_email[50]="";
 char current_pass[50]="";
-int current_score = 0;       // امتیاز بازیکن
-int is_logged_in = 0;        // وضعیت ورود
+int current_score = 0;        
+int is_logged_in = 0;         
 
 
 void menu_sign_up();
@@ -34,6 +38,11 @@ void show_profile_status();
 void settings_menu();
 void select_difficulty(int *current_difficulty);
 void change_character_color(int *current_color);
+void create_new_map();
+void Play_guest();
+void upload_map();
+int is_overlapping(Room r1, Room r2);
+void draw_room(Room room);
 
 void main_menu();
 
@@ -42,10 +51,7 @@ int main() {
     noecho();       
     cbreak();         
     keypad(stdscr, TRUE); 
-    // curs_set(0);
-
-    main_menu();     
-
+    main_menu();
     endwin();         
     return 0;
 }
@@ -108,8 +114,6 @@ void main_menu() {
         }
     }
 }
-
-
 void menu_sign_up() {
     int sign = 0;
     char username[100],password[50],email[50];
@@ -231,13 +235,11 @@ void menu_log_in() {
         }
     }
 }
-
-
-
 void menu_play_game() {
     char *play_menu_items[] = {
         "New Game",
         "Continue Your Last Game",
+        "Play as a guest",
         "Score Table",
         "Profile Status",
         "Settings",
@@ -273,10 +275,11 @@ void menu_play_game() {
                 switch (choice) {
                     case 0: start_new_game(); break;
                     case 1: continue_last_game(); break;
-                    case 2: show_score_table(); break;
-                    case 3: show_profile_status(); break;
-                    case 4: settings_menu(); break;
-                    case 5: return;
+                    case 2: Play_guest(); break;
+                    case 3: show_score_table(); break;
+                    case 4: show_profile_status(); break;
+                    case 5: settings_menu(); break;
+                    case 6: return;
                 }
                 break;
             default:
@@ -284,21 +287,22 @@ void menu_play_game() {
         }
     }
 }
-
 void start_new_game() {
     clear();
-    mvprintw(1, 1, "Starting a new game...");
-    mvprintw(3, 1, "Press any key to return.");
-    getch();
+    initscr();
+    create_new_map();
 }
-
+void Play_guest(){
+    clear();
+    initscr();
+    create_new_map();
+}
 void continue_last_game() {
     clear();
     mvprintw(1, 1, "Continuing your last game...");
     mvprintw(3, 1, "Press any key to return.");
     getch();
 }
-
 void show_score_table() {
     clear();
     mvprintw(1, 1, "Score Table:");
@@ -341,8 +345,6 @@ void show_score_table() {
     mvprintw(5 + user_count, 1, "Press any key to return.");
     getch();
 }
-
-
 void show_profile_status() {
     clear();
     if (!is_logged_in) {
@@ -357,7 +359,6 @@ void show_profile_status() {
     mvprintw(7, 1, "Press any key to return.");
     getch();
 }
-
 void settings_menu() {
     char *settings_items[] = {
         "Select Difficulty Level",
@@ -368,8 +369,8 @@ void settings_menu() {
     int choice = 0;
     int key;
 
-    static int current_difficulty = 0; // پیش‌فرض: آسان
-    static int current_color = 1;      // پیش‌فرض: سفید
+    static int current_difficulty = 0;  
+    static int current_color = 1;       
 
     while (1) {
         clear();
@@ -394,13 +395,13 @@ void settings_menu() {
                 break;
             case '\n':
                 switch (choice) {
-                    case 0: // تنظیم درجه سختی
+                    case 0:  
                         select_difficulty(&current_difficulty);
                         break;
-                    case 1: // تغییر رنگ شخصیت اصلی
+                    case 1:  
                         change_character_color(&current_color);
                         break;
-                    case 2: // بازگشت به منوی اصلی
+                    case 2:  
                         return;
                 }
                 break;
@@ -409,7 +410,6 @@ void settings_menu() {
         }
     }
 }
-
 void select_difficulty(int *current_difficulty) {
     char *difficulty_levels[] = {
         "Easy",
@@ -448,12 +448,11 @@ void select_difficulty(int *current_difficulty) {
                 mvprintw(n_levels + 6, 1, "Difficulty set to %s!", difficulty_levels[choice]);
                 getch();
                 return;
-            case 27: // کلید ESC
+            case 27:  
                 return;
         }
     }
 }
-
 void change_character_color(int *current_color) {
     char *colors[] = {
         "White",
@@ -494,31 +493,25 @@ void change_character_color(int *current_color) {
                 mvprintw(n_colors + 6, 1, "Color set to %s!", colors[choice]);
                 getch();
                 return;
-            case 27: // کلید ESC
+            case 27:  
                 return;
         }
     }
 }
-
-
-
 void menu_profile() {
     mvprintw(1, 1, "Profile menu");
     mvprintw(3, 1, "Press any key to return to the main menu...");
     getch();
 }
-
 void menu_scores() {
     mvprintw(1, 1, "Scores menu");
     mvprintw(3, 1, "Press any key to return to the main menu...");
     getch();
 }
-
 void menu_exit() {
     mvprintw(1, 1, "Exiting the program...");
     getch();
 }
-
 int username_check(char *username){
     FILE *fptr = fopen("users.txt","r");
     if (fptr == NULL) {
@@ -534,7 +527,6 @@ int username_check(char *username){
     fclose(fptr);
     return 0;
 }
-
 int pass_check(char *password){
     int sign1=0;
     int sign2=0;
@@ -558,7 +550,6 @@ int pass_check(char *password){
     }
     return sign1 && sign2 && sign3 && sign4;
 }
-
 int email_check(char *email){
     int sign1=0;
     int sign2=0;
@@ -589,7 +580,6 @@ int email_check(char *email){
     }
     return sign1 && sign2 && sign3;
 }
-
 void save_user(User *user) {
     FILE *file = fopen("users.txt", "a");
     if (!file) {
@@ -599,4 +589,103 @@ void save_user(User *user) {
 
     fprintf(file, "%s %s %s 0\n", user->username, user->password, user->email);
     fclose(file);
+}
+void create_new_map(){
+        curs_set(0);
+
+    srand(time(NULL));
+
+    Room rooms[6];
+    int room_count = 0;
+
+    while (room_count < 6) {
+        int width = (rand() % 5) + 5;
+        int height = (rand() % 5) + 5;
+        int x = rand() % (LINES - height - 3) + 3;
+        int y = rand() % (COLS - width - 3) + 3;
+        if (width > COLS - 2) {
+            width = COLS - 2;
+        }
+        if (height > LINES - 2) {
+            height = LINES - 2;
+        }
+
+        Room new_room = {x, y, width, height};
+        int overlap = 0;
+        for (int i = 0; i < room_count; i++) {
+            if (is_overlapping(rooms[i], new_room)) {
+                overlap = 1;
+                break;
+            }
+        }
+
+        if (!overlap) {
+            rooms[room_count++] = new_room;
+            draw_room(new_room);
+        }
+    }
+    getch();
+}
+int is_overlapping(Room r1, Room r2) {
+    return !((r1.x + r1.height + 3 <= r2.x) ||
+             (r2.x + r2.height + 3 <= r1.x) ||
+             (r1.y + r1.width + 3 <= r2.y)  ||
+             (r2.y + r2.width + 3 <= r1.y));  
+}
+void draw_room(Room room) {
+    for (int i = room.x; i < room.x + room.height; i++) {
+        mvprintw(i, room.y -1, "|");
+        mvprintw(i, room.y + room.width, "|");
+    }
+    for (int i = room.x; i < room.x + room.height; i++) {
+        for (int j = room.y + 1; j < room.y + room.width; j++) {
+            mvprintw(i, j, ".");
+        }
+    }
+    for (int i = room.y; i < room.y + room.width; i++) {
+        mvprintw(room.x - 1, i, "_");
+        mvprintw(room.x + room.height, i, "_");
+    }
+    int num_columns = (rand() % 3) + 1;   
+    for (int i = 0; i < num_columns; i++) {
+        int col_x = rand() % room.height + room.x;
+        int col_y = rand() % (room.width - 1) + room.y + 1;
+        mvprintw(col_x, col_y, "O");
+    }
+
+      
+int num_windows = (rand() % 3);
+for (int i = 0; i < num_windows; i++) {
+    int wall = rand() % 4; 
+    if (wall == 0) {
+        int win_y = rand() % (room.width - 1) + room.y;
+        mvprintw(room.x - 1, win_y, "=");
+    } else if (wall == 1) {
+        int win_y = rand() % (room.width - 1) + room.y;
+        mvprintw(room.x + room.height, win_y, "=");
+    } else if (wall == 2) {
+        int win_x = rand() % (room.height) + room.x;
+        mvprintw(win_x, room.y-1, "=");
+    } else if (wall == 3) {
+        int win_x = rand() % (room.height) + room.x;
+        mvprintw(win_x, room.y + room.width, "=");
+    }
+}
+
+
+      
+    int door_wall = rand() % 3;   
+    if (door_wall == 0) {   
+        int door_y = rand() % (room.width - 1) + room.y + 1;
+        mvprintw(room.x - 1, door_y, "+");
+    } else if (door_wall == 1) {   
+        int door_y = rand() % (room.width - 1) + room.y + 1;
+        mvprintw(room.x + room.height, door_y, "+");
+    } else if (door_wall == 2) {   
+        int door_x = rand() % room.height + room.x;
+        mvprintw(door_x, room.y-1, "+");
+    } else if (door_wall == 3) {   
+        int door_x = rand() % room.height + room.x;
+        mvprintw(door_x, room.y + room.width, "+");
+    }
 }
