@@ -14,11 +14,17 @@ typedef struct {
     int x,y,height,width;
 }Room;
 
+typedef struct{
+    int x,y;
+    char color[15];
+}Player;
+
 char current_user[50] = "";   
 char current_email[50]="";
 char current_pass[50]="";
 int current_score = 0;        
-int is_logged_in = 0;         
+int is_logged_in = 0;
+Player player;        
 
 
 void menu_sign_up();
@@ -50,7 +56,11 @@ int main() {
     initscr();        
     noecho();       
     cbreak();         
-    keypad(stdscr, TRUE); 
+    keypad(stdscr, TRUE);
+    start_color();
+    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(2, COLOR_RED, COLOR_BLACK);
+    init_pair(3, COLOR_GREEN, COLOR_BLACK);
     main_menu();
     endwin();         
     return 0;
@@ -74,13 +84,15 @@ void main_menu() {
     while (1) {
         clear();
         getmaxyx(stdscr, rows, cols);
-
+        attron(COLOR_PAIR(3));
+        mvprintw(LINES/2,COLS/2 - 4,"ENJOY THE GAME :)");
+        attroff(COLOR_PAIR(3));
         for (int i = 0; i < n_items; i++) {
             if (i == choice)
-                attron(A_REVERSE);
+                attron(COLOR_PAIR(2));
             mvprintw(i + 1, 1, "%s", menu_items[i]);
             if (i == choice)
-                attroff(A_REVERSE);
+                attroff(COLOR_PAIR(2));
         }
 
         if (is_logged_in) {
@@ -490,6 +502,7 @@ void change_character_color(int *current_color) {
                 break;
             case '\n':
                 *current_color = choice;
+                strcpy(player.color,colors[choice]);
                 mvprintw(n_colors + 6, 1, "Color set to %s!", colors[choice]);
                 getch();
                 return;
