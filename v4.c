@@ -12,6 +12,7 @@ typedef struct {
 
 typedef struct {
     int x,y,height,width;
+    int door_x, door_y; 
 }Room;
 
 typedef struct{
@@ -48,8 +49,9 @@ void create_new_map();
 void Play_guest();
 void upload_map();
 int is_overlapping(Room r1, Room r2);
-void draw_room(Room room);
-
+void draw_room(Room *room);
+void draw_player(Player *player);
+void move_player(Player *player, Room *room, int dx, int dy);
 void main_menu();
 
 int main() {
@@ -604,27 +606,25 @@ void save_user(User *user) {
     fclose(file);
 }
 void create_new_map(){
-        curs_set(0);
+    initscr();
+    noecho();
+    curs_set(0);
 
     srand(time(NULL));
 
     Room rooms[6];
     int room_count = 0;
 
+     
     while (room_count < 6) {
-        int width = (rand() % 5) + 5;
-        int height = (rand() % 5) + 5;
+        int width = (rand() % 6) + 4;   
+        int height = (rand() % 6) + 4;  
         int x = rand() % (LINES - height - 3) + 3;
         int y = rand() % (COLS - width - 3) + 3;
-        if (width > COLS - 2) {
-            width = COLS - 2;
-        }
-        if (height > LINES - 2) {
-            height = LINES - 2;
-        }
 
-        Room new_room = {x, y, width, height};
+        Room new_room = {x, y, width, height, -1, -1};
         int overlap = 0;
+
         for (int i = 0; i < room_count; i++) {
             if (is_overlapping(rooms[i], new_room)) {
                 overlap = 1;
@@ -634,10 +634,34 @@ void create_new_map(){
 
         if (!overlap) {
             rooms[room_count++] = new_room;
-            draw_room(new_room);
+            draw_room(&new_room);
         }
     }
-    getch();
+
+     
+    int room_index = rand() % room_count;
+    Player player = {rooms[room_index].x + 1, rooms[room_index].y + 1};
+    draw_player(&player);
+
+    refresh();
+
+     
+    int ch;
+    while ((ch = getch()) != 'q') {
+        mvprintw(player.x, player.y, ".");  
+        switch (ch) {
+            case '2': move_player(&player, &rooms[room_index], 1, 0); break;   
+            case '8': move_player(&player, &rooms[room_index], -1, 0); break;  
+            case '4': move_player(&player, &rooms[room_index], 0, -1); break;  
+            case '6': move_player(&player, &rooms[room_index], 0, 1); break;   
+            case '7': move_player(&player, &rooms[room_index], -1, -1); break;  
+            case '9': move_player(&player, &rooms[room_index], -1, 1); break;   
+            case '1': move_player(&player, &rooms[room_index], 1, -1); break;   
+            case '3': move_player(&player, &rooms[room_index], 1, 1); break;    
+        }
+        draw_player(&player);  
+        refresh();
+    }
 }
 int is_overlapping(Room r1, Room r2) {
     return !((r1.x + r1.height + 3 <= r2.x) ||
@@ -645,60 +669,97 @@ int is_overlapping(Room r1, Room r2) {
              (r1.y + r1.width + 3 <= r2.y)  ||
              (r2.y + r2.width + 3 <= r1.y));  
 }
-void draw_room(Room room) {
-    for (int i = room.x; i < room.x + room.height; i++) {
-        mvprintw(i, room.y -1, "|");
-        mvprintw(i, room.y + room.width, "|");
+void draw_room(Room *room) {
+     
+    for (int i = room->x; i < room->x + room->height; i++) {
+        mvprintw(i, room->y, "|");
+        mvprintw(i, room->y + room->width, "|");
     }
-    for (int i = room.x; i < room.x + room.height; i++) {
-        for (int j = room.y + 1; j < room.y + room.width; j++) {
+
+     
+    for (int i = room->y; i < room->y + room->width; i++) {
+        mvprintw(room->x - 1, i, "--");
+        mvprintw(room->x + room->height, i, "--");
+    }
+
+     
+    for (int i = room->x; i < room->x + room->height; i++) {
+        for (int j = room->y + 1; j < room->y + room->width; j++) {
             mvprintw(i, j, ".");
         }
     }
-    for (int i = room.y; i < room.y + room.width; i++) {
-        mvprintw(room.x - 1, i, "_");
-        mvprintw(room.x + room.height, i, "_");
-    }
-    int num_columns = (rand() % 3) + 1;   
-    for (int i = 0; i < num_columns; i++) {
-        int col_x = rand() % room.height + room.x;
-        int col_y = rand() % (room.width - 1) + room.y + 1;
+
+     
+    int column_count = (rand() % 2);  
+    for (int i = 0; i < column_count; i++) {
+        int col_x = rand() % (room->height - 1) + room->x;
+        int col_y = rand() % (room->width - 1) + room->y + 1;
         mvprintw(col_x, col_y, "O");
     }
 
-      
-int num_windows = (rand() % 3);
-for (int i = 0; i < num_windows; i++) {
-    int wall = rand() % 4; 
-    if (wall == 0) {
-        int win_y = rand() % (room.width - 1) + room.y;
-        mvprintw(room.x - 1, win_y, "=");
-    } else if (wall == 1) {
-        int win_y = rand() % (room.width - 1) + room.y;
-        mvprintw(room.x + room.height, win_y, "=");
-    } else if (wall == 2) {
-        int win_x = rand() % (room.height) + room.x;
-        mvprintw(win_x, room.y-1, "=");
-    } else if (wall == 3) {
-        int win_x = rand() % (room.height) + room.x;
-        mvprintw(win_x, room.y + room.width, "=");
+     
+    int window_count = (rand() % 3) + 2;  
+    for (int i = 0; i < window_count; i++) {
+        int wall = rand() % 4;
+        if (wall == 0) {  
+            int wx = room->x - 1;
+            int wy = rand() % (room->width - 1) + room->y;
+            mvprintw(wx, wy, "=");
+        } else if (wall == 1) {  
+            int wx = room->x + room->height;
+            int wy = rand() % (room->width - 1) + room->y;
+            mvprintw(wx, wy, "=");
+        } else if (wall == 2) {  
+            int wx = rand() % (room->height - 1) + room->x;
+            int wy = room->y;
+            mvprintw(wx, wy, "=");
+        } else {  
+            int wx = rand() % (room->height - 1) + room->x;
+            int wy = room->y + room->width;
+            mvprintw(wx, wy, "=");
+        }
+    }
+
+     
+    int door_wall = rand() % 4;  
+    if (door_wall == 0) {  
+        room->door_y = rand() % (room->width - 1) + room->y;
+        room->door_x = room->x - 1;
+        mvprintw(room->door_x, room->door_y, "+");
+    } else if (door_wall == 1) {  
+        room->door_y = rand() % (room->width - 1) + room->y;
+        room->door_x = room->x + room->height;
+        mvprintw(room->door_x, room->door_y, "+");
+    } else if (door_wall == 2) {  
+        room->door_x = rand() % (room->height) + room->x;
+        room->door_y = room->y;
+        mvprintw(room->door_x, room->door_y, "+");
+    } else if (door_wall == 3) {  
+        room->door_x = rand() % (room->height) + room->x;
+        room->door_y = room->y + room->width;
+        mvprintw(room->door_x, room->door_y, "+");
     }
 }
+void draw_player(Player *player) {
+    mvprintw(player->x, player->y, "@");
+}
+void move_player(Player *player, Room *room, int dx, int dy) {
+    int new_x = player->x + dx;
+    int new_y = player->y + dy;
 
+     
+    char next_char = mvinch(new_x, new_y) & A_CHARTEXT;
 
-      
-    int door_wall = rand() % 3;   
-    if (door_wall == 0) {   
-        int door_y = rand() % (room.width - 1) + room.y + 1;
-        mvprintw(room.x - 1, door_y, "+");
-    } else if (door_wall == 1) {   
-        int door_y = rand() % (room.width - 1) + room.y + 1;
-        mvprintw(room.x + room.height, door_y, "+");
-    } else if (door_wall == 2) {   
-        int door_x = rand() % room.height + room.x;
-        mvprintw(door_x, room.y-1, "+");
-    } else if (door_wall == 3) {   
-        int door_x = rand() % room.height + room.x;
-        mvprintw(door_x, room.y + room.width, "+");
+     
+    if (next_char == '.' || next_char == '+') {
+        player->x = new_x;
+        player->y = new_y;
+    } else if (next_char == '|') {
+         
+        if ((new_x == room->door_x && new_y == room->door_y) ||
+            (abs(new_x - room->door_x) + abs(new_y - room->door_y) == 1)) {
+            player->x = new_x;
+            player->y = new_y;
+        }
     }
 }
