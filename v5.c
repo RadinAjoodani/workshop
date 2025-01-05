@@ -24,6 +24,7 @@ typedef struct{
 
 Player l_player;
 User l_user;
+User s_user;
 int is_logged_in=0;
 
 void main_menu();
@@ -36,7 +37,7 @@ void play_game();
 void show_table();
 void profile();
 void eexit();
-void save_user(User *user);
+void save_user();
 void play_as_guest();
 void start_new_game();
 void continue_last_game();
@@ -45,10 +46,15 @@ void show_profile_status();
 void settings_menu();
 void start_new_game();
 void continue_last_game();
-void show_profile_status();
+void show_profile_status(); 
 void select_difficulty(int *current_difficulty);
 void change_character_color(int *current_color);
-void save_information(User user);
+int create_level1();
+int create_level2();
+int create_level3();
+int create_level4();
+int create_room();
+// void save_information(User user);
 
 int main(){
     initscr();        
@@ -86,7 +92,8 @@ void main_menu(){
         clear();
         getmaxyx(stdscr, rows, cols);
         attron(COLOR_PAIR(3));
-        mvprintw(LINES/2,COLS/2 - 4,"ENJOY THE GAME :)");
+        mvprintw(LINES/2,COLS/2-10,"ENJOY THE GAME :)");
+        mvprintw(LINES/2,1,"%d %d",LINES,COLS);
         attroff(COLOR_PAIR(3));
         for (int i = 0; i < n_items; i++) {
             if (i == choice)
@@ -129,7 +136,6 @@ void main_menu(){
     }
 }
 void sign_up(){
-    User s_user;
     int sign=0;
     attron(COLOR_PAIR(3));
     mvprintw(1, 1, "Sign up menu");
@@ -185,11 +191,14 @@ void sign_up(){
                 sign++;
                 break;
             }
+            s_user.game=0;
+            s_user.gold=0;
+            s_user.score=0;
             strcpy(s_user.difficulty,"Easy");
             strcpy(s_user.color,"White");
         }
         if(sign==3){
-            save_user(&s_user);
+            save_user();
             mvprintw(11,1,"ACCOUNT CREATED SUCCESSFULLY");
             mvprintw(12,1,"press Enter to return to menu");
             while(1){
@@ -376,7 +385,7 @@ void play_game(){
                     break;
                     case 1: continue_last_game(); break;
                     case 2: show_table(); break;
-                    case 3: show_profile_status(); break;
+                    case 3: profile(); break;
                     case 4: settings_menu(); break;
                     case 5: return;
                 }
@@ -403,7 +412,7 @@ void show_table(){
     User users[100];
     int user_count = 0;
 
-    while (fscanf(file, "%s %s %s %d %d %d", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score,&users[user_count].gold,&users[user_count].game) != EOF) {
+    while (fscanf(file, "%s %s %s %d %d %d %s %s", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score,&users[user_count].gold,&users[user_count].game,users[user_count].color,users[user_count].difficulty) != EOF) {
         user_count++;
     }
     fclose(file);
@@ -482,24 +491,18 @@ void profile(){
     }
 }
 void eexit(){
-    mvprintw(1,1,"%s",l_user.username);
-    mvprintw(2,1,"%s",l_user.password);
-    mvprintw(3,1,"%s",l_user.email);
-    mvprintw(4,1,"%d",l_user.score);
-    mvprintw(5,1,"%d",l_user.gold);
-    mvprintw(6,1,"%s",l_user.difficulty);
-    mvprintw(7,1,"%s",l_user.color);
-    save_information(l_user);
     mvprintw(22,90,"GOODBYE!");
+    getch();
+    return;
 }
-void save_user(User *user) {
+void save_user() {
     FILE *file = fopen("users.txt", "a");
     if (!file) {
         perror("Error opening file");
         exit(1);
     }
 
-    fprintf(file, "%s %s %s %d %d %d %s %s\n", user->username, user->password, user->email, user->score,user->gold,user->game,user->color,user->difficulty);
+    fprintf(file, "%s %s %s %d %d %d %s %s\n", s_user.username, s_user.password, s_user.email, s_user.score,s_user.gold,s_user.game,s_user.color,s_user.difficulty);
     fclose(file);
 }
 void settings_menu() {
@@ -644,46 +647,63 @@ void change_character_color(int *current_color) {
     }
 }
 void start_new_game(){
-
+    clear();
+    while(1){
+        create_level1();
+    }
+    getch();
 }
 void continue_last_game(){
 
 }
-void show_profile_status(){
+int create_level1(){
+    mvprintw(1,1,"%s %s",l_user.difficulty,l_user.color);
+    getch();
+}
+int create_level2(){
+    create_level3();
+}
+int create_level3(){
+    create_level4();
+}
+int create_level4(){
 
 }
-void save_information(User user){
-    FILE *reed=fopen("users.txt","r");
-    FILE *write=fopen("temp.txt", "w");
-    char buffer[1024];
-    int found = 0;
+int create_room(){
 
-    while (fgets(buffer, sizeof(buffer), reed) != NULL) {
-        char currentUsername[256], currentPassword[256], currentEmail[256],currentcolor[256],currentdifficulty[256];
-        int field1, field2, field3;
+}
+// void save_information(User user){
+//     FILE *reed=fopen("users.txt","r");
+//     FILE *write=fopen("temp.txt", "w");
+//     char buffer[1024];
+//     int found = 0;
+
+//     while (fgets(buffer, sizeof(buffer), reed) != NULL) {
+//         char currentUsername[256], currentPassword[256], currentEmail[256],currentcolor[256],currentdifficulty[256];
+//         int field1, field2, field3;
 
          
-        if (sscanf(buffer, "%s %s %s %d %d %d %s %s", currentUsername, currentPassword, currentEmail, &field1, &field2, &field3, currentcolor, currentdifficulty) == 8) {
-            if (strcmp(currentUsername, l_user.username) == 0) {
+//         if (sscanf(buffer, "%s %s %s %d %d %d %s %s", currentUsername, currentPassword, currentEmail, &field1, &field2, &field3, currentcolor, currentdifficulty) == 8) {
+//             if (strcmp(currentUsername, l_user.username) == 0) {
                  
-                fprintf(write, "%s %s %s %d %d %d %s %s\n", l_user.username, l_user.password, l_user.email, l_user.score, l_user.gold, l_user.game,l_user.color, l_user.difficulty);
-                found = 1;
-            } else {
+//                 fprintf(write, "%s %s %s %d %d %d %s %s\n", l_user.username, l_user.password, l_user.email, l_user.score, l_user.gold, l_user.game,l_user.color, l_user.difficulty);
+//                 found = 1;
+//             } else {
                  
-                fprintf(write, "%s", buffer);
-            }
-        } else {
+//                 fprintf(write, "%s", buffer);
+//             }
+//         } else {
              
-            fprintf(write, "%s", buffer);
-        }
-    }
+//             fprintf(write, "%s", buffer);
+//         }
+//     }
 
-    fclose(reed);
-    fclose(write);
-    if (!found) {
-    } else {
-        if (remove("users.txt") != 0 || rename("temp.txt", "users.txt") != 0) {
-            exit(EXIT_FAILURE);
-        }
-    }
-}
+//     fclose(reed);
+//     fclose(write);
+//     if (!found) {
+//     } else {
+//         if (remove("users.txt") != 0 || rename("temp.txt", "users.txt") != 0) {
+//             exit(EXIT_FAILURE);
+//         }
+//     }
+// }
