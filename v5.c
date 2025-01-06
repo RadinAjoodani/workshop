@@ -1,6 +1,7 @@
 #include<ncurses.h>
 #include<string.h>
 #include<stdlib.h>
+#include <time.h>
 
 typedef struct{
     char password[50];
@@ -19,8 +20,14 @@ typedef struct{
 typedef struct{
     int x,y;
     int color;
-    int difficulty;
+    char* difficulty;
 }Player;
+
+typedef struct {
+    int x,y,height,width;
+    int door_x, door_y; 
+}Room;
+
 
 Player l_player;
 User l_user;
@@ -53,7 +60,10 @@ int create_level1();
 int create_level2();
 int create_level3();
 int create_level4();
-int create_room();
+void create_rooms(char* difficulty);
+void draw_room(Room *room);
+int is_overlapping(Room r1, Room r2);
+void create_corridor();
 // void save_information(User user);
 
 int main(){
@@ -75,13 +85,13 @@ int main(){
 void main_menu(){
     curs_set(0);
     char *menu_items[] = {
-        "Sign up",
-        "Log in",
-        "Play game",
-        "Play as a guest",
-        "Profile",
-        "Scores",
-        "Exit"
+        "         Sign up",
+        "         Log in",
+        "        Play game",
+        "     Play as a guest",
+        "         Profile",
+        "         Scores",
+        "          Exit"
     };
     int n_items = sizeof(menu_items) / sizeof(menu_items[0]);
     int choice = 0;
@@ -92,13 +102,12 @@ void main_menu(){
         clear();
         getmaxyx(stdscr, rows, cols);
         attron(COLOR_PAIR(3));
-        mvprintw(LINES/2,COLS/2-10,"ENJOY THE GAME :)");
-        mvprintw(LINES/2,1,"%d %d",LINES,COLS);
+        mvprintw(1,COLS/2-10,"ENJOY THE GAME :)");
         attroff(COLOR_PAIR(3));
         for (int i = 0; i < n_items; i++) {
             if (i == choice)
                 attron(COLOR_PAIR(2));
-            mvprintw(i + 1, 1, "%s", menu_items[i]);
+            mvprintw(rows/2+i-5, cols/2-15, "%s", menu_items[i]);
             if (i == choice)
                 attroff(COLOR_PAIR(2));
         }
@@ -138,55 +147,55 @@ void main_menu(){
 void sign_up(){
     int sign=0;
     attron(COLOR_PAIR(3));
-    mvprintw(1, 1, "Sign up menu");
+    mvprintw(LINES/2-10, COLS/2-15, "Sign up menu");
     attroff(COLOR_PAIR(3));
     attron(COLOR_PAIR(1));
         while(1){
-            mvprintw(2, 1, "Enter your username: ");
+            mvprintw(LINES/2-9, COLS/2-15, "Enter your username: ");
             clrtoeol();
             echo();
             getstr(s_user.username);
             noecho();
 
             if(username_check(s_user.username)){
-                mvprintw(3, 1, "Username already exists. Try again.");
+                mvprintw(LINES/2-8, COLS/2-15, "Username already exists. Try again.");
                 clrtoeol();
             } else {
-                mvprintw(3, 1, "Username is ok");
+                mvprintw(LINES/2-8, COLS/2-15, "Username is ok");
                 clrtoeol();
                 sign++;
                 break;
             }
         }
         while(1){
-            mvprintw(5, 1, "Enter your password: ");
+            mvprintw(LINES/2-7, COLS/2-15, "Enter your password: ");
             clrtoeol();
             echo();
             getstr(s_user.password);
             noecho();
 
             if(!pass_check(s_user.password)){
-                mvprintw(6, 1, "Password does not meet requirements. Try again.");
+                mvprintw(LINES/2-6, COLS/2-15, "Password does not meet requirements. Try again.");
                 clrtoeol();
             } else {
-                mvprintw(6, 1, "Password is ok");
+                mvprintw(LINES/2-6, COLS/2-15, "Password is ok");
                 clrtoeol();
                 sign++;
                 break;
             }
         }
         while(1){
-            mvprintw(8, 1, "Enter your email: ");
+            mvprintw(LINES/2-5, COLS/2-15, "Enter your email: ");
             clrtoeol();
             echo();
             getstr(s_user.email);
             noecho();
 
             if(!email_check(s_user.email)){
-                mvprintw(9, 1, "Email format is incorrect. Try again.");
+                mvprintw(LINES/2-4, COLS/2-15, "Email format is incorrect. Try again.");
                 clrtoeol();
             } else {
-                mvprintw(9, 1, "Email is ok");
+                mvprintw(LINES/2-4, COLS/2-15, "Email is ok");
                 clrtoeol();
                 sign++;
                 break;
@@ -199,8 +208,8 @@ void sign_up(){
         }
         if(sign==3){
             save_user();
-            mvprintw(11,1,"ACCOUNT CREATED SUCCESSFULLY");
-            mvprintw(12,1,"press Enter to return to menu");
+            mvprintw(LINES/2-1, COLS/2-15,"ACCOUNT CREATED SUCCESSFULLY");
+            mvprintw(LINES/2, COLS/2-15,"press Enter to return to menu");
             while(1){
                 if(getch()=='\n'){
                     break;
@@ -459,6 +468,7 @@ void show_table(){
     getch();
 }
 void profile(){
+    clear();
     if(is_logged_in){
         while(1){
             attron(COLOR_PAIR(4));
@@ -657,7 +667,11 @@ void continue_last_game(){
 
 }
 int create_level1(){
-    mvprintw(1,1,"%s %s",l_user.difficulty,l_user.color);
+    clear();
+    curs_set(0);
+    srand(time(NULL));
+    create_rooms(l_user.difficulty);
+    create_corridor();
     getch();
 }
 int create_level2(){
@@ -669,7 +683,111 @@ int create_level3(){
 int create_level4(){
 
 }
-int create_room(){
+void create_rooms(char* difficulty){
+    clear();
+    int col,row;
+    getmaxyx(stdscr,row,col);
+    srand(time(NULL));
+    if(strcmp(l_user.difficulty,"Easy")==0){
+        int room_num = rand()%(9-6+1)+6;
+        Room rooms[room_num];
+        int counter = 0;
+        while(counter<room_num){
+            Room room;
+            room.x = rand () % (row-19)+9;
+            room.y = rand () % (col-19)+9;
+            room.height = rand()%(8-4+1)+4;
+            room.width = rand()%(8-4+1)+4;
+            int door_wall = rand() % 4;  
+            int overlap = 0;
+            if (door_wall == 0) {  
+                room.door_y = rand() % (room.width - 1) + room.y;
+                room.door_x = room.x - 1;
+            } else if (door_wall == 1) {  
+                room.door_y = rand() % (room.width - 1) + room.y;
+                room.door_x = room.x + room.height;
+            } else if (door_wall == 2) {  
+                room.door_x = rand() % (room.height) + room.x;
+                room.door_y = room.y-1;
+            } else if (door_wall == 3) {  
+                room.door_x = rand() % (room.height) + room.x;
+                room.door_y = room.y + room.width;
+            }
+            
+            for (int i = 0; i < counter; i++) {
+                if (is_overlapping(rooms[i], room)) {
+                    overlap = 1;
+                    break;
+                }
+            }
+
+            if (!overlap) {
+                rooms[counter++] = room;
+                draw_room(&room);
+            }
+        }
+    }
+    else if(strcmp(l_user.difficulty,"Medium")==0){
+
+    }
+    else if(strcmp(l_user.difficulty,"Hard")==0){
+        
+    }
+}
+void draw_room(Room *room){
+    attron(COLOR_PAIR(1));
+        for(int i = 0 ; i < room->width ; i++){
+            mvprintw(room->x-1,room->y+i,"-");
+            mvprintw(room->x+room->height,room->y+i,"-");
+        }
+        attroff(COLOR_PAIR(1));
+        attron(COLOR_PAIR(3));
+        for(int i = 0 ; i < room->height ; i++){
+            mvprintw(room->x+i,room->y-1,"|");
+            mvprintw(room->x+i,room->y+room->width,"|");
+        }
+        attroff(COLOR_PAIR(3));
+        for(int i = 0 ; i < room->height ; i++){
+            for(int j = 0 ; j < room->width ; j++){
+                mvprintw(room->x+i,room->y+j,".");
+            }
+        }
+        int column_count = (rand() % 2);  
+        for (int i = 0; i < column_count; i++) {
+            int col_x = rand() % (room->height - 1) + room->x;
+            int col_y = rand() % (room->width - 1) + room->y + 1;
+            mvprintw(col_x, col_y, "O");
+        }
+        int window_count = (rand() % 3);  
+        for (int i = 0; i < window_count; i++) {
+            int wall = rand() % 4;
+            if (wall == 0) {  
+                int wx = room->x - 1;
+                int wy = rand() % (room->width - 1) + room->y;
+                mvprintw(wx, wy, "=");
+            } else if (wall == 1) {  
+                int wx = room->x + room->height;
+                int wy = rand() % (room->width - 1) + room->y;
+                mvprintw(wx, wy, "=");
+            } else if (wall == 2) {  
+                int wx = rand() % (room->height - 1) + room->x;
+                int wy = room->y-1;
+                mvprintw(wx, wy, "=");
+            } else {  
+                int wx = rand() % (room->height - 1) + room->x;
+                int wy = room->y + room->width;
+                mvprintw(wx, wy, "=");
+            }
+        }
+            mvprintw(room->door_x, room->door_y, "+");
+}
+int is_overlapping(Room r1, Room r2) {
+    return !((r1.x + r1.height + 10 <= r2.x) ||
+             (r2.x + r2.height + 10 <= r1.x) ||
+             (r1.y + r1.width + 10 <= r2.y)  ||
+             (r2.y + r2.width + 10 <= r1.y));  
+}
+void create_corridor(){
 
 }
 // void save_information(User user){
