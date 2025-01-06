@@ -2,7 +2,8 @@
 #include<string.h>
 #include<stdlib.h>
 #include <time.h>
-
+#include <limits.h>
+#include<math.h>
 typedef struct{
     char password[50];
     char email[50];
@@ -63,7 +64,9 @@ int create_level4();
 void create_rooms(char* difficulty);
 void draw_room(Room *room);
 int is_overlapping(Room r1, Room r2);
-void create_corridor();
+int manhattan_distance(int x1, int y1, int x2, int y2);
+void connect_rooms_windy(Room rooms[], int room_num);
+void draw_windy_corridor(int x1, int y1, int x2, int y2);
 // void save_information(User user);
 
 int main(){
@@ -671,7 +674,6 @@ int create_level1(){
     curs_set(0);
     srand(time(NULL));
     create_rooms(l_user.difficulty);
-    create_corridor();
     getch();
 }
 int create_level2(){
@@ -725,7 +727,11 @@ void create_rooms(char* difficulty){
                 rooms[counter++] = room;
                 draw_room(&room);
             }
+            if (counter == room_num) {
+            connect_rooms_windy(rooms, room_num);
+            }
         }
+
     }
     else if(strcmp(l_user.difficulty,"Medium")==0){
 
@@ -787,8 +793,61 @@ int is_overlapping(Room r1, Room r2) {
              (r1.y + r1.width + 10 <= r2.y)  ||
              (r2.y + r2.width + 10 <= r1.y));  
 }
-void create_corridor(){
+void draw_windy_corridor(int x1, int y1, int x2, int y2) {
+    int x = x1, y = y1;
 
+    while (x != x2 || y != y2) {
+        mvaddch(x, y, '#');
+
+        if (rand() % 2 == 0) { 
+            if (x != x2) {
+                x += (x < x2) ? 1 : -1; 
+            }
+        } else {
+            if (y != y2) {
+                y += (y < y2) ? 1 : -1;
+            }
+        }
+
+        if (rand() % 5 == 0) {
+            if (rand() % 2 == 0 && y != y2) {
+                y += (rand() % 2 == 0) ? 1 : -1;
+            } else if (x != x2) {
+                x += (rand() % 2 == 0) ? 1 : -1;
+            }
+        }
+    }
+}
+void connect_rooms_windy(Room rooms[], int room_num) {
+    for (int i = 0; i < room_num; i++) {
+        int closest_room_index = -1;
+        int min_distance = INT_MAX;
+
+        for (int j = 0; j < room_num; j++) {
+            if (i == j) continue;
+
+            int distance = manhattan_distance(
+                rooms[i].door_x, rooms[i].door_y,
+                rooms[j].door_x, rooms[j].door_y
+            );
+
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_room_index = j;
+            }
+        }
+
+        if (closest_room_index != -1) {
+            draw_windy_corridor(
+                rooms[i].door_x, rooms[i].door_y,
+                rooms[closest_room_index].door_x,
+                rooms[closest_room_index].door_y
+            );
+        }
+    }
+}
+int manhattan_distance(int x1, int y1, int x2, int y2) {
+    return abs(x1 - x2) + abs(y1 - y2);
 }
 // void save_information(User user){
 //     FILE *reed=fopen("users.txt","r");
