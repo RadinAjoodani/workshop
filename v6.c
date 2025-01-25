@@ -14,6 +14,7 @@ typedef struct{
     char spell;
     int difficulty;
     int color;
+    int level_num;
 }User;
 
 typedef struct{
@@ -60,6 +61,7 @@ void draw_player(Player *player);
 int handle_input(Player *player);
 void clear_player(Player *player);
 int is_valid_move(int x, int y);
+int change_level(int level_num);
 // void save_information(User user);
 
 int main(){
@@ -73,6 +75,8 @@ int main(){
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
     init_pair(4, COLOR_WHITE, COLOR_BLACK);
     init_pair(5, COLOR_BLUE, COLOR_BLACK);
+    init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(7,COLOR_CYAN,COLOR_BLACK);
     main_menu();
     getch();
     endwin();
@@ -298,6 +302,7 @@ void log_in(){
                     l_user.game=user.game;
                     l_user.color=user.color;                
                     l_user.difficulty=user.difficulty;
+                    l_user.level_num=1;
                     break;
                 }
             }
@@ -740,8 +745,10 @@ void continue_last_game(){
 }
 int create_level1(){
     clear();
+        l_user.level_num=1;
         mvprintw(1,1,"LEVEL1");
         //room1
+        attron(COLOR_PAIR(1));
         for(int i = 3 ; i < 10 ; i++){
             mvprintw(i,3,"|");
             mvprintw(i,10,"|");
@@ -750,6 +757,7 @@ int create_level1(){
             mvprintw(3,i,"--");
             mvprintw(9,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 4 ; i < 9 ; i++){
             for(int j = 4 ; j < 10 ; j++){
                 mvprintw(i,j,".");
@@ -758,7 +766,9 @@ int create_level1(){
         mvprintw(6,10,"+");
         mvprintw(7,5,"o");
         mvprintw(4,8,"o");
+        mvprintw(8,9,"<");
         //room2
+        attron(COLOR_PAIR(1));
         for(int i = 4 ; i < 11 ; i++){
             mvprintw(i,40,"|");
             mvprintw(i,48,"|");
@@ -767,16 +777,19 @@ int create_level1(){
             mvprintw(4,i,"--");
             mvprintw(10,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 5 ; i < 10 ; i++){
             for(int j = 41 ; j < 48 ; j++){
                 mvprintw(i,j,".");
             }
         }
+        
         mvprintw(9,40,"+");
         mvprintw(7,48,"+");
         mvprintw(6,45,"o");
         mvprintw(8,41,"o");
         //room3
+        attron(COLOR_PAIR(1));
         for(int i = 6 ; i < 17 ; i++){
             mvprintw(i,100,"|");
             mvprintw(i,111,"|");
@@ -785,6 +798,7 @@ int create_level1(){
             mvprintw(6,i,"--");
             mvprintw(16,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 7 ; i < 16 ; i++){
             for(int j = 101 ; j < 111 ; j++){
                 mvprintw(i,j,".");
@@ -796,6 +810,7 @@ int create_level1(){
         mvprintw(14,102,"o");
         mvprintw(15,109,"o");
         //room4
+        attron(COLOR_PAIR(1));
         for(int i = 20 ; i < 30 ; i++){
             mvprintw(i,150,"|");
             mvprintw(i,159,"|");
@@ -804,6 +819,7 @@ int create_level1(){
             mvprintw(20,i,"--");
             mvprintw(29,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 21 ; i < 29 ; i++){
             for(int j = 151 ; j < 159 ; j++){
                 mvprintw(i,j,".");
@@ -814,6 +830,7 @@ int create_level1(){
         mvprintw(22,152,"o");
         mvprintw(28,156,"o");
         //room5
+        attron(COLOR_PAIR(6));
         for(int i = 30 ; i < 36 ; i++){
             mvprintw(i,94,"|");
             mvprintw(i,110,"|");
@@ -822,6 +839,7 @@ int create_level1(){
             mvprintw(30,i,"--");
             mvprintw(35,i,"--");
         }
+        attroff(COLOR_PAIR(6));
         for(int i = 31 ; i < 35 ; i++){
             for(int j = 95 ; j < 110 ; j++){
                 mvprintw(i,j,".");
@@ -832,6 +850,7 @@ int create_level1(){
         mvprintw(31,99,"o");
         mvprintw(33,107,"o");
         //room6
+        attron(COLOR_PAIR(3));
         for(int i = 28 ; i < 38 ; i++){
             mvprintw(i,10,"|");
             mvprintw(i,20,"|");
@@ -840,6 +859,7 @@ int create_level1(){
             mvprintw(28,i,"--");
             mvprintw(37,i,"--");
         }
+        attroff(COLOR_PAIR(3));
         for(int i = 29 ; i < 37 ; i++){
             for(int j = 11 ; j < 20 ; j++){
                 mvprintw(i,j,".");
@@ -848,6 +868,7 @@ int create_level1(){
         mvprintw(30,20,"+");
         mvprintw(30,12,"o");
         mvprintw(36,17,"o");
+        mvprintw(36,13,"<");
         
         draw_path(11, 6, 40, 9);
         draw_path(49, 7, 100, 9);
@@ -866,8 +887,11 @@ int create_level1(){
 }
 int create_level2(){
     clear();
+    l_user.level_num=2;
+    fmsign=0;
     mvprintw(1,1,"LEVEL2");
         //room1
+        attron(COLOR_PAIR(6));
         for(int i = 6 ; i < 15 ; i++){
             mvprintw(i,10,"|");
             mvprintw(i,18,"|");
@@ -876,6 +900,7 @@ int create_level2(){
             mvprintw(6,i,"--");
             mvprintw(14,i,"--");
         }
+        attroff(COLOR_PAIR(6));
         for(int i = 7 ; i < 14 ; i++){
             for(int j = 11 ; j < 18 ; j++){
                 mvprintw(i,j,".");
@@ -884,7 +909,9 @@ int create_level2(){
         mvprintw(7,18,"+");
         mvprintw(10,12,"o");
         mvprintw(8,16,"o");
+        mvprintw(9,17,"<");
         //room2
+        attron(COLOR_PAIR(1));
         for(int i = 5 ; i < 14 ; i++){
             mvprintw(i,35,"|");
             mvprintw(i,48,"|");
@@ -893,6 +920,7 @@ int create_level2(){
             mvprintw(5,i,"--");
             mvprintw(13,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 6 ; i < 13 ; i++){
             for(int j = 36 ; j < 48 ; j++){
                 mvprintw(i,j,".");
@@ -903,6 +931,7 @@ int create_level2(){
         mvprintw(11,45,"o");
         mvprintw(9,37,"o");
         //room3
+        attron(COLOR_PAIR(7));
         for(int i = 3 ; i < 13 ; i++){
             mvprintw(i,120,"|");
             mvprintw(i,135,"|");
@@ -911,6 +940,7 @@ int create_level2(){
             mvprintw(3,i,"--");
             mvprintw(12,i,"--");
         }
+        attroff(COLOR_PAIR(7));
         for(int i = 4 ; i < 12 ; i++){
             for(int j = 121 ; j < 135 ; j++){
                 mvprintw(i,j,".");
@@ -922,6 +952,7 @@ int create_level2(){
         mvprintw(6,131,"o");
         mvprintw(11,122,"o");
         //room4
+        attron(COLOR_PAIR(1));
         for(int i = 30 ; i < 42 ; i++){
             mvprintw(i,160,"|");
             mvprintw(i,175,"|");
@@ -930,6 +961,7 @@ int create_level2(){
             mvprintw(30,i,"--");
             mvprintw(41,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 31 ; i < 41 ; i++){
             for(int j = 161 ; j < 175 ; j++){
                 mvprintw(i,j,".");
@@ -940,6 +972,7 @@ int create_level2(){
         mvprintw(35,169,"o");
         mvprintw(40,163,"o");
         //room5
+        attron(COLOR_PAIR(6));
         for(int i = 30 ; i < 36 ; i++){
             mvprintw(i,94,"|");
             mvprintw(i,110,"|");
@@ -948,6 +981,7 @@ int create_level2(){
             mvprintw(30,i,"--");
             mvprintw(35,i,"--");
         }
+        attroff(COLOR_PAIR(6));
         for(int i = 31 ; i < 35 ; i++){
             for(int j = 95 ; j < 110 ; j++){
                 mvprintw(i,j,".");
@@ -958,6 +992,7 @@ int create_level2(){
         mvprintw(31,99,"o");
         mvprintw(33,107,"o");
         //room6
+        attron(COLOR_PAIR(1));
         for(int i = 15 ; i < 23 ; i++){
             mvprintw(i,50,"|");
             mvprintw(i,60,"|");
@@ -966,6 +1001,7 @@ int create_level2(){
             mvprintw(15,i,"--");
             mvprintw(22,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 16 ; i < 22 ; i++){
             for(int j = 51 ; j < 60 ; j++){
                 mvprintw(i,j,".");
@@ -976,6 +1012,7 @@ int create_level2(){
         mvprintw(20,53,"o");
         mvprintw(19,57,"o");
         //room7
+        attron(COLOR_PAIR(3));
         for(int i = 28 ; i < 33 ; i++){
             mvprintw(i,11,"|");
             mvprintw(i,26,"|");
@@ -984,6 +1021,7 @@ int create_level2(){
             mvprintw(28,i,"--");
             mvprintw(32,i,"--");
         }
+        attroff(COLOR_PAIR(3));
         for(int i = 29 ; i < 32 ; i++){
             for(int j = 12 ; j < 26 ; j++){
                 mvprintw(i,j,".");
@@ -998,17 +1036,29 @@ int create_level2(){
         draw_path(159, 39, 110, 34);
         draw_path(93, 32, 60, 17);
         draw_path(49, 21, 19, 27);
-        if(getch()=='q'){
-            return 0;
+        Player player = {12, 10, '.'};
+        draw_player(&player);
+
+        refresh();
+
+        while (1) {
+            handle_input(&player);
+            refresh();
         }
-        else{
-            create_level3();
-        }
+        // if(getch()=='q'){
+        //     return 0;
+        // }
+        // else{
+        //     create_level3();
+        // }
 }
 int create_level3(){
     clear();
+    l_user.level_num=3;
+    fmsign=0;
     mvprintw(1,1,"LEVEL3");
         //room1
+        attron(COLOR_PAIR(3));
         for(int i = 6 ; i < 16 ; i++){
             mvprintw(i,35,"|");
             mvprintw(i,41,"|");
@@ -1017,6 +1067,7 @@ int create_level3(){
             mvprintw(6,i,"--");
             mvprintw(15,i,"--");
         }
+        attroff(COLOR_PAIR(3));
         for(int i = 7 ; i < 15 ; i++){
             for(int j = 36 ; j < 41 ; j++){
                 mvprintw(i,j,".");
@@ -1026,6 +1077,7 @@ int create_level3(){
         mvprintw(11,40,"o");
         mvprintw(9,37,"o");
         //room2
+        attron(COLOR_PAIR(7));
         for(int i = 12 ; i < 17 ; i++){
             mvprintw(i,70,"|");
             mvprintw(i,84,"|");
@@ -1034,6 +1086,7 @@ int create_level3(){
             mvprintw(12,i,"--");
             mvprintw(16,i,"--");
         }
+        attroff(COLOR_PAIR(7));
         for(int i = 13 ; i < 16 ; i++){
             for(int j = 71 ; j < 84 ; j++){
                 mvprintw(i,j,".");
@@ -1044,6 +1097,7 @@ int create_level3(){
         mvprintw(13,75,"o");
         mvprintw(15,80,"o");
         //room3
+        attron(COLOR_PAIR(1));
         for(int i = 2 ; i < 9 ; i++){
             mvprintw(i,150,"|");
             mvprintw(i,160,"|");
@@ -1052,6 +1106,7 @@ int create_level3(){
             mvprintw(2,i,"--");
             mvprintw(8,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 3 ; i < 8 ; i++){
             for(int j = 151 ; j < 160 ; j++){
                 mvprintw(i,j,".");
@@ -1063,6 +1118,7 @@ int create_level3(){
         mvprintw(7,159,"o");
         mvprintw(4,151,"o");
         //room4
+        attron(COLOR_PAIR(1));
         for(int i = 30 ; i < 42 ; i++){
             mvprintw(i,160,"|");
             mvprintw(i,175,"|");
@@ -1071,6 +1127,7 @@ int create_level3(){
             mvprintw(30,i,"--");
             mvprintw(41,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 31 ; i < 41 ; i++){
             for(int j = 161 ; j < 175 ; j++){
                 mvprintw(i,j,".");
@@ -1081,6 +1138,7 @@ int create_level3(){
         mvprintw(35,169,"o");
         mvprintw(40,163,"o");
         //room5
+        attron(COLOR_PAIR(7));
         for(int i = 30 ; i < 36 ; i++){
             mvprintw(i,84,"|");
             mvprintw(i,100,"|");
@@ -1089,6 +1147,7 @@ int create_level3(){
             mvprintw(30,i,"--");
             mvprintw(35,i,"--");
         }
+        attroff(COLOR_PAIR(7));
         for(int i = 31 ; i < 35 ; i++){
             for(int j = 85 ; j < 100 ; j++){
                 mvprintw(i,j,".");
@@ -1099,6 +1158,7 @@ int create_level3(){
         mvprintw(31,99,"o");
         mvprintw(33,86,"o");
         //room6
+        attron(COLOR_PAIR(6));
         for(int i = 35 ; i < 40 ; i++){
             mvprintw(i,17,"|");
             mvprintw(i,26,"|");
@@ -1107,6 +1167,7 @@ int create_level3(){
             mvprintw(35,i,"--");
             mvprintw(39,i,"--");
         }
+        attroff(COLOR_PAIR(6));
         for(int i = 36 ; i < 39 ; i++){
             for(int j = 18 ; j < 26 ; j++){
                 mvprintw(i,j,".");
@@ -1114,22 +1175,35 @@ int create_level3(){
         }
         mvprintw(37,26,"+");
         mvprintw(37,22,"o");
+        mvprintw(36,23,"<");
         draw_path(27, 37, 84, 32);
         draw_path(101, 34, 160, 39);
         draw_path(167, 29, 158, 8);
         draw_path(149, 6, 84, 14);
         draw_path(69, 13, 41, 12);
-        if(getch()=='q'){
-            return 0;
+        Player player = {18, 36, '.'};
+        draw_player(&player);
+
+        refresh();
+
+        while (1) {
+            handle_input(&player);
+            refresh();
         }
-        else{
-            create_level4();
-        }
+        // if(getch()=='q'){
+        //     return 0;
+        // }
+        // else{
+        //     create_level4();
+        // }
 }
 int create_level4(){
     clear();
+    fmsign=0;
+    l_user.level_num=4;
     mvprintw(1,1,"LEVEL4");
         //room1
+        attron(COLOR_PAIR(2));
         for(int i = 6 ; i < 15 ; i++){
             mvprintw(i,10,"|");
             mvprintw(i,18,"|");
@@ -1138,6 +1212,7 @@ int create_level4(){
             mvprintw(6,i,"--");
             mvprintw(14,i,"--");
         }
+        attroff(COLOR_PAIR(2));
         for(int i = 7 ; i < 14 ; i++){
             for(int j = 11 ; j < 18 ; j++){
                 mvprintw(i,j,".");
@@ -1147,6 +1222,7 @@ int create_level4(){
         mvprintw(10,12,"o");
         mvprintw(8,16,"o");
         //room2
+        attron(COLOR_PAIR(1));
         for(int i = 5 ; i < 14 ; i++){
             mvprintw(i,35,"|");
             mvprintw(i,48,"|");
@@ -1155,6 +1231,7 @@ int create_level4(){
             mvprintw(5,i,"--");
             mvprintw(13,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 6 ; i < 13 ; i++){
             for(int j = 36 ; j < 48 ; j++){
                 mvprintw(i,j,".");
@@ -1165,6 +1242,7 @@ int create_level4(){
         mvprintw(11,45,"o");
         mvprintw(9,37,"o");
         //room3
+        attron(COLOR_PAIR(6));
         for(int i = 3 ; i < 13 ; i++){
             mvprintw(i,120,"|");
             mvprintw(i,135,"|");
@@ -1173,6 +1251,7 @@ int create_level4(){
             mvprintw(3,i,"--");
             mvprintw(12,i,"--");
         }
+        attroff(COLOR_PAIR(6));
         for(int i = 4 ; i < 12 ; i++){
             for(int j = 121 ; j < 135 ; j++){
                 mvprintw(i,j,".");
@@ -1184,6 +1263,7 @@ int create_level4(){
         mvprintw(6,131,"o");
         mvprintw(11,122,"o");
         //room4
+        attron(COLOR_PAIR(1));
         for(int i = 30 ; i < 42 ; i++){
             mvprintw(i,160,"|");
             mvprintw(i,175,"|");
@@ -1192,6 +1272,7 @@ int create_level4(){
             mvprintw(30,i,"--");
             mvprintw(41,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 31 ; i < 41 ; i++){
             for(int j = 161 ; j < 175 ; j++){
                 mvprintw(i,j,".");
@@ -1202,6 +1283,7 @@ int create_level4(){
         mvprintw(35,169,"o");
         mvprintw(40,163,"o");
         //room5
+        attron(COLOR_PAIR(1));
         for(int i = 30 ; i < 36 ; i++){
             mvprintw(i,94,"|");
             mvprintw(i,110,"|");
@@ -1210,6 +1292,7 @@ int create_level4(){
             mvprintw(30,i,"--");
             mvprintw(35,i,"--");
         }
+        attroff(COLOR_PAIR(1));
         for(int i = 31 ; i < 35 ; i++){
             for(int j = 95 ; j < 110 ; j++){
                 mvprintw(i,j,".");
@@ -1220,6 +1303,7 @@ int create_level4(){
         mvprintw(31,99,"o");
         mvprintw(33,107,"o");
         //room6
+        attron(COLOR_PAIR(6));
         for(int i = 15 ; i < 23 ; i++){
             mvprintw(i,50,"|");
             mvprintw(i,60,"|");
@@ -1228,6 +1312,7 @@ int create_level4(){
             mvprintw(15,i,"--");
             mvprintw(22,i,"--");
         }
+        attroff(COLOR_PAIR(6));
         for(int i = 16 ; i < 22 ; i++){
             for(int j = 51 ; j < 60 ; j++){
                 mvprintw(i,j,".");
@@ -1238,6 +1323,7 @@ int create_level4(){
         mvprintw(20,53,"o");
         mvprintw(19,57,"o");
         //room7
+        attron(COLOR_PAIR(7));
         for(int i = 28 ; i < 33 ; i++){
             mvprintw(i,11,"|");
             mvprintw(i,26,"|");
@@ -1246,6 +1332,7 @@ int create_level4(){
             mvprintw(28,i,"--");
             mvprintw(32,i,"--");
         }
+        attroff(COLOR_PAIR(7));
         for(int i = 29 ; i < 32 ; i++){
             for(int j = 12 ; j < 26 ; j++){
                 mvprintw(i,j,".");
@@ -1256,6 +1343,7 @@ int create_level4(){
         mvprintw(30,12,"o");
         mvprintw(29,17,"o");
         //room8
+        attron(COLOR_PAIR(6));
         for(int i = 30 ; i < 42 ; i++){
             mvprintw(i,45,"|");
             mvprintw(i,60,"|");
@@ -1264,6 +1352,7 @@ int create_level4(){
             mvprintw(30,i,"--");
             mvprintw(41,i,"--");
         }
+        attroff(COLOR_PAIR(6));
         for(int i = 31 ; i < 41 ; i++){
             for(int j = 46 ; j < 60 ; j++){
                 mvprintw(i,j,".");
@@ -1279,14 +1368,22 @@ int create_level4(){
         draw_path(93, 32, 60, 17);
         draw_path(49, 21, 19, 27);
         draw_path(24, 33, 45, 37);
-        
-        if(getch()=='q'){
-            return 0;
+        Player player = {48,35, '.'};
+        draw_player(&player);
+
+        refresh();
+
+        while (1) {
+            handle_input(&player);
+            refresh();
         }
+        // if(getch()=='q'){
+        //     return 0;
+        // }
 }
 int is_valid_move(int x, int y) {
     char ch = mvinch(y, x) & A_CHARTEXT;
-    return ch == '.' || ch == '#' || ch == '+';
+    return ch == '.' || ch == '#' || ch == '+'||ch == '<';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -1364,8 +1461,9 @@ int handle_input(Player *player) {
         case '8': new_y--; break;       
         case '9': new_x++; new_y--; break;
     }
+    char z = mvinch(new_y, new_x) & A_CHARTEXT;
 
-    if (is_valid_move(new_x, new_y)) {
+    if (is_valid_move(new_x, new_y)&&(z!='<')) {
         clear_player(player);
 
         player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;
@@ -1375,11 +1473,62 @@ int handle_input(Player *player) {
 
         draw_player(player);
     }
+    else if(z == '<'){
+        change_level(l_user.level_num);
+    }
 }
 int is_wall(int x, int y) {
     char ch = mvinch(y, x) & A_CHARTEXT;
     return ch == '|' || ch == '-' || ch == 'o';
 }
+int change_level(int level_num){
+    clear();
+    refresh();
+
+    switch (level_num)
+    {
+    case 1:
+        mvprintw(20,50,"Dddd");
+        create_level2();
+        break;
+    case 2:
+        create_level3();
+        break;
+    case 3:
+        create_level4();
+        break;
+    default:
+        break;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // void save_information(User user){
 //     FILE *reed=fopen("users.txt","r");
 //     FILE *write=fopen("temp.txt", "w");
