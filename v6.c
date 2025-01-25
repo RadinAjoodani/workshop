@@ -12,16 +12,17 @@ typedef struct{
     int health;
     char weapon;
     char spell;
-    char difficulty[200];
-    char color[200];
+    int difficulty;
+    int color;
 }User;
 
 typedef struct{
     int x,y;
     int color;
     int difficulty;
+    char prev_char;
 }Player;
-
+int fmsign=0;
 Player l_player;
 User l_user;
 User s_user;
@@ -55,6 +56,10 @@ int create_level3();
 int create_level4();
 int is_wall(int x, int y);
 void draw_path(int x1, int y1, int x2, int y2);
+void draw_player(Player *player);
+int handle_input(Player *player);
+void clear_player(Player *player);
+int is_valid_move(int x, int y);
 // void save_information(User user);
 
 int main(){
@@ -67,6 +72,7 @@ int main(){
     init_pair(2, COLOR_RED, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
     init_pair(4, COLOR_WHITE, COLOR_BLACK);
+    init_pair(5, COLOR_BLUE, COLOR_BLACK);
     main_menu();
     getch();
     endwin();
@@ -234,8 +240,8 @@ void sign_up(){
             s_user.game=0;
             s_user.gold=0;
             s_user.score=0;
-            strcpy(s_user.difficulty,"Easy");
-            strcpy(s_user.color,"White");
+            s_user.difficulty=0;
+            s_user.color=2;
         }
         if(sign==3){
             save_user();
@@ -250,59 +256,67 @@ void sign_up(){
     
 }
 void log_in(){
-    User user;
-    int ch; 
+    if(is_logged_in==1){
+        mvprintw(1,1,"You are logged in!press any key to exit.");
+        getch();
+        return;
+    }
+    else{
+        User user;
+        int ch; 
 
-    while (1) { 
-        clear();
-        mvprintw(1, 1, "Log in menu");
+        while (1) { 
+            clear();
+            mvprintw(1, 1, "Log in menu");
 
-        mvprintw(3, 1, "Enter your username: ");
-        echo();
-        getstr(l_user.username);
-        noecho();
+            mvprintw(3, 1, "Enter your username: ");
+            echo();
+            getstr(l_user.username);
+            noecho();
 
-        mvprintw(5, 1, "Enter your password: ");
-        echo();
-        getstr(l_user.password);
-        noecho();
+            mvprintw(5, 1, "Enter your password: ");
+            echo();
+            getstr(l_user.password);
+            noecho();
 
-        FILE *fptr = fopen("users.txt", "r");
-        if (fptr == NULL) {
-            mvprintw(7, 1, "Error: Unable to open users file.");
-            getch();
-            return;
-        }
-
-        int valid = 0;
-        while (fscanf(fptr, "%s %s %s %d %d %d %s %s", user.username, user.password, user.email, &user.score,&user.gold,&user.game,user.color,user.difficulty) != EOF) {
-            if (strcmp(l_user.username, user.username) == 0 && strcmp(l_user.password, user.password) == 0) {
-                valid = 1;
-                strcpy(l_user.username,user.username);
-                strcpy(l_user.password,user.password);
-                strcpy(l_user.email,user.email);
-                l_user.score=user.score;
-                l_user.gold=user.gold;
-                strcpy(l_user.color,user.color);                
-                strcpy(l_user.difficulty,user.difficulty);
-                break;
-            }
-        }
-
-        fclose(fptr);
-
-        if (valid) {
-            mvprintw(7, 1, "Login successful! Press any key to return to the main menu.");
-            is_logged_in = 1;
-            getch();
-            return;
-        } else {
-            mvprintw(7, 1, "Invalid username or password!");
-            mvprintw(9, 1, "Press 'r' to retry or any other key to return to the main menu.");
-            ch = getch();
-
-            if (ch != 'r' && ch != 'R') {
+            FILE *fptr = fopen("users.txt", "r");
+            if (fptr == NULL) {
+                mvprintw(7, 1, "Error: Unable to open users file.");
+                getch();
                 return;
+            }
+
+            int valid = 0;
+            while (fscanf(fptr, "%s %s %s %d %d %d %d %d", user.username, user.password, user.email, &user.score,&user.gold,&user.game,&user.color,&user.difficulty) != EOF) {
+                if (strcmp(l_user.username, user.username) == 0 && strcmp(l_user.password, user.password) == 0) {
+                    valid = 1;
+                    strcpy(l_user.username,user.username);
+                    strcpy(l_user.password,user.password);
+                    strcpy(l_user.email,user.email);
+                    l_user.score=user.score;
+                    l_user.gold=user.gold;
+                    l_user.game=user.game;
+                    l_user.color=user.color;                
+                    l_user.difficulty=user.difficulty;
+                    break;
+                }
+            }
+
+            fclose(fptr);
+
+            if (valid) {
+                mvprintw(7, 1, "Login successful! Press any key to return to the main menu.");
+                is_logged_in = 1;
+                getch();
+                return;
+            } else {
+                mvprintw(7, 1, "Invalid username or password!");
+                mvprintw(9, 1, "Press 'r' to retry or any other key to return to the main menu.");
+                ch = getch();
+
+                if (ch != 'r' && ch != 'R') {
+                    return;
+                }
             }
         }
     }
@@ -313,7 +327,7 @@ int username_check(char *username){
         return 0;
     }
     User user;
-    while (fscanf(fptr, "%s %s %s %d %d %d %s %s", user.username, user.password, user.email, &user.score,&user.gold,&user.game,user.color,user.difficulty) != EOF) {
+    while (fscanf(fptr, "%s %s %s %d %d %d %d %d", user.username, user.password, user.email, &user.score,&user.gold,&user.game,&user.color,&user.difficulty) != EOF) {
         if (strcmp(user.username, username) == 0) {
             fclose(fptr);
             return 1;
@@ -457,7 +471,7 @@ void show_table(){
     User users[100];
     int user_count = 0;
 
-    while (fscanf(file, "%s %s %s %d %d %d %s %s", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score,&users[user_count].gold,&users[user_count].game,users[user_count].color,users[user_count].difficulty) != EOF) {
+    while (fscanf(file, "%s %s %s %d %d %d %d %d", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score,&users[user_count].gold,&users[user_count].game,&users[user_count].color,&users[user_count].difficulty) != EOF) {
         user_count++;
     }
     fclose(file);
@@ -514,8 +528,7 @@ void profile(){
             mvprintw(6,1,"Score: %d",l_user.score);
             mvprintw(7,1,"Gold: %d",l_user.gold);
             mvprintw(8,1,"Game-played numbers: %d",l_user.game);
-            mvprintw(9,1,"Difficulty level: %s",l_user.difficulty);
-            mvprintw(10,1,"Player color: %s",l_user.color);
+            
 
             attroff(COLOR_PAIR(4));
             attron(COLOR_PAIR(2));
@@ -547,7 +560,7 @@ void save_user() {
         exit(1);
     }
 
-    fprintf(file, "%s %s %s %d %d %d %s %s\n", s_user.username, s_user.password, s_user.email, s_user.score,s_user.gold,s_user.game,s_user.color,s_user.difficulty);
+    fprintf(file, "%s %s %s %d %d %d %d %d\n", s_user.username, s_user.password, s_user.email, s_user.score,s_user.gold,s_user.game,s_user.color,s_user.difficulty);
     fclose(file);
 }
 void settings_menu() {
@@ -636,9 +649,17 @@ void select_difficulty(int *current_difficulty) {
                 break;
             case '\n':
                 *current_difficulty = choice;
-                mvprintw(n_levels + 6, 1, "Difficulty set to %s!%d", difficulty_levels[choice],choice);
-                strcpy(l_user.difficulty,difficulty_levels[choice]);
+                mvprintw(n_levels + 6, 1, "Difficulty set to %s!", difficulty_levels[choice]);
                 getch();
+                if(strcmp(difficulty_levels[choice],"Easy")==0){
+                    l_user.difficulty=0;
+                }
+                else if(strcmp(difficulty_levels[choice],"Medium")==0){
+                    l_user.difficulty=1;
+                }
+                else if(strcmp(difficulty_levels[choice],"Hard")==0){
+                    l_user.difficulty=2;
+                }
                 return;
             case 27:  
                 return;
@@ -663,10 +684,10 @@ void change_character_color(int *current_color) {
 
         for (int i = 0; i < n_colors; i++) {
             if (i == choice)
-                attron(A_REVERSE);
+                attron(COLOR_PAIR(2));
             mvprintw(i + 2, 1, "%s%s", colors[i], (i == *current_color) ? " (Selected)" : "");
             if (i == choice)
-                attroff(A_REVERSE);
+                attroff(COLOR_PAIR(2));
         }
 
         mvprintw(n_colors + 4, 1, "Press ENTER to confirm, or ESC to cancel.");
@@ -683,8 +704,22 @@ void change_character_color(int *current_color) {
             case '\n':
                 *current_color = choice;
                 mvprintw(n_colors + 6, 1, "Color set to %s!", colors[choice]);
-                strcpy(l_user.color,colors[choice]);
                 getch();
+                if(strcmp(colors[choice],"White")==0){
+                    l_user.color=4;
+                }
+                else if(strcmp(colors[choice],"Red")==0){
+                    l_user.color=2;
+                }
+                else if(strcmp(colors[choice],"Green")==0){
+                    l_user.color=3;
+                }
+                else if(strcmp(colors[choice],"Blue")==0){
+                    l_user.color=5;
+                }
+                else if(strcmp(colors[choice],"Yellow")==0){
+                    l_user.color=1;
+                }
                 return;
             case 27:  
                 return;
@@ -776,7 +811,7 @@ int create_level1(){
         }
         mvprintw(20,152,"+");
         mvprintw(25,150,"+");
-        mvprintw(21,152,"o");
+        mvprintw(22,152,"o");
         mvprintw(28,156,"o");
         //room5
         for(int i = 30 ; i < 36 ; i++){
@@ -819,11 +854,14 @@ int create_level1(){
         draw_path(112, 14, 153, 19);
         draw_path(149, 25, 110, 34);
         draw_path(93, 32, 20, 30);
-        if(getch()=='q'){
-            return 0;
-        }
-        else{
-            create_level2();
+        Player player = {5, 4, '.'};
+        draw_player(&player);
+
+        refresh();
+
+        while (1) {
+            handle_input(&player);
+            refresh();
         }
 }
 int create_level2(){
@@ -1246,9 +1284,51 @@ int create_level4(){
             return 0;
         }
 }
-int is_wall(int x, int y) {
+int is_valid_move(int x, int y) {
     char ch = mvinch(y, x) & A_CHARTEXT;
-    return (ch == '|' || ch == '-');
+    return ch == '.' || ch == '#' || ch == '+';
+}
+void draw_player(Player *player) {
+    if(l_user.color==4){
+        attron(COLOR_PAIR(4));
+    }
+    else if(l_user.color==2){
+        attron(COLOR_PAIR(2));
+    }
+    else if(l_user.color==3){
+        attron(COLOR_PAIR(3));
+    }
+    else if(l_user.color==5){
+        attron(COLOR_PAIR(5));
+    }
+    else if(l_user.color==1){
+        attron(COLOR_PAIR(1));
+    }
+    mvprintw(player->y, player->x, "@");
+    if(l_user.color==4){
+        attroff(COLOR_PAIR(4));
+    }
+    else if(l_user.color==2){
+        attroff(COLOR_PAIR(2));
+    }
+    else if(l_user.color==3){
+        attroff(COLOR_PAIR(3));
+    }
+    else if(l_user.color==5){
+        attroff(COLOR_PAIR(5));
+    }
+    else if(l_user.color==1){
+        attroff(COLOR_PAIR(1));
+    }
+}
+void clear_player(Player *player) {
+    if(fmsign==0){
+       mvprintw(player->y, player->x, "%c", '.');
+       fmsign++;
+    }
+    else{
+        mvprintw(player->y, player->x, "%c", player->prev_char);
+    }
 }
 void draw_path(int x1, int y1, int x2, int y2) {
     int cx = x1, cy = y1;
@@ -1270,6 +1350,35 @@ void draw_path(int x1, int y1, int x2, int y2) {
             break;
         }
     }
+}
+int handle_input(Player *player) {
+    int ch = getch();
+    int new_x = player->x, new_y = player->y;
+    switch (ch) {
+        case '1': new_x--; new_y++; break; 
+        case '2': new_y++; break;         
+        case '3': new_x++; new_y++; break; 
+        case '4': new_x--; break;         
+        case '6': new_x++; break;     
+        case '7': new_x--; new_y--; break; 
+        case '8': new_y--; break;       
+        case '9': new_x++; new_y--; break;
+    }
+
+    if (is_valid_move(new_x, new_y)) {
+        clear_player(player);
+
+        player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;
+
+        player->x = new_x;
+        player->y = new_y;
+
+        draw_player(player);
+    }
+}
+int is_wall(int x, int y) {
+    char ch = mvinch(y, x) & A_CHARTEXT;
+    return ch == '|' || ch == '-' || ch == 'o';
 }
 // void save_information(User user){
 //     FILE *reed=fopen("users.txt","r");
