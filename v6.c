@@ -805,7 +805,7 @@ int create_level1(){
             }
         }
         mvprintw(9,100,"+");
-        mvprintw(14,111,"+");
+        //mvprintw(14,111,"+");
         mvprintw(10,105,"o");
         mvprintw(14,102,"o");
         mvprintw(15,109,"o");
@@ -845,7 +845,7 @@ int create_level1(){
                 mvprintw(i,j,".");
             }
         }
-        mvprintw(32,94,"+");
+        //mvprintw(32,94,"+");
         mvprintw(34,110,"+");
         mvprintw(31,99,"o");
         mvprintw(33,107,"o");
@@ -906,7 +906,7 @@ int create_level2(){
                 mvprintw(i,j,".");
             }
         }
-        mvprintw(7,18,"+");
+        //mvprintw(7,18,"+");
         mvprintw(10,12,"o");
         mvprintw(8,16,"o");
         mvprintw(9,17,"<");
@@ -947,7 +947,7 @@ int create_level2(){
             }
         }
         mvprintw(7,120,"+");
-        mvprintw(12,127,"+");
+        //mvprintw(12,127,"+");
         mvprintw(5,126,"o");
         mvprintw(6,131,"o");
         mvprintw(11,122,"o");
@@ -1008,7 +1008,7 @@ int create_level2(){
             }
         }
         mvprintw(17,60,"+");
-        mvprintw(21,50,"+");
+        //mvprintw(21,50,"+");
         mvprintw(20,53,"o");
         mvprintw(19,57,"o");
         //room7
@@ -1030,7 +1030,7 @@ int create_level2(){
         mvprintw(28,20,"+");
         mvprintw(30,12,"o");
         mvprintw(29,17,"o");
-        draw_path(19, 7, 34, 12);
+        draw_path(19, 7, 35, 12);
         draw_path(49, 9, 120, 7);
         draw_path(127, 13, 168, 29);
         draw_path(159, 39, 110, 34);
@@ -1112,7 +1112,7 @@ int create_level3(){
                 mvprintw(i,j,".");
             }
         }
-        mvprintw(6,150,"+");
+        //mvprintw(6,150,"+");
         mvprintw(8,158,"+");
         mvprintw(4,155,"o");
         mvprintw(7,159,"o");
@@ -1133,7 +1133,7 @@ int create_level3(){
                 mvprintw(i,j,".");
             }
         }
-        mvprintw(30,167,"+");
+        //mvprintw(30,167,"+");
         mvprintw(39,160,"+");
         mvprintw(35,169,"o");
         mvprintw(40,163,"o");
@@ -1257,7 +1257,7 @@ int create_level4(){
                 mvprintw(i,j,".");
             }
         }
-        mvprintw(7,120,"+");
+        //mvprintw(7,120,"+");
         mvprintw(12,127,"+");
         mvprintw(5,126,"o");
         mvprintw(6,131,"o");
@@ -1299,7 +1299,7 @@ int create_level4(){
             }
         }
         mvprintw(32,94,"+");
-        mvprintw(34,110,"+");
+        //mvprintw(34,110,"+");
         mvprintw(31,99,"o");
         mvprintw(33,107,"o");
         //room6
@@ -1358,7 +1358,7 @@ int create_level4(){
                 mvprintw(i,j,".");
             }
         }
-        mvprintw(37,45,"+");
+        //mvprintw(37,45,"+");
         mvprintw(33,55,"o");
         mvprintw(34,56,"o");
         draw_path(19, 7, 34, 12);
@@ -1423,8 +1423,53 @@ void clear_player(Player *player) {
        mvprintw(player->y, player->x, "%c", '.');
        fmsign++;
     }
-    else{
-        mvprintw(player->y, player->x, "%c", player->prev_char);
+    else if (l_user.level_num==1)
+    {
+        if(player->y==9 && player->x==100){
+            attron(COLOR_PAIR(1));
+            mvprintw(9,100, "%c", '|');
+            attroff(COLOR_PAIR(1));
+        } 
+        else if(player->y==34 && player->x==110){
+            attron(COLOR_PAIR(6));
+            mvprintw(34, 110, "%c", '|');
+            attroff(COLOR_PAIR(6));
+        }
+        else{
+            mvprintw(player->y, player->x, "%c", player->prev_char);
+        }
+    }
+    else if (l_user.level_num==2)
+    {
+        if(player->y==7 && player->x==120){
+            attron(COLOR_PAIR(7));
+            mvprintw(7,120, "%c", '|');
+            attroff(COLOR_PAIR(7));
+        } 
+        else if(player->y==17 && player->x==60){
+            attron(COLOR_PAIR(1));
+            mvprintw(17, 60, "%c", '|');
+            attroff(COLOR_PAIR(1));
+        }
+        else{
+            mvprintw(player->y, player->x, "%c", player->prev_char);
+        }
+    }
+    else if (l_user.level_num==3)
+    {
+        if(player->y==39 && player->x==160){
+            attron(COLOR_PAIR(1));
+            mvprintw(39,160, "%c", '|');
+            attroff(COLOR_PAIR(1));
+        } 
+        else if(player->y==8 && player->x==158){
+            attron(COLOR_PAIR(1));
+            mvprintw(8, 158, "%c", '-');
+            attroff(COLOR_PAIR(1));
+        }
+        else{
+            mvprintw(player->y, player->x, "%c", player->prev_char);
+        }
     }
 }
 void draw_path(int x1, int y1, int x2, int y2) {
@@ -1475,6 +1520,50 @@ int handle_input(Player *player) {
     }
     else if(z == '<'){
         change_level(l_user.level_num);
+    }
+    if(l_user.level_num==1){
+        if (new_x == 111 && new_y == 14) {
+                mvprintw(14,111, "+"); 
+                refresh();
+        }
+        else if (new_x == 94 && new_y == 32) {
+                mvprintw(32,94, "+"); 
+                refresh();
+        }
+    }
+    if(l_user.level_num==2){
+        if (new_x == 18 && new_y == 7) {
+                mvprintw(7,18, "+"); 
+                refresh();
+        }
+        else if (new_x == 128 && new_y == 12) {
+                mvprintw(12,128, "+"); 
+                refresh();
+        }
+        else if (new_x == 50 && new_y == 21) {
+                mvprintw(21,50, "+"); 
+                refresh();
+        }
+    }
+    if(l_user.level_num==3){
+        if (new_x == 167 && new_y == 30) {
+                mvprintw(30,167, "+"); 
+                refresh();
+        }
+        else if (new_x == 150 && new_y == 6) {
+                mvprintw(6,150, "+"); 
+                refresh();
+        }
+    }
+    if(l_user.level_num==4){
+        if (new_x == 111 && new_y == 14) {
+                mvprintw(14,111, "+"); 
+                refresh();
+        }
+        else if (new_x == 94 && new_y == 32) {
+                mvprintw(32,94, "+"); 
+                refresh();
+        }
     }
 }
 int is_wall(int x, int y) {
