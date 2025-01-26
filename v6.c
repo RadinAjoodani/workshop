@@ -1361,13 +1361,13 @@ int create_level4(){
         //mvprintw(37,45,"+");
         mvprintw(33,55,"o");
         mvprintw(34,56,"o");
-        draw_path(19, 7, 34, 12);
-        draw_path(49, 9, 120, 7);
-        draw_path(127, 13, 168, 29);
-        draw_path(159, 39, 110, 34);
-        draw_path(93, 32, 60, 17);
-        draw_path(49, 21, 19, 27);
-        draw_path(24, 33, 45, 37);
+        draw_path(34, 12, 18, 7);
+        draw_path(119, 7, 48, 9);
+        draw_path(167, 29, 126, 13);
+        draw_path(111, 34, 160, 39);
+        draw_path(61, 17, 94, 32);
+        draw_path(20, 27, 50, 21);
+        draw_path(44, 37, 23, 33);
         Player player = {48,35, '.'};
         draw_player(&player);
 
@@ -1471,6 +1471,22 @@ void clear_player(Player *player) {
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
     }
+    else if (l_user.level_num==4)
+    {
+        if(player->y==32 && player->x==94){
+            attron(COLOR_PAIR(1));
+            mvprintw(32,94, "%c", '|');
+            attroff(COLOR_PAIR(1));
+        } 
+        else if(player->y==12 && player->x==127){
+            attron(COLOR_PAIR(6));
+            mvprintw(12, 127, "%c", '-');
+            attroff(COLOR_PAIR(6));
+        }
+        else{
+            mvprintw(player->y, player->x, "%c", player->prev_char);
+        }
+    }
 }
 void draw_path(int x1, int y1, int x2, int y2) {
     int cx = x1, cy = y1;
@@ -1518,7 +1534,7 @@ int handle_input(Player *player) {
 
         draw_player(player);
     }
-    else if(z == '<'){
+    else if(z == '<' && l_user.level_num<=3){
         change_level(l_user.level_num);
     }
     if(l_user.level_num==1){
@@ -1531,7 +1547,7 @@ int handle_input(Player *player) {
                 refresh();
         }
     }
-    if(l_user.level_num==2){
+    else if(l_user.level_num==2){
         if (new_x == 18 && new_y == 7) {
                 mvprintw(7,18, "+"); 
                 refresh();
@@ -1545,7 +1561,7 @@ int handle_input(Player *player) {
                 refresh();
         }
     }
-    if(l_user.level_num==3){
+    else if(l_user.level_num==3){
         if (new_x == 167 && new_y == 30) {
                 mvprintw(30,167, "+"); 
                 refresh();
@@ -1555,13 +1571,17 @@ int handle_input(Player *player) {
                 refresh();
         }
     }
-    if(l_user.level_num==4){
-        if (new_x == 111 && new_y == 14) {
-                mvprintw(14,111, "+"); 
+    else if(l_user.level_num==4){
+        if (new_x == 110 && new_y == 34) {
+                mvprintw(34,110, "+"); 
                 refresh();
         }
-        else if (new_x == 94 && new_y == 32) {
-                mvprintw(32,94, "+"); 
+        else if (new_x == 120 && new_y == 7) {
+                mvprintw(7,120, "+"); 
+                refresh();
+        }
+        else if (new_x == 45 && new_y == 37) {
+                mvprintw(37,45, "+"); 
                 refresh();
         }
     }
@@ -1577,7 +1597,6 @@ int change_level(int level_num){
     switch (level_num)
     {
     case 1:
-        mvprintw(20,50,"Dddd");
         create_level2();
         break;
     case 2:
