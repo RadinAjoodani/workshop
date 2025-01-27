@@ -1,6 +1,8 @@
 #include<ncurses.h>
 #include<string.h>
 #include<stdlib.h>
+#define MAP_HEIGHT 50
+#define MAP_WIDTH 200
 
 typedef struct{
     char password[50];
@@ -16,13 +18,29 @@ typedef struct{
     int color;
     int level_num;
 }User;
-
 typedef struct{
     int x,y;
     int color;
     int difficulty;
     char prev_char;
 }Player;
+
+char map1[MAP_HEIGHT][MAP_WIDTH];
+char map2[MAP_HEIGHT][MAP_WIDTH];
+char map3[MAP_HEIGHT][MAP_WIDTH];
+char map4[MAP_HEIGHT][MAP_WIDTH];
+
+int memory_map1[MAP_HEIGHT][MAP_WIDTH];
+int memory_map2[MAP_HEIGHT][MAP_WIDTH];  
+int memory_map3[MAP_HEIGHT][MAP_WIDTH];  
+int memory_map4[MAP_HEIGHT][MAP_WIDTH];  
+
+int path_visible1[MAP_HEIGHT][MAP_WIDTH];
+int path_visible2[MAP_HEIGHT][MAP_WIDTH];
+int path_visible3[MAP_HEIGHT][MAP_WIDTH];
+int path_visible4[MAP_HEIGHT][MAP_WIDTH];
+
+
 int fmsign=0;
 Player l_player;
 User l_user;
@@ -51,17 +69,27 @@ void continue_last_game();
 void show_profile_status(); 
 void select_difficulty(int *current_difficulty);
 void change_character_color(int *current_color);
-int create_level1();
-int create_level2();
-int create_level3();
-int create_level4();
+int create_map1();
+int create_map2();
+int create_map3();
+int create_map4();
 int is_wall(int x, int y);
-void draw_path(int x1, int y1, int x2, int y2);
+void draw_path(int x1, int y1, int x2, int y2,char map[MAP_HEIGHT][MAP_WIDTH]);
 void draw_player(Player *player);
-int handle_input(Player *player);
+int handle_input(Player *player,char map[MAP_HEIGHT][MAP_WIDTH],int memory_map[MAP_HEIGHT][MAP_WIDTH],int path_visible[MAP_HEIGHT][MAP_WIDTH]);
 void clear_player(Player *player);
-int is_valid_move(int x, int y);
+int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]);
 int change_level(int level_num);
+void initialize_memory_map(int memory_map[MAP_HEIGHT][MAP_WIDTH]);
+void mark_path_as_visible(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH],
+                                int memory_map[MAP_HEIGHT][MAP_WIDTH],
+                                int path_visible[MAP_HEIGHT][MAP_WIDTH]);
+void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],
+                        char map[MAP_HEIGHT][MAP_WIDTH]);
+void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]);
+int is_in_room(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]);
+int get_room_id(int x, int y);
+void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]);
 // void save_information(User user);
 
 int main(){
@@ -455,11 +483,15 @@ void play_game(){
     }
 }
 void play_as_guest(){
-    while(1){
-        create_level1();
-        if(getch()=='q'){
-        return;
-        }
+    l_user.level_num=1;
+    initialize_memory_map(memory_map1);  
+    memset(path_visible1, 0, sizeof(path_visible1));  
+    create_map1();  
+    Player player = {5, 4, '.'};
+    refresh_map(&player,memory_map1,map1);  
+
+    while (1) {
+        handle_input(&player,map1,memory_map1,path_visible1);
     }
 }
 void show_table(){
@@ -732,658 +764,22 @@ void change_character_color(int *current_color) {
     }
 }
 void start_new_game(){
-    clear();
-    while(1){
-        create_level1();
-        if(getch()=='q'){
-        return;
-        }
+    initialize_memory_map(memory_map1);  
+    memset(path_visible1, 0, sizeof(path_visible1));  
+    create_map1();  
+    Player player = {5, 4, '.'};
+    refresh_map(&player,memory_map1,map1);  
+
+    while (1) {
+        handle_input(&player,map1,memory_map1,path_visible1);
     }
 }
 void continue_last_game(){
 
 }
-int create_level1(){
-    clear();
-        l_user.level_num=1;
-        mvprintw(1,1,"LEVEL1");
-        //room1
-        attron(COLOR_PAIR(1));
-        for(int i = 3 ; i < 10 ; i++){
-            mvprintw(i,3,"|");
-            mvprintw(i,10,"|");
-        }
-        for(int i = 3 ; i < 10 ; i++){
-            mvprintw(3,i,"--");
-            mvprintw(9,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 4 ; i < 9 ; i++){
-            for(int j = 4 ; j < 10 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(6,10,"+");
-        mvprintw(7,5,"o");
-        mvprintw(4,8,"o");
-        mvprintw(8,9,"<");
-        //room2
-        attron(COLOR_PAIR(1));
-        for(int i = 4 ; i < 11 ; i++){
-            mvprintw(i,40,"|");
-            mvprintw(i,48,"|");
-        }
-        for(int i = 40 ; i < 48 ; i++){
-            mvprintw(4,i,"--");
-            mvprintw(10,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 5 ; i < 10 ; i++){
-            for(int j = 41 ; j < 48 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        
-        mvprintw(9,40,"+");
-        mvprintw(7,48,"+");
-        mvprintw(6,45,"o");
-        mvprintw(8,41,"o");
-        //room3
-        attron(COLOR_PAIR(1));
-        for(int i = 6 ; i < 17 ; i++){
-            mvprintw(i,100,"|");
-            mvprintw(i,111,"|");
-        }
-        for(int i = 100 ; i < 111 ; i++){
-            mvprintw(6,i,"--");
-            mvprintw(16,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 7 ; i < 16 ; i++){
-            for(int j = 101 ; j < 111 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(9,100,"+");
-        //mvprintw(14,111,"+");
-        mvprintw(10,105,"o");
-        mvprintw(14,102,"o");
-        mvprintw(15,109,"o");
-        //room4
-        attron(COLOR_PAIR(1));
-        for(int i = 20 ; i < 30 ; i++){
-            mvprintw(i,150,"|");
-            mvprintw(i,159,"|");
-        }
-        for(int i = 150 ; i < 159 ; i++){
-            mvprintw(20,i,"--");
-            mvprintw(29,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 21 ; i < 29 ; i++){
-            for(int j = 151 ; j < 159 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(20,152,"+");
-        mvprintw(25,150,"+");
-        mvprintw(22,152,"o");
-        mvprintw(28,156,"o");
-        //room5
-        attron(COLOR_PAIR(6));
-        for(int i = 30 ; i < 36 ; i++){
-            mvprintw(i,94,"|");
-            mvprintw(i,110,"|");
-        }
-        for(int i = 94 ; i < 110 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(35,i,"--");
-        }
-        attroff(COLOR_PAIR(6));
-        for(int i = 31 ; i < 35 ; i++){
-            for(int j = 95 ; j < 110 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        //mvprintw(32,94,"+");
-        mvprintw(34,110,"+");
-        mvprintw(31,99,"o");
-        mvprintw(33,107,"o");
-        //room6
-        attron(COLOR_PAIR(3));
-        for(int i = 28 ; i < 38 ; i++){
-            mvprintw(i,10,"|");
-            mvprintw(i,20,"|");
-        }
-        for(int i = 10 ; i < 20 ; i++){
-            mvprintw(28,i,"--");
-            mvprintw(37,i,"--");
-        }
-        attroff(COLOR_PAIR(3));
-        for(int i = 29 ; i < 37 ; i++){
-            for(int j = 11 ; j < 20 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(30,20,"+");
-        mvprintw(30,12,"o");
-        mvprintw(36,17,"o");
-        mvprintw(36,13,"<");
-        
-        draw_path(11, 6, 40, 9);
-        draw_path(49, 7, 100, 9);
-        draw_path(112, 14, 153, 19);
-        draw_path(149, 25, 110, 34);
-        draw_path(93, 32, 20, 30);
-        Player player = {5, 4, '.'};
-        draw_player(&player);
-
-        refresh();
-
-        while (1) {
-            handle_input(&player);
-            refresh();
-        }
-}
-int create_level2(){
-    clear();
-    l_user.level_num=2;
-    fmsign=0;
-    mvprintw(1,1,"LEVEL2");
-        //room1
-        attron(COLOR_PAIR(6));
-        for(int i = 6 ; i < 15 ; i++){
-            mvprintw(i,10,"|");
-            mvprintw(i,18,"|");
-        }
-        for(int i = 10 ; i < 18 ; i++){
-            mvprintw(6,i,"--");
-            mvprintw(14,i,"--");
-        }
-        attroff(COLOR_PAIR(6));
-        for(int i = 7 ; i < 14 ; i++){
-            for(int j = 11 ; j < 18 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        //mvprintw(7,18,"+");
-        mvprintw(10,12,"o");
-        mvprintw(8,16,"o");
-        mvprintw(9,17,"<");
-        //room2
-        attron(COLOR_PAIR(1));
-        for(int i = 5 ; i < 14 ; i++){
-            mvprintw(i,35,"|");
-            mvprintw(i,48,"|");
-        }
-        for(int i = 35 ; i < 48 ; i++){
-            mvprintw(5,i,"--");
-            mvprintw(13,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 6 ; i < 13 ; i++){
-            for(int j = 36 ; j < 48 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(12,35,"+");
-        mvprintw(9,48,"+");
-        mvprintw(11,45,"o");
-        mvprintw(9,37,"o");
-        //room3
-        attron(COLOR_PAIR(7));
-        for(int i = 3 ; i < 13 ; i++){
-            mvprintw(i,120,"|");
-            mvprintw(i,135,"|");
-        }
-        for(int i = 120 ; i < 135 ; i++){
-            mvprintw(3,i,"--");
-            mvprintw(12,i,"--");
-        }
-        attroff(COLOR_PAIR(7));
-        for(int i = 4 ; i < 12 ; i++){
-            for(int j = 121 ; j < 135 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(7,120,"+");
-        //mvprintw(12,127,"+");
-        mvprintw(5,126,"o");
-        mvprintw(6,131,"o");
-        mvprintw(11,122,"o");
-        //room4
-        attron(COLOR_PAIR(1));
-        for(int i = 30 ; i < 42 ; i++){
-            mvprintw(i,160,"|");
-            mvprintw(i,175,"|");
-        }
-        for(int i = 160 ; i < 175 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(41,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 31 ; i < 41 ; i++){
-            for(int j = 161 ; j < 175 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(30,167,"+");
-        mvprintw(39,160,"+");
-        mvprintw(35,169,"o");
-        mvprintw(40,163,"o");
-        //room5
-        attron(COLOR_PAIR(6));
-        for(int i = 30 ; i < 36 ; i++){
-            mvprintw(i,94,"|");
-            mvprintw(i,110,"|");
-        }
-        for(int i = 94 ; i < 110 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(35,i,"--");
-        }
-        attroff(COLOR_PAIR(6));
-        for(int i = 31 ; i < 35 ; i++){
-            for(int j = 95 ; j < 110 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(32,94,"+");
-        mvprintw(34,110,"+");
-        mvprintw(31,99,"o");
-        mvprintw(33,107,"o");
-        //room6
-        attron(COLOR_PAIR(1));
-        for(int i = 15 ; i < 23 ; i++){
-            mvprintw(i,50,"|");
-            mvprintw(i,60,"|");
-        }
-        for(int i = 50 ; i < 60 ; i++){
-            mvprintw(15,i,"--");
-            mvprintw(22,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 16 ; i < 22 ; i++){
-            for(int j = 51 ; j < 60 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(17,60,"+");
-        //mvprintw(21,50,"+");
-        mvprintw(20,53,"o");
-        mvprintw(19,57,"o");
-        //room7
-        attron(COLOR_PAIR(3));
-        for(int i = 28 ; i < 33 ; i++){
-            mvprintw(i,11,"|");
-            mvprintw(i,26,"|");
-        }
-        for(int i = 11 ; i < 26 ; i++){
-            mvprintw(28,i,"--");
-            mvprintw(32,i,"--");
-        }
-        attroff(COLOR_PAIR(3));
-        for(int i = 29 ; i < 32 ; i++){
-            for(int j = 12 ; j < 26 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(28,20,"+");
-        mvprintw(30,12,"o");
-        mvprintw(29,17,"o");
-        draw_path(19, 7, 35, 12);
-        draw_path(49, 9, 120, 7);
-        draw_path(127, 13, 168, 29);
-        draw_path(159, 39, 110, 34);
-        draw_path(93, 32, 60, 17);
-        draw_path(49, 21, 19, 27);
-        Player player = {12, 10, '.'};
-        draw_player(&player);
-
-        refresh();
-
-        while (1) {
-            handle_input(&player);
-            refresh();
-        }
-        // if(getch()=='q'){
-        //     return 0;
-        // }
-        // else{
-        //     create_level3();
-        // }
-}
-int create_level3(){
-    clear();
-    l_user.level_num=3;
-    fmsign=0;
-    mvprintw(1,1,"LEVEL3");
-        //room1
-        attron(COLOR_PAIR(3));
-        for(int i = 6 ; i < 16 ; i++){
-            mvprintw(i,35,"|");
-            mvprintw(i,41,"|");
-        }
-        for(int i = 35 ; i < 41 ; i++){
-            mvprintw(6,i,"--");
-            mvprintw(15,i,"--");
-        }
-        attroff(COLOR_PAIR(3));
-        for(int i = 7 ; i < 15 ; i++){
-            for(int j = 36 ; j < 41 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(12,41,"+");
-        mvprintw(11,40,"o");
-        mvprintw(9,37,"o");
-        //room2
-        attron(COLOR_PAIR(7));
-        for(int i = 12 ; i < 17 ; i++){
-            mvprintw(i,70,"|");
-            mvprintw(i,84,"|");
-        }
-        for(int i = 70 ; i < 84 ; i++){
-            mvprintw(12,i,"--");
-            mvprintw(16,i,"--");
-        }
-        attroff(COLOR_PAIR(7));
-        for(int i = 13 ; i < 16 ; i++){
-            for(int j = 71 ; j < 84 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(13,70,"+");
-        mvprintw(14,84,"+");
-        mvprintw(13,75,"o");
-        mvprintw(15,80,"o");
-        //room3
-        attron(COLOR_PAIR(1));
-        for(int i = 2 ; i < 9 ; i++){
-            mvprintw(i,150,"|");
-            mvprintw(i,160,"|");
-        }
-        for(int i = 150 ; i < 160; i++){
-            mvprintw(2,i,"--");
-            mvprintw(8,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 3 ; i < 8 ; i++){
-            for(int j = 151 ; j < 160 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        //mvprintw(6,150,"+");
-        mvprintw(8,158,"+");
-        mvprintw(4,155,"o");
-        mvprintw(7,159,"o");
-        mvprintw(4,151,"o");
-        //room4
-        attron(COLOR_PAIR(1));
-        for(int i = 30 ; i < 42 ; i++){
-            mvprintw(i,160,"|");
-            mvprintw(i,175,"|");
-        }
-        for(int i = 160 ; i < 175 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(41,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 31 ; i < 41 ; i++){
-            for(int j = 161 ; j < 175 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        //mvprintw(30,167,"+");
-        mvprintw(39,160,"+");
-        mvprintw(35,169,"o");
-        mvprintw(40,163,"o");
-        //room5
-        attron(COLOR_PAIR(7));
-        for(int i = 30 ; i < 36 ; i++){
-            mvprintw(i,84,"|");
-            mvprintw(i,100,"|");
-        }
-        for(int i = 84 ; i < 100 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(35,i,"--");
-        }
-        attroff(COLOR_PAIR(7));
-        for(int i = 31 ; i < 35 ; i++){
-            for(int j = 85 ; j < 100 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(32,84,"+");
-        mvprintw(34,100,"+");
-        mvprintw(31,99,"o");
-        mvprintw(33,86,"o");
-        //room6
-        attron(COLOR_PAIR(6));
-        for(int i = 35 ; i < 40 ; i++){
-            mvprintw(i,17,"|");
-            mvprintw(i,26,"|");
-        }
-        for(int i = 17 ; i < 26 ; i++){
-            mvprintw(35,i,"--");
-            mvprintw(39,i,"--");
-        }
-        attroff(COLOR_PAIR(6));
-        for(int i = 36 ; i < 39 ; i++){
-            for(int j = 18 ; j < 26 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(37,26,"+");
-        mvprintw(37,22,"o");
-        mvprintw(36,23,"<");
-        draw_path(27, 37, 84, 32);
-        draw_path(101, 34, 160, 39);
-        draw_path(167, 29, 158, 8);
-        draw_path(149, 6, 84, 14);
-        draw_path(69, 13, 41, 12);
-        Player player = {18, 36, '.'};
-        draw_player(&player);
-
-        refresh();
-
-        while (1) {
-            handle_input(&player);
-            refresh();
-        }
-        // if(getch()=='q'){
-        //     return 0;
-        // }
-        // else{
-        //     create_level4();
-        // }
-}
-int create_level4(){
-    clear();
-    fmsign=0;
-    l_user.level_num=4;
-    mvprintw(1,1,"LEVEL4");
-        //room1
-        attron(COLOR_PAIR(2));
-        for(int i = 6 ; i < 15 ; i++){
-            mvprintw(i,10,"|");
-            mvprintw(i,18,"|");
-        }
-        for(int i = 10 ; i < 18 ; i++){
-            mvprintw(6,i,"--");
-            mvprintw(14,i,"--");
-        }
-        attroff(COLOR_PAIR(2));
-        for(int i = 7 ; i < 14 ; i++){
-            for(int j = 11 ; j < 18 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(7,18,"+");
-        mvprintw(10,12,"o");
-        mvprintw(8,16,"o");
-        //room2
-        attron(COLOR_PAIR(1));
-        for(int i = 5 ; i < 14 ; i++){
-            mvprintw(i,35,"|");
-            mvprintw(i,48,"|");
-        }
-        for(int i = 35 ; i < 48 ; i++){
-            mvprintw(5,i,"--");
-            mvprintw(13,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 6 ; i < 13 ; i++){
-            for(int j = 36 ; j < 48 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(12,35,"+");
-        mvprintw(9,48,"+");
-        mvprintw(11,45,"o");
-        mvprintw(9,37,"o");
-        //room3
-        attron(COLOR_PAIR(6));
-        for(int i = 3 ; i < 13 ; i++){
-            mvprintw(i,120,"|");
-            mvprintw(i,135,"|");
-        }
-        for(int i = 120 ; i < 135 ; i++){
-            mvprintw(3,i,"--");
-            mvprintw(12,i,"--");
-        }
-        attroff(COLOR_PAIR(6));
-        for(int i = 4 ; i < 12 ; i++){
-            for(int j = 121 ; j < 135 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        //mvprintw(7,120,"+");
-        mvprintw(12,127,"+");
-        mvprintw(5,126,"o");
-        mvprintw(6,131,"o");
-        mvprintw(11,122,"o");
-        //room4
-        attron(COLOR_PAIR(1));
-        for(int i = 30 ; i < 42 ; i++){
-            mvprintw(i,160,"|");
-            mvprintw(i,175,"|");
-        }
-        for(int i = 160 ; i < 175 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(41,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 31 ; i < 41 ; i++){
-            for(int j = 161 ; j < 175 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(30,167,"+");
-        mvprintw(39,160,"+");
-        mvprintw(35,169,"o");
-        mvprintw(40,163,"o");
-        //room5
-        attron(COLOR_PAIR(1));
-        for(int i = 30 ; i < 36 ; i++){
-            mvprintw(i,94,"|");
-            mvprintw(i,110,"|");
-        }
-        for(int i = 94 ; i < 110 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(35,i,"--");
-        }
-        attroff(COLOR_PAIR(1));
-        for(int i = 31 ; i < 35 ; i++){
-            for(int j = 95 ; j < 110 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(32,94,"+");
-        //mvprintw(34,110,"+");
-        mvprintw(31,99,"o");
-        mvprintw(33,107,"o");
-        //room6
-        attron(COLOR_PAIR(6));
-        for(int i = 15 ; i < 23 ; i++){
-            mvprintw(i,50,"|");
-            mvprintw(i,60,"|");
-        }
-        for(int i = 50 ; i < 60 ; i++){
-            mvprintw(15,i,"--");
-            mvprintw(22,i,"--");
-        }
-        attroff(COLOR_PAIR(6));
-        for(int i = 16 ; i < 22 ; i++){
-            for(int j = 51 ; j < 60 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(17,60,"+");
-        mvprintw(21,50,"+");
-        mvprintw(20,53,"o");
-        mvprintw(19,57,"o");
-        //room7
-        attron(COLOR_PAIR(7));
-        for(int i = 28 ; i < 33 ; i++){
-            mvprintw(i,11,"|");
-            mvprintw(i,26,"|");
-        }
-        for(int i = 11 ; i < 26 ; i++){
-            mvprintw(28,i,"--");
-            mvprintw(32,i,"--");
-        }
-        attroff(COLOR_PAIR(7));
-        for(int i = 29 ; i < 32 ; i++){
-            for(int j = 12 ; j < 26 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        mvprintw(28,20,"+");
-        mvprintw(32,24,"+");
-        mvprintw(30,12,"o");
-        mvprintw(29,17,"o");
-        //room8
-        attron(COLOR_PAIR(6));
-        for(int i = 30 ; i < 42 ; i++){
-            mvprintw(i,45,"|");
-            mvprintw(i,60,"|");
-        }
-        for(int i = 45 ; i < 60 ; i++){
-            mvprintw(30,i,"--");
-            mvprintw(41,i,"--");
-        }
-        attroff(COLOR_PAIR(6));
-        for(int i = 31 ; i < 41 ; i++){
-            for(int j = 46 ; j < 60 ; j++){
-                mvprintw(i,j,".");
-            }
-        }
-        //mvprintw(37,45,"+");
-        mvprintw(33,55,"o");
-        mvprintw(34,56,"o");
-        draw_path(34, 12, 18, 7);
-        draw_path(119, 7, 48, 9);
-        draw_path(167, 29, 126, 13);
-        draw_path(111, 34, 160, 39);
-        draw_path(61, 17, 94, 32);
-        draw_path(20, 27, 50, 21);
-        draw_path(44, 37, 23, 33);
-        Player player = {48,35, '.'};
-        draw_player(&player);
-
-        refresh();
-
-        while (1) {
-            handle_input(&player);
-            refresh();
-        }
-        // if(getch()=='q'){
-        //     return 0;
-        // }
-}
-int is_valid_move(int x, int y) {
-    char ch = mvinch(y, x) & A_CHARTEXT;
-    return ch == '.' || ch == '#' || ch == '+'||ch == '<';
+int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
+    char ch = map[y][x];
+    return ch == '.' || ch == '#' || ch == '+'||ch=='<';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -1488,20 +884,20 @@ void clear_player(Player *player) {
         }
     }
 }
-void draw_path(int x1, int y1, int x2, int y2) {
+void draw_path(int x1, int y1, int x2, int y2,char map[MAP_HEIGHT][MAP_WIDTH]) {
     int cx = x1, cy = y1;
 
     while (cx != x2 || cy != y2) {
-        mvprintw(cy, cx, "#");
+        map[cy][cx] = '#';
 
         int dx = (cx < x2) - (cx > x2);
         int dy = (cy < y2) - (cy > y2);
 
-        if (rand() % 2 == 0 && !is_wall(cx + dx, cy)) {
+        if (rand() % 2 == 0 && map[cy][cx + dx] != '|' && map[cy][cx + dx] != '-') {
             cx += dx;
-        } else if (!is_wall(cx, cy + dy)) {
+        } else if (map[cy + dy][cx] != '|' && map[cy + dy][cx] != '-') {
             cy += dy;
-        } else if (!is_wall(cx + dx, cy + dy)) {
+        } else if (map[cy + dy][cx + dx] != '|' && map[cy + dy][cx + dx] != '-') {
             cx += dx;
             cy += dy;
         } else {
@@ -1509,9 +905,561 @@ void draw_path(int x1, int y1, int x2, int y2) {
         }
     }
 }
-int handle_input(Player *player) {
+int create_map1() {
+    memset(map1, ' ', sizeof(map1));
+
+    for (int i = 3; i < 10; i++) {
+        map1[i][3] = '|';
+        map1[i][10] = '|';
+    }
+    for (int i = 3; i < 10; i++) {
+        map1[3][i] = '-';
+        map1[9][i] = '-';
+    }
+    for (int i = 4; i < 9; i++) {
+        for (int j = 4; j < 10; j++) {
+            map1[i][j] = '.';
+        }
+    }
+    map1[6][10] = '+';
+    map1[7][5] = 'o';
+    map1[4][8] = 'o';
+    map1[8][9] = '<';
+
+    //  room ۲
+    for (int i = 4; i < 11; i++) {
+        map1[i][40] = '|';
+        map1[i][48] = '|';
+    }
+    for (int i = 40; i < 48; i++) {
+        map1[4][i] = '-';
+        map1[10][i] = '-';
+    }
+    for (int i = 5; i < 10; i++) {
+        for (int j = 41; j < 48; j++) {
+            map1[i][j] = '.';
+        }
+    }
+    map1[9][40] = '+';
+    map1[7][48] = '+';
+    map1[6][45] = 'o';
+    map1[8][41] = 'o';
+
+    //  room ۳
+    for (int i = 6; i < 17; i++) {
+        map1[i][100] = '|';
+        map1[i][111] = '|';
+    }
+    for (int i = 100; i < 111; i++) {
+        map1[6][i] = '-';
+        map1[16][i] = '-';
+    }
+    for (int i = 7; i < 16; i++) {
+        for (int j = 101; j < 111; j++) {
+            map1[i][j] = '.';
+        }
+    }
+    map1[9][100] = '+';
+    map1[14][111] = '+';
+    map1[10][105] = 'o';
+    map1[14][102] = 'o';
+    map1[15][109] = 'o';
+
+    //  room ۴
+    for (int i = 20; i < 30; i++) {
+        map1[i][150] = '|';
+        map1[i][159] = '|';
+    }
+    for (int i = 150; i < 159; i++) {
+        map1[20][i] = '-';
+        map1[29][i] = '-';
+    }
+    for (int i = 21; i < 29; i++) {
+        for (int j = 151; j < 159; j++) {
+            map1[i][j] = '.';
+        }
+    }
+    map1[20][152] = '+';
+    map1[25][150] = '+';
+    map1[22][152] = 'o';
+    map1[28][156] = 'o';
+
+    //  room ۵
+    for (int i = 30; i < 36; i++) {
+        map1[i][94] = '|';
+        map1[i][110] = '|';
+    }
+    for (int i = 94; i < 110; i++) {
+        map1[30][i] = '-';
+        map1[35][i] = '-';
+    }
+    for (int i = 31; i < 35; i++) {
+        for (int j = 95; j < 110; j++) {
+            map1[i][j] = '.';
+        }
+    }
+    map1[32][94] = '+';
+    map1[34][110] = '+';
+    map1[31][99] = 'o';
+    map1[33][107] = 'o';
+
+    //  room ۶
+    for (int i = 28; i < 38; i++) {
+        map1[i][10] = '|';
+        map1[i][20] = '|';
+    }
+    for (int i = 10; i < 20; i++) {
+        map1[28][i] = '-';
+        map1[37][i] = '-';
+    }
+    for (int i = 29; i < 37; i++) {
+        for (int j = 11; j < 20; j++) {
+            map1[i][j] = '.';
+        }
+    }
+    map1[30][20] = '+';
+    map1[30][12] = 'o';
+    map1[36][17] = 'o';
+    map1[36][13] = '<';
+
+    // ایجاد راهروها
+    draw_path(11, 6, 40, 9,map1);
+    draw_path(49, 7, 100, 9,map1);
+    draw_path(112, 14, 153, 19,map1);
+    draw_path(149, 25, 110, 34,map1);
+    draw_path(93, 32, 20, 30,map1);
+
+    return 0;
+}
+int create_map2() {
+    // پاک کردن آرایه نقشه
+    memset(map2, ' ', sizeof(map2));
+
+    //  room ۱
+    for (int i = 6; i < 15; i++) {
+        map2[i][10] = '|';
+        map2[i][18] = '|';
+    }
+    for (int i = 10; i < 18; i++) {
+        map2[6][i] = '-';
+        map2[14][i] = '-';
+    }
+    for (int i = 7; i < 14; i++) {
+        for (int j = 11; j < 18; j++) {
+            map2[i][j] = '.';
+        }
+    }
+    map2[10][12] = 'o';
+    map2[8][16] = 'o';
+    map2[9][17] = '<';
+
+    //  room ۲
+    for (int i = 5; i < 14; i++) {
+        map2[i][35] = '|';
+        map2[i][48] = '|';
+    }
+    for (int i = 35; i < 48; i++) {
+        map2[5][i] = '-';
+        map2[13][i] = '-';
+    }
+    for (int i = 6; i < 13; i++) {
+        for (int j = 36; j < 48; j++) {
+            map2[i][j] = '.';
+        }
+    }
+    map2[12][35] = '+';
+    map2[9][48] = '+';
+    map2[11][45] = 'o';
+    map2[9][37] = 'o';
+
+    //  room ۳
+    for (int i = 3; i < 13; i++) {
+        map2[i][120] = '|';
+        map2[i][135] = '|';
+    }
+    for (int i = 120; i < 135; i++) {
+        map2[3][i] = '-';
+        map2[12][i] = '-';
+    }
+    for (int i = 4; i < 12; i++) {
+        for (int j = 121; j < 135; j++) {
+            map2[i][j] = '.';
+        }
+    }
+    map2[7][120] = '+';
+    map2[5][126] = 'o';
+    map2[6][131] = 'o';
+    map2[11][122] = 'o';
+
+    //  room ۴
+    for (int i = 30; i < 42; i++) {
+        map2[i][160] = '|';
+        map2[i][175] = '|';
+    }
+    for (int i = 160; i < 175; i++) {
+        map2[30][i] = '-';
+        map2[41][i] = '-';
+    }
+    for (int i = 31; i < 41; i++) {
+        for (int j = 161; j < 175; j++) {
+            map2[i][j] = '.';
+        }
+    }
+    map2[30][167] = '+';
+    map2[39][160] = '+';
+    map2[35][169] = 'o';
+    map2[40][163] = 'o';
+
+    //  room ۵
+    for (int i = 30; i < 36; i++) {
+        map2[i][94] = '|';
+        map2[i][110] = '|';
+    }
+    for (int i = 94; i < 110; i++) {
+        map2[30][i] = '-';
+        map2[35][i] = '-';
+    }
+    for (int i = 31; i < 35; i++) {
+        for (int j = 95; j < 110; j++) {
+            map2[i][j] = '.';
+        }
+    }
+    map2[32][94] = '+';
+    map2[34][110] = '+';
+    map2[31][99] = 'o';
+    map2[33][107] = 'o';
+
+    //  room ۶
+    for (int i = 15; i < 23; i++) {
+        map2[i][50] = '|';
+        map2[i][60] = '|';
+    }
+    for (int i = 50; i < 60; i++) {
+        map2[15][i] = '-';
+        map2[22][i] = '-';
+    }
+    for (int i = 16; i < 22; i++) {
+        for (int j = 51; j < 60; j++) {
+            map2[i][j] = '.';
+        }
+    }
+    map2[17][60] = '+';
+    map2[20][53] = 'o';
+    map2[19][57] = 'o';
+
+    //  room ۷
+    for (int i = 28; i < 33; i++) {
+        map2[i][11] = '|';
+        map2[i][26] = '|';
+    }
+    for (int i = 11; i < 26; i++) {
+        map2[28][i] = '-';
+        map2[32][i] = '-';
+    }
+    for (int i = 29; i < 32; i++) {
+        for (int j = 12; j < 26; j++) {
+            map2[i][j] = '.';
+        }
+    }
+    map2[28][20] = '+';
+    map2[30][12] = 'o';
+    map2[29][17] = 'o';
+
+    // ایجاد راهروها
+    draw_path(19, 7, 35, 12,map2);
+    draw_path(49, 9, 120, 7,map2);
+    draw_path(127, 13, 168, 29,map2);
+    draw_path(159, 39, 110, 34,map2);
+    draw_path(93, 32, 60, 17,map2);
+    draw_path(49, 21, 19, 27,map2);
+}
+int create_map3() {
+    // پاک کردن آرایه نقشه
+    memset(map3, ' ', sizeof(map3));
+
+    //  room ۱
+    for (int i = 6; i < 16; i++) {
+        map3[i][35] = '|';
+        map3[i][41] = '|';
+    }
+    for (int i = 35; i < 41; i++) {
+        map3[6][i] = '-';
+        map3[15][i] = '-';
+    }
+    for (int i = 7; i < 15; i++) {
+        for (int j = 36; j < 41; j++) {
+            map3[i][j] = '.';
+        }
+    }
+    map3[12][41] = '+';
+    map3[11][40] = 'o';
+    map3[9][37] = 'o';
+
+    //  room ۲
+    for (int i = 12; i < 17; i++) {
+        map3[i][70] = '|';
+        map3[i][84] = '|';
+    }
+    for (int i = 70; i < 84; i++) {
+        map3[12][i] = '-';
+        map3[16][i] = '-';
+    }
+    for (int i = 13; i < 16; i++) {
+        for (int j = 71; j < 84; j++) {
+            map3[i][j] = '.';
+        }
+    }
+    map3[13][70] = '+';
+    map3[14][84] = '+';
+    map3[13][75] = 'o';
+    map3[15][80] = 'o';
+
+    //  room ۳
+    for (int i = 2; i < 9; i++) {
+        map3[i][150] = '|';
+        map3[i][160] = '|';
+    }
+    for (int i = 150; i < 160; i++) {
+        map3[2][i] = '-';
+        map3[8][i] = '-';
+    }
+    for (int i = 3; i < 8; i++) {
+        for (int j = 151; j < 160; j++) {
+            map3[i][j] = '.';
+        }
+    }
+    map3[8][158] = '+';
+    map3[4][155] = 'o';
+    map3[7][159] = 'o';
+    map3[4][151] = 'o';
+
+    //  room ۴
+    for (int i = 30; i < 42; i++) {
+        map3[i][160] = '|';
+        map3[i][175] = '|';
+    }
+    for (int i = 160; i < 175; i++) {
+        map3[30][i] = '-';
+        map3[41][i] = '-';
+    }
+    for (int i = 31; i < 41; i++) {
+        for (int j = 161; j < 175; j++) {
+            map3[i][j] = '.';
+        }
+    }
+    map3[39][160] = '+';
+    map3[35][169] = 'o';
+    map3[40][163] = 'o';
+
+    //  room ۵
+    for (int i = 30; i < 36; i++) {
+        map3[i][84] = '|';
+        map3[i][100] = '|';
+    }
+    for (int i = 84; i < 100; i++) {
+        map3[30][i] = '-';
+        map3[35][i] = '-';
+    }
+    for (int i = 31; i < 35; i++) {
+        for (int j = 85; j < 100; j++) {
+            map3[i][j] = '.';
+        }
+    }
+    map3[32][84] = '+';
+    map3[34][100] = '+';
+    map3[31][99] = 'o';
+    map3[33][86] = 'o';
+
+    //  room ۶
+    for (int i = 35; i < 40; i++) {
+        map3[i][17] = '|';
+        map3[i][26] = '|';
+    }
+    for (int i = 17; i < 26; i++) {
+        map3[35][i] = '-';
+        map3[39][i] = '-';
+    }
+    for (int i = 36; i < 39; i++) {
+        for (int j = 18; j < 26; j++) {
+            map3[i][j] = '.';
+        }
+    }
+    map3[37][26] = '+';
+    map3[37][22] = 'o';
+    map3[36][23] = '<';
+
+    // ایجاد راهروها
+    draw_path(27, 37, 84, 32,map3);
+    draw_path(101, 34, 160, 39,map3);
+    draw_path(167, 29, 158, 8,map3);
+    draw_path(149, 6, 84, 14,map3);
+    draw_path(69, 13, 41, 12,map3);
+}
+int create_map4() {
+    // پاک کردن آرایه نقشه
+    memset(map4, ' ', sizeof(map4));
+
+    //  room ۱
+    for (int i = 6; i < 15; i++) {
+        map4[i][10] = '|';
+        map4[i][18] = '|';
+    }
+    for (int i = 10; i < 18; i++) {
+        map4[6][i] = '-';
+        map4[14][i] = '-';
+    }
+    for (int i = 7; i < 14; i++) {
+        for (int j = 11; j < 18; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[7][18] = '+';
+    map4[10][12] = 'o';
+    map4[8][16] = 'o';
+
+    //  room ۲
+    for (int i = 5; i < 14; i++) {
+        map4[i][35] = '|';
+        map4[i][48] = '|';
+    }
+    for (int i = 35; i < 48; i++) {
+        map4[5][i] = '-';
+        map4[13][i] = '-';
+    }
+    for (int i = 6; i < 13; i++) {
+        for (int j = 36; j < 48; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[12][35] = '+';
+    map4[9][48] = '+';
+    map4[11][45] = 'o';
+    map4[9][37] = 'o';
+
+    //  room ۳
+    for (int i = 3; i < 13; i++) {
+        map4[i][120] = '|';
+        map4[i][135] = '|';
+    }
+    for (int i = 120; i < 135; i++) {
+        map4[3][i] = '-';
+        map4[12][i] = '-';
+    }
+    for (int i = 4; i < 12; i++) {
+        for (int j = 121; j < 135; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[12][127] = '+';
+    map4[5][126] = 'o';
+    map4[6][131] = 'o';
+    map4[11][122] = 'o';
+
+    //  room ۴
+    for (int i = 30; i < 42; i++) {
+        map4[i][160] = '|';
+        map4[i][175] = '|';
+    }
+    for (int i = 160; i < 175; i++) {
+        map4[30][i] = '-';
+        map4[41][i] = '-';
+    }
+    for (int i = 31; i < 41; i++) {
+        for (int j = 161; j < 175; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[30][167] = '+';
+    map4[39][160] = '+';
+    map4[35][169] = 'o';
+    map4[40][163] = 'o';
+
+    //  room ۵
+    for (int i = 30; i < 36; i++) {
+        map4[i][94] = '|';
+        map4[i][110] = '|';
+    }
+    for (int i = 94; i < 110; i++) {
+        map4[30][i] = '-';
+        map4[35][i] = '-';
+    }
+    for (int i = 31; i < 35; i++) {
+        for (int j = 95; j < 110; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[32][94] = '+';
+    map4[31][99] = 'o';
+    map4[33][107] = 'o';
+
+    //  room ۶
+    for (int i = 15; i < 23; i++) {
+        map4[i][50] = '|';
+        map4[i][60] = '|';
+    }
+    for (int i = 50; i < 60; i++) {
+        map4[15][i] = '-';
+        map4[22][i] = '-';
+    }
+    for (int i = 16; i < 22; i++) {
+        for (int j = 51; j < 60; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[17][60] = '+';
+    map4[21][50] = '+';
+    map4[20][53] = 'o';
+    map4[19][57] = 'o';
+
+    // اتاق ۷
+    for (int i = 28; i < 33; i++) {
+        map4[i][11] = '|';
+        map4[i][26] = '|';
+    }
+    for (int i = 11; i < 26; i++) {
+        map4[28][i] = '-';
+        map4[32][i] = '-';
+    }
+    for (int i = 29; i < 32; i++) {
+        for (int j = 12; j < 26; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[28][20] = '+';
+    map4[32][24] = '+';
+    map4[30][12] = 'o';
+    map4[29][17] = 'o';
+
+    // اتاق ۸
+    for (int i = 30; i < 42; i++) {
+        map4[i][45] = '|';
+        map4[i][60] = '|';
+    }
+    for (int i = 45; i < 60; i++) {
+        map4[30][i] = '-';
+        map4[41][i] = '-';
+    }
+    for (int i = 31; i < 41; i++) {
+        for (int j = 46; j < 60; j++) {
+            map4[i][j] = '.';
+        }
+    }
+    map4[33][55] = 'o';
+    map4[34][56] = 'o';
+
+    // ایجاد راهروها
+    draw_path(34, 12, 18, 7,map4);
+    draw_path(119, 7, 48, 9,map4);
+    draw_path(167, 29, 126, 13,map4);
+    draw_path(111, 34, 160, 39,map4);
+    draw_path(61, 17, 94, 32,map4);
+    draw_path(20, 27, 50, 21,map4);
+    draw_path(44, 37, 23, 33,map4);
+}
+int handle_input(Player *player,char map[MAP_HEIGHT][MAP_WIDTH],int memory_map[MAP_HEIGHT][MAP_WIDTH],int path_visible[MAP_HEIGHT][MAP_WIDTH]) {
     int ch = getch();
     int new_x = player->x, new_y = player->y;
+
     switch (ch) {
         case '1': new_x--; new_y++; break; 
         case '2': new_y++; break;         
@@ -1522,68 +1470,20 @@ int handle_input(Player *player) {
         case '8': new_y--; break;       
         case '9': new_x++; new_y--; break;
     }
-    char z = mvinch(new_y, new_x) & A_CHARTEXT;
 
-    if (is_valid_move(new_x, new_y)&&(z!='<')) {
+    if (is_valid_move(new_x, new_y,map)) {
         clear_player(player);
 
-        player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;
-
+        player->prev_char = map[new_y][new_x];  
         player->x = new_x;
         player->y = new_y;
 
-        draw_player(player);
-    }
-    else if(z == '<' && l_user.level_num<=3){
-        change_level(l_user.level_num);
-    }
-    if(l_user.level_num==1){
-        if (new_x == 111 && new_y == 14) {
-                mvprintw(14,111, "+"); 
-                refresh();
+         
+        if (map[new_y][new_x] == '+'||map[new_y][new_x] == '#') {
+            mark_path_as_visible(new_x, new_y,map,memory_map,path_visible);
         }
-        else if (new_x == 94 && new_y == 32) {
-                mvprintw(32,94, "+"); 
-                refresh();
-        }
-    }
-    else if(l_user.level_num==2){
-        if (new_x == 18 && new_y == 7) {
-                mvprintw(7,18, "+"); 
-                refresh();
-        }
-        else if (new_x == 128 && new_y == 12) {
-                mvprintw(12,128, "+"); 
-                refresh();
-        }
-        else if (new_x == 50 && new_y == 21) {
-                mvprintw(21,50, "+"); 
-                refresh();
-        }
-    }
-    else if(l_user.level_num==3){
-        if (new_x == 167 && new_y == 30) {
-                mvprintw(30,167, "+"); 
-                refresh();
-        }
-        else if (new_x == 150 && new_y == 6) {
-                mvprintw(6,150, "+"); 
-                refresh();
-        }
-    }
-    else if(l_user.level_num==4){
-        if (new_x == 110 && new_y == 34) {
-                mvprintw(34,110, "+"); 
-                refresh();
-        }
-        else if (new_x == 120 && new_y == 7) {
-                mvprintw(7,120, "+"); 
-                refresh();
-        }
-        else if (new_x == 45 && new_y == 37) {
-                mvprintw(37,45, "+"); 
-                refresh();
-        }
+
+        refresh_map(player,memory_map,map);  
     }
 }
 int is_wall(int x, int y) {
@@ -1597,21 +1497,208 @@ int change_level(int level_num){
     switch (level_num)
     {
     case 1:
-        create_level2();
+        create_map2();
         break;
     case 2:
-        create_level3();
+        create_map3();
         break;
     case 3:
-        create_level4();
+        create_map4();
         break;
     default:
         break;
     }
 }
+void initialize_memory_map(int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
+    memset(memory_map,0,1000);
+}
+void mark_path_as_visible(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH],int memory_map[MAP_HEIGHT][MAP_WIDTH],int path_visible[MAP_HEIGHT][MAP_WIDTH]) {
+     
+    if (x == 6 && y == 10) {  
+        for (int i = 6; i <= 9; i++) {
+            for (int j = 10; j <= 40; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;  
+                }
+            }
+        }
+    }
+    else if (x == 9 && y == 40) {  
+        for (int i = 4; i <= 10; i++) {
+            for (int j = 40; j <= 48; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+    else if (x == 9 && y == 100) {  
+        for (int i = 6; i <= 16; i++) {
+            for (int j = 100; j <= 111; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+    else if (x == 14 && y == 111) {  
+        for (int i = 6; i <= 16; i++) {
+            for (int j = 100; j <= 111; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+    else if (x == 20 && y == 152) {  
+        for (int i = 20; i <= 29; i++) {
+            for (int j = 150; j <= 159; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+    else if (x == 32 && y == 94) {  
+        for (int i = 30; i <= 35; i++) {
+            for (int j = 94; j <= 110; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+    else if (x == 34 && y == 110) {  
+        for (int i = 30; i <= 35; i++) {
+            for (int j = 94; j <= 110; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+    else if (x == 30 && y == 20) {  
+        for (int i = 28; i <= 37; i++) {
+            for (int j = 10; j <= 20; j++) {
+                if (map[i][j] == '#') {
+                    path_visible[i][j] = 1;
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+}
+void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
+    for (int i = 0; i < MAP_HEIGHT; i++) {
+        for (int j = 0; j < MAP_WIDTH; j++) {
+            if (memory_map[i][j]) {
+            if (is_in_room(player_x, player_y,map) && map[i][j] == '#') {
+                    continue;
+                }
 
+                attron(COLOR_PAIR(4));
+                mvaddch(i, j, map[i][j]);
+                attroff(COLOR_PAIR(4));
+            }
+        }
+    }
+}
+void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
+    update_memory_map(player->x, player->y,memory_map,map);
+    draw_visible_map(player->x, player->y,memory_map,map);
+    draw_player(player);
+    refresh();  
+}
+void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
+    if(is_in_room(player_x,player_y,map)){
+        if (get_room_id(player_x,player_y)==1) {
+            for (int i = 3; i <= 9; i++) {
+                for (int j = 3; j <= 10; j++) {
+                    memory_map[i][j] = 1;  
+                }
+            }
+        }
+        
+        else if (get_room_id(player_x,player_y)==2) {
+            for (int i = 4; i <= 10; i++) {
+                for (int j = 40; j <= 48; j++) {
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+        
+        else if (get_room_id(player_x,player_y)==3) {
+            for (int i = 6; i <= 16; i++) {
+                for (int j = 100; j <= 111; j++) {
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+        
+        else if (get_room_id(player_x,player_y)==4) {
+            for (int i = 20; i <= 29; i++) {
+                for (int j = 150; j <= 159; j++) {
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+        
+        else if (get_room_id(player_x,player_y)==5) {
+            for (int i = 30; i <= 35; i++) {
+                for (int j = 94; j <= 110; j++) {
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+        
+        else if (get_room_id(player_x,player_y)==6) {
+            for (int i = 28; i <= 37; i++) {
+                for (int j = 10; j <= 20; j++) {
+                    memory_map[i][j] = 1;
+                }
+            }
+        }
+    }
+    else{
+        int view_distance = 5;  
 
-
+        for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
+            for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
+                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                    memory_map[y][x] = 1;  
+                }
+            }
+        }
+    }
+}
+int is_in_room(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
+     
+    if ((x >= 3 && x <= 10 && y >= 3 && y <= 9) ||  
+        (x >= 40 && x <= 48 && y >= 4 && y <= 10) ||  
+        (x >= 100 && x <= 111 && y >= 6 && y <= 16) ||  
+        (x >= 150 && x <= 159 && y >= 20 && y <= 29) ||  
+        (x >= 94 && x <= 110 && y >= 30 && y <= 35) ||  
+        (x >= 10 && x <= 20 && y >= 28 && y <= 37)) {  
+        return 1;
+    }
+    return 0;
+}
+int get_room_id(int x, int y) {
+    if (x >= 4 && x < 10 && y >= 4 && y < 10) return 1;
+    if (x >= 41 && x < 48 && y >= 5 && y < 10) return 2;
+    if (x >= 101 && x < 111 && y >= 7 && y < 16) return 3;
+    if (x >= 151 && x < 159 && y >= 21 && y < 29) return 4;
+    if (x >= 95 && x < 110 && y >= 31 && y < 35) return 5;
+    if (x >= 11 && x < 20 && y >= 29 && y < 37) return 6;
+    return 0;
+}
 
 
 
