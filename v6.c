@@ -35,12 +35,6 @@ int memory_map2[MAP_HEIGHT][MAP_WIDTH];
 int memory_map3[MAP_HEIGHT][MAP_WIDTH];  
 int memory_map4[MAP_HEIGHT][MAP_WIDTH];  
 
-int path_visible1[MAP_HEIGHT][MAP_WIDTH];
-int path_visible2[MAP_HEIGHT][MAP_WIDTH];
-int path_visible3[MAP_HEIGHT][MAP_WIDTH];
-int path_visible4[MAP_HEIGHT][MAP_WIDTH];
-
-
 int fmsign=0;
 Player l_player;
 User l_user;
@@ -65,6 +59,9 @@ void show_score_table();
 void show_profile_status();
 void settings_menu();
 void start_new_game();
+void start_level2();
+void start_level3();
+void start_level4();
 void continue_last_game();
 void show_profile_status(); 
 void select_difficulty(int *current_difficulty);
@@ -73,23 +70,19 @@ int create_map1();
 int create_map2();
 int create_map3();
 int create_map4();
-int is_wall(int x, int y);
 void draw_path(int x1, int y1, int x2, int y2,char map[MAP_HEIGHT][MAP_WIDTH]);
 void draw_player(Player *player);
-int handle_input(Player *player,char map[MAP_HEIGHT][MAP_WIDTH],int memory_map[MAP_HEIGHT][MAP_WIDTH],int path_visible[MAP_HEIGHT][MAP_WIDTH]);
+int handle_input(Player *player);
 void clear_player(Player *player);
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]);
-int change_level(int level_num);
 void initialize_memory_map(int memory_map[MAP_HEIGHT][MAP_WIDTH]);
-void mark_path_as_visible(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH],
-                                int memory_map[MAP_HEIGHT][MAP_WIDTH],
-                                int path_visible[MAP_HEIGHT][MAP_WIDTH]);
 void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],
                         char map[MAP_HEIGHT][MAP_WIDTH]);
-void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]);
-int is_in_room(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]);
+void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]);
+int is_in_room(int x, int y);
 int get_room_id(int x, int y);
 void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]);
+
 // void save_information(User user);
 
 int main(){
@@ -485,13 +478,12 @@ void play_game(){
 void play_as_guest(){
     l_user.level_num=1;
     initialize_memory_map(memory_map1);  
-    memset(path_visible1, 0, sizeof(path_visible1));  
     create_map1();  
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
 
     while (1) {
-        handle_input(&player,map1,memory_map1,path_visible1);
+        handle_input(&player);
     }
 }
 void show_table(){
@@ -765,13 +757,48 @@ void change_character_color(int *current_color) {
 }
 void start_new_game(){
     initialize_memory_map(memory_map1);  
-    memset(path_visible1, 0, sizeof(path_visible1));  
     create_map1();  
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
 
     while (1) {
-        handle_input(&player,map1,memory_map1,path_visible1);
+        handle_input(&player);
+    }
+}
+void start_level2(){
+    clear();
+    l_user.level_num=2;
+    initialize_memory_map(memory_map2);  
+    create_map2();  
+    Player player = {12,10, '.'};
+    refresh_map(&player,memory_map2,map2);  
+
+    while (1) {
+        handle_input(&player);
+    }
+}
+void start_level3(){
+    clear();
+    l_user.level_num=3;
+    initialize_memory_map(memory_map3);  
+    create_map3();  
+    Player player = {18,36, '.'};
+    refresh_map(&player,memory_map3,map3);  
+
+    while (1) {
+        handle_input(&player);
+    }
+}
+void start_level4(){
+    clear();
+    l_user.level_num=4;
+    initialize_memory_map(memory_map4);  
+    create_map4();  
+    Player player = {48,35, '.'};
+    refresh_map(&player,memory_map4,map4);  
+
+    while (1) {
+        handle_input(&player);
     }
 }
 void continue_last_game(){
@@ -1049,6 +1076,7 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
+    map2[7][18] = '+';
     map2[10][12] = 'o';
     map2[8][16] = 'o';
     map2[9][17] = '<';
@@ -1456,150 +1484,121 @@ int create_map4() {
     draw_path(20, 27, 50, 21,map4);
     draw_path(44, 37, 23, 33,map4);
 }
-int handle_input(Player *player,char map[MAP_HEIGHT][MAP_WIDTH],int memory_map[MAP_HEIGHT][MAP_WIDTH],int path_visible[MAP_HEIGHT][MAP_WIDTH]) {
-    int ch = getch();
-    int new_x = player->x, new_y = player->y;
+int handle_input(Player *player) {
+    if(l_user.level_num==1){
+        int ch = getch();
+        int new_x = player->x, new_y = player->y;
 
-    switch (ch) {
-        case '1': new_x--; new_y++; break; 
-        case '2': new_y++; break;         
-        case '3': new_x++; new_y++; break; 
-        case '4': new_x--; break;         
-        case '6': new_x++; break;     
-        case '7': new_x--; new_y--; break; 
-        case '8': new_y--; break;       
-        case '9': new_x++; new_y--; break;
-    }
-
-    if (is_valid_move(new_x, new_y,map)) {
-        clear_player(player);
-
-        player->prev_char = map[new_y][new_x];  
-        player->x = new_x;
-        player->y = new_y;
-
-         
-        if (map[new_y][new_x] == '+'||map[new_y][new_x] == '#') {
-            mark_path_as_visible(new_x, new_y,map,memory_map,path_visible);
+        switch (ch) {
+            case '1': new_x--; new_y++; break; 
+            case '2': new_y++; break;         
+            case '3': new_x++; new_y++; break; 
+            case '4': new_x--; break;         
+            case '6': new_x++; break;     
+            case '7': new_x--; new_y--; break; 
+            case '8': new_y--; break;       
+            case '9': new_x++; new_y--; break;
         }
 
-        refresh_map(player,memory_map,map);  
-    }
-}
-int is_wall(int x, int y) {
-    char ch = mvinch(y, x) & A_CHARTEXT;
-    return ch == '|' || ch == '-' || ch == 'o';
-}
-int change_level(int level_num){
-    clear();
-    refresh();
+        if (is_valid_move(new_x, new_y,map1) && map1[new_y][new_x]!='<') {
+            clear_player(player);
 
-    switch (level_num)
-    {
-    case 1:
-        create_map2();
-        break;
-    case 2:
-        create_map3();
-        break;
-    case 3:
-        create_map4();
-        break;
-    default:
-        break;
+            player->prev_char = map1[new_y][new_x];  
+            player->x = new_x;
+            player->y = new_y;
+            refresh_map(player,memory_map1,map1);  
+        }
+        else if(map1[new_y][new_x]=='<'){
+            start_level2();
+        }
+    }
+    else if(l_user.level_num==2){
+        int ch = getch();
+        int new_x = player->x, new_y = player->y;
+
+        switch (ch) {
+            case '1': new_x--; new_y++; break; 
+            case '2': new_y++; break;         
+            case '3': new_x++; new_y++; break; 
+            case '4': new_x--; break;         
+            case '6': new_x++; break;     
+            case '7': new_x--; new_y--; break; 
+            case '8': new_y--; break;       
+            case '9': new_x++; new_y--; break;
+        }
+
+        if (is_valid_move(new_x, new_y,map2) && map2[new_y][new_x]!='<') {
+            clear_player(player);
+
+            player->prev_char = map2[new_y][new_x];  
+            player->x = new_x;
+            player->y = new_y;
+            refresh_map(player,memory_map2,map2);
+        }
+        else if(map2[new_y][new_x]=='<'){
+            start_level3();
+        }
+    }
+    else if(l_user.level_num==3){
+        int ch = getch();
+        int new_x = player->x, new_y = player->y;
+
+        switch (ch) {
+            case '1': new_x--; new_y++; break; 
+            case '2': new_y++; break;         
+            case '3': new_x++; new_y++; break; 
+            case '4': new_x--; break;         
+            case '6': new_x++; break;     
+            case '7': new_x--; new_y--; break; 
+            case '8': new_y--; break;       
+            case '9': new_x++; new_y--; break;
+        }
+
+        if (is_valid_move(new_x, new_y,map3)&& map3[new_y][new_x]!='<') {
+            clear_player(player);
+
+            player->prev_char = map3[new_y][new_x];  
+            player->x = new_x;
+            player->y = new_y;
+            refresh_map(player,memory_map3,map3);  
+        }
+        else if(map3[new_y][new_x]=='<'){
+            start_level4();
+        }
+    }
+    else if(l_user.level_num==4){
+        int ch = getch();
+        int new_x = player->x, new_y = player->y;
+
+        switch (ch) {
+            case '1': new_x--; new_y++; break; 
+            case '2': new_y++; break;         
+            case '3': new_x++; new_y++; break; 
+            case '4': new_x--; break;         
+            case '6': new_x++; break;     
+            case '7': new_x--; new_y--; break; 
+            case '8': new_y--; break;       
+            case '9': new_x++; new_y--; break;
+        }
+
+        if (is_valid_move(new_x, new_y,map4)) {
+            clear_player(player);
+
+            player->prev_char = map4[new_y][new_x];  
+            player->x = new_x;
+            player->y = new_y;
+            refresh_map(player,memory_map4,map4);  
+        }
     }
 }
 void initialize_memory_map(int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
     memset(memory_map,0,1000);
 }
-void mark_path_as_visible(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH],int memory_map[MAP_HEIGHT][MAP_WIDTH],int path_visible[MAP_HEIGHT][MAP_WIDTH]) {
-     
-    if (x == 6 && y == 10) {  
-        for (int i = 6; i <= 9; i++) {
-            for (int j = 10; j <= 40; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;  
-                }
-            }
-        }
-    }
-    else if (x == 9 && y == 40) {  
-        for (int i = 4; i <= 10; i++) {
-            for (int j = 40; j <= 48; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-    else if (x == 9 && y == 100) {  
-        for (int i = 6; i <= 16; i++) {
-            for (int j = 100; j <= 111; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-    else if (x == 14 && y == 111) {  
-        for (int i = 6; i <= 16; i++) {
-            for (int j = 100; j <= 111; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-    else if (x == 20 && y == 152) {  
-        for (int i = 20; i <= 29; i++) {
-            for (int j = 150; j <= 159; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-    else if (x == 32 && y == 94) {  
-        for (int i = 30; i <= 35; i++) {
-            for (int j = 94; j <= 110; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-    else if (x == 34 && y == 110) {  
-        for (int i = 30; i <= 35; i++) {
-            for (int j = 94; j <= 110; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-    else if (x == 30 && y == 20) {  
-        for (int i = 28; i <= 37; i++) {
-            for (int j = 10; j <= 20; j++) {
-                if (map[i][j] == '#') {
-                    path_visible[i][j] = 1;
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-}
 void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
     for (int i = 0; i < MAP_HEIGHT; i++) {
         for (int j = 0; j < MAP_WIDTH; j++) {
             if (memory_map[i][j]) {
-            if (is_in_room(player_x, player_y,map) && map[i][j] == '#') {
+            if (is_in_room(player_x, player_y) && map[i][j] == '#') {
                     continue;
                 }
 
@@ -1611,93 +1610,376 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
     }
 }
 void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
-    update_memory_map(player->x, player->y,memory_map,map);
+    update_memory_map(player->x, player->y,memory_map);
     draw_visible_map(player->x, player->y,memory_map,map);
     draw_player(player);
     refresh();  
 }
-void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
-    if(is_in_room(player_x,player_y,map)){
-        if (get_room_id(player_x,player_y)==1) {
-            for (int i = 3; i <= 9; i++) {
-                for (int j = 3; j <= 10; j++) {
-                    memory_map[i][j] = 1;  
+void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
+    if(l_user.level_num==1){
+        if(is_in_room(player_x,player_y)){
+            if (get_room_id(player_x,player_y)==1) {
+                for (int i = 3; i <= 9; i++) {
+                    for (int j = 3; j <= 10; j++) {
+                        memory_map[i][j] = 1;  
+                    }
+                }
+            }
+            
+            else if (get_room_id(player_x,player_y)==2) {
+                for (int i = 4; i <= 10; i++) {
+                    for (int j = 40; j <= 48; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+            
+            else if (get_room_id(player_x,player_y)==3) {
+                for (int i = 6; i <= 16; i++) {
+                    for (int j = 100; j <= 111; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+            
+            else if (get_room_id(player_x,player_y)==4) {
+                for (int i = 20; i <= 29; i++) {
+                    for (int j = 150; j <= 159; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+            
+            else if (get_room_id(player_x,player_y)==5) {
+                for (int i = 30; i <= 35; i++) {
+                    for (int j = 94; j <= 110; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+            
+            else if (get_room_id(player_x,player_y)==6) {
+                for (int i = 28; i <= 37; i++) {
+                    for (int j = 10; j <= 20; j++) {
+                        memory_map[i][j] = 1;
+                    }
                 }
             }
         }
-        
-        else if (get_room_id(player_x,player_y)==2) {
-            for (int i = 4; i <= 10; i++) {
-                for (int j = 40; j <= 48; j++) {
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-        
-        else if (get_room_id(player_x,player_y)==3) {
-            for (int i = 6; i <= 16; i++) {
-                for (int j = 100; j <= 111; j++) {
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-        
-        else if (get_room_id(player_x,player_y)==4) {
-            for (int i = 20; i <= 29; i++) {
-                for (int j = 150; j <= 159; j++) {
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-        
-        else if (get_room_id(player_x,player_y)==5) {
-            for (int i = 30; i <= 35; i++) {
-                for (int j = 94; j <= 110; j++) {
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-        
-        else if (get_room_id(player_x,player_y)==6) {
-            for (int i = 28; i <= 37; i++) {
-                for (int j = 10; j <= 20; j++) {
-                    memory_map[i][j] = 1;
-                }
-            }
-        }
-    }
-    else{
-        int view_distance = 5;  
+        else{
+            int view_distance = 5;  
 
-        for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
-            for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
-                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
-                    memory_map[y][x] = 1;  
+            for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
+                for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
+                    if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                        memory_map[y][x] = 1;  
+                    }
                 }
             }
         }
     }
+    else if (l_user.level_num == 2) {
+        if (is_in_room(player_x, player_y)) {
+            if (get_room_id(player_x, player_y) == 1) {
+                for (int i = 6; i <= 14; i++) {
+                    for (int j = 10; j <= 18; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 2) {
+                for (int i = 5; i <= 13; i++) {
+                    for (int j = 35; j <= 48; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 3) {
+                for (int i = 3; i <= 12; i++) {
+                    for (int j = 120; j <= 135; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 4) {
+                for (int i = 30; i <= 41; i++) {
+                    for (int j = 160; j <= 175; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 5) {
+                for (int i = 30; i <= 35; i++) {
+                    for (int j = 94; j <= 110; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 6) {
+                for (int i = 15; i <= 22; i++) {
+                    for (int j = 50; j <= 60; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 7) {
+                for (int i = 28; i <= 32; i++) {
+                    for (int j = 11; j <= 26; j++) {
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+        }
+        else{
+            int view_distance = 5;  
+
+            for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
+                for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
+                    if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                        memory_map[y][x] = 1;  
+                    }
+                }
+            }
+        }
+    }
+    else if (l_user.level_num == 3) {
+        if (is_in_room(player_x, player_y)) {
+            if (get_room_id(player_x, player_y) == 1) {
+                for (int i = 6; i <= 15; i++) {  
+                    for (int j = 35; j <= 41; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 2) {
+                for (int i = 12; i <= 16; i++) {  
+                    for (int j = 70; j <= 84; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 3) {
+                for (int i = 2; i <= 8; i++) {  
+                    for (int j = 150; j <= 160; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 4) {
+                for (int i = 30; i <= 41; i++) {  
+                    for (int j = 160; j <= 175; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 5) {
+                for (int i = 30; i <= 35; i++) {  
+                    for (int j = 84; j <= 100; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 6) {
+                for (int i = 35; i <= 39; i++) {  
+                    for (int j = 17; j <= 26; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+        }
+        else{
+            int view_distance = 5;  
+
+            for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
+                for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
+                    if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                        memory_map[y][x] = 1;  
+                    }
+                }
+            }
+        }
+    }
+    else if (l_user.level_num == 4) {
+        if (is_in_room(player_x, player_y)) {
+            if (get_room_id(player_x, player_y) == 1) {
+                for (int i = 6; i <= 14; i++) {  
+                    for (int j = 10; j <= 18; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 2) {
+                for (int i = 5; i <= 13; i++) {  
+                    for (int j = 35; j <= 48; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 3) {
+                for (int i = 3; i <= 12; i++) {  
+                    for (int j = 120; j <= 135; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 4) {
+                for (int i = 30; i <= 41; i++) {  
+                    for (int j = 160; j <= 175; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 5) {
+                for (int i = 30; i <= 35; i++) {  
+                    for (int j = 94; j <= 110; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 6) {
+                for (int i = 15; i <= 22; i++) {  
+                    for (int j = 50; j <= 60; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 7) {
+                for (int i = 28; i <= 32; i++) {  
+                    for (int j = 11; j <= 26; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+
+            else if (get_room_id(player_x, player_y) == 8) {
+                for (int i = 30; i <= 41; i++) {  
+                    for (int j = 45; j <= 60; j++) {  
+                        memory_map[i][j] = 1;
+                    }
+                }
+            }
+        }
+        else{
+            int view_distance = 5;  
+
+            for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
+                for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
+                    if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                        memory_map[y][x] = 1;  
+                    }
+                }
+            }
+        }
+    }
+    
 }
-int is_in_room(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
-     
-    if ((x >= 3 && x <= 10 && y >= 3 && y <= 9) ||  
+int is_in_room(int x, int y) {
+    if(l_user.level_num==1){
+        if ((x >= 3 && x <= 10 && y >= 3 && y <= 9) ||  
         (x >= 40 && x <= 48 && y >= 4 && y <= 10) ||  
         (x >= 100 && x <= 111 && y >= 6 && y <= 16) ||  
         (x >= 150 && x <= 159 && y >= 20 && y <= 29) ||  
         (x >= 94 && x <= 110 && y >= 30 && y <= 35) ||  
-        (x >= 10 && x <= 20 && y >= 28 && y <= 37)) {  
+        (x >= 10 && x <= 20 && y >= 28 && y <= 37)) {
+        return 1;
+        }
+    return 0;
+    }
+    else if(l_user.level_num==2){
+        if ((y >= 6 && y <= 14 && x >= 10 && x <= 18) ||   
+        (y >= 5 && y <= 13 && x >= 35 && x <= 48) ||   
+        (y >= 3 && y <= 12 && x >= 120 && x <= 135) ||   
+        (y >= 30 && y <= 41 && x >= 160 && x <= 175) ||   
+        (y >= 30 && y <= 35 && x >= 94 && x <= 110) ||   
+        (y >= 15 && y <= 22 && x >= 50 && x <= 60) ||   
+        (y >= 28 && y <= 32 && x >= 11 && x <= 26)) {   
         return 1;
     }
     return 0;
+    }
+    else if(l_user.level_num==3){
+        if ((x >= 35 && x <= 41 && y >= 6 && y <= 15) ||   
+        (x >= 70 && x <= 84 && y >= 12 && y <= 16) ||   
+        (x >= 150 && x <= 160 && y >= 2 && y <= 8) ||   
+        (x >= 160 && x <= 175 && y >= 30 && y <= 41) ||   
+        (x >= 84 && x <= 100 && y >= 30 && y <= 35) ||   
+        (x >= 17 && x <= 26 && y >= 35 && y <= 39)) {   
+        return 1;
+        }
+    return 0;
+    }
+    else if(l_user.level_num==4){
+        if ((x >= 10 && x <= 18 && y >= 6 && y <= 14) ||   
+        (x >= 35 && x <= 48 && y >= 5 && y <= 13) ||   
+        (x >= 120 && x <= 135 && y >= 3 && y <= 12) ||   
+        (x >= 160 && x <= 175 && y >= 30 && y <= 41) ||   
+        (x >= 94 && x <= 110 && y >= 30 && y <= 35) ||   
+        (x >= 50 && x <= 60 && y >= 15 && y <= 22) ||   
+        (x >= 11 && x <= 26 && y >= 28 && y <= 32) ||   
+        (x >= 45 && x <= 60 && y >= 30 && y <= 41)) {   
+        return 1;
+        }
+    return 0;
+    }
+    
 }
 int get_room_id(int x, int y) {
-    if (x >= 4 && x < 10 && y >= 4 && y < 10) return 1;
-    if (x >= 41 && x < 48 && y >= 5 && y < 10) return 2;
-    if (x >= 101 && x < 111 && y >= 7 && y < 16) return 3;
-    if (x >= 151 && x < 159 && y >= 21 && y < 29) return 4;
-    if (x >= 95 && x < 110 && y >= 31 && y < 35) return 5;
-    if (x >= 11 && x < 20 && y >= 29 && y < 37) return 6;
-    return 0;
+    if(l_user.level_num==1){
+        if (x >= 4 && x <= 10 && y >= 4 && y <= 10) return 1;
+        if (x >= 41 && x <= 48 && y >= 5 && y <= 10) return 2;
+        if (x >= 101 && x <= 111 && y >= 7 && y <= 16) return 3;
+        if (x >= 151 && x <= 159 && y >= 21 && y <= 29) return 4;
+        if (x >= 95 && x <= 110 && y >= 31 && y <= 35) return 5;
+        if (x >= 11 && x <= 20 && y >= 29 && y <= 37) return 6;
+        return 0;
+    }
+    else if(l_user.level_num==2){
+        if (y >= 6 && y <= 14 && x >= 10 && x <= 18) return 1;   
+        if (y >= 5 && y <= 13 && x >= 35 && x <= 48) return 2;   
+        if (y >= 3 && y <= 12 && x >= 120 && x <= 135) return 3;   
+        if (y >= 30 && y <= 41 && x >= 160 && x <= 175) return 4;   
+        if (y >= 30 && y <= 35 && x >= 94 && x <= 110) return 5;   
+        if (y >= 15 && y <= 22 && x >= 50 && x <= 60) return 6;   
+        if (y >= 28 && y <= 32 && x >= 11 && x <= 26) return 7;    
+        return 0;
+    }
+    else if(l_user.level_num==3){
+        if (x >= 35 && x <= 41 && y >= 6 && y <= 15) return 1;  
+        if (x >= 70 && x <= 84 && y >= 12 && y <= 16) return 2;  
+        if (x >= 150 && x <= 160 && y >= 2 && y <= 8) return 3;  
+        if (x >= 160 && x <= 175 && y >= 30 && y <= 41) return 4;  
+        if (x >= 84 && x <= 100 && y >= 30 && y <= 35) return 5;  
+        if (x >= 17 && x <= 26 && y >= 35 && y <= 39) return 6;  
+        return 0;
+    }
+    else if(l_user.level_num==4){
+        if (x >= 10 && x <= 18 && y >= 6 && y <= 14) return 1;  
+        if (x >= 35 && x <= 48 && y >= 5 && y <= 13) return 2;  
+        if (x >= 120 && x <= 135 && y >= 3 && y <= 12) return 3;  
+        if (x >= 160 && x <= 175 && y >= 30 && y <= 41) return 4;  
+        if (x >= 94 && x <= 110 && y >= 30 && y <= 35) return 5;  
+        if (x >= 50 && x <= 60 && y >= 15 && y <= 22) return 6;  
+        if (x >= 11 && x <= 26 && y >= 28 && y <= 32) return 7;  
+        if (x >= 45 && x <= 60 && y >= 30 && y <= 41)return 8; 
+        return 0;
+    }
 }
 
 
