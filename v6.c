@@ -40,7 +40,7 @@ Player l_player;
 User l_user;
 User s_user;
 int is_logged_in=0;
-
+int show_count = 0;
 void main_menu();
 void log_in();
 void sign_up();
@@ -82,7 +82,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
 int is_in_room(int x, int y);
 int get_room_id(int x, int y);
 void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]);
-
+void show_full_map_temporarily(Player *player);
 // void save_information(User user);
 
 int main(){
@@ -767,6 +767,7 @@ void start_new_game(){
 }
 void start_level2(){
     clear();
+    show_count = 0;
     l_user.level_num=2;
     initialize_memory_map(memory_map2);  
     create_map2();  
@@ -779,6 +780,7 @@ void start_level2(){
 }
 void start_level3(){
     clear();
+    show_count = 0;
     l_user.level_num=3;
     initialize_memory_map(memory_map3);  
     create_map3();  
@@ -791,6 +793,7 @@ void start_level3(){
 }
 void start_level4(){
     clear();
+    show_count = 0;
     l_user.level_num=4;
     initialize_memory_map(memory_map4);  
     create_map4();  
@@ -935,11 +938,11 @@ void draw_path(int x1, int y1, int x2, int y2,char map[MAP_HEIGHT][MAP_WIDTH]) {
 int create_map1() {
     memset(map1, ' ', sizeof(map1));
 
-    for (int i = 3; i < 10; i++) {
+    for (int i = 4; i < 9; i++) {
         map1[i][3] = '|';
         map1[i][10] = '|';
     }
-    for (int i = 3; i < 10; i++) {
+    for (int i = 3; i <= 10; i++) {
         map1[3][i] = '-';
         map1[9][i] = '-';
     }
@@ -958,7 +961,7 @@ int create_map1() {
         map1[i][40] = '|';
         map1[i][48] = '|';
     }
-    for (int i = 40; i < 48; i++) {
+    for (int i = 40; i <= 48; i++) {
         map1[4][i] = '-';
         map1[10][i] = '-';
     }
@@ -977,7 +980,7 @@ int create_map1() {
         map1[i][100] = '|';
         map1[i][111] = '|';
     }
-    for (int i = 100; i < 111; i++) {
+    for (int i = 100; i <= 111; i++) {
         map1[6][i] = '-';
         map1[16][i] = '-';
     }
@@ -997,7 +1000,7 @@ int create_map1() {
         map1[i][150] = '|';
         map1[i][159] = '|';
     }
-    for (int i = 150; i < 159; i++) {
+    for (int i = 150; i <= 159; i++) {
         map1[20][i] = '-';
         map1[29][i] = '-';
     }
@@ -1016,7 +1019,7 @@ int create_map1() {
         map1[i][94] = '|';
         map1[i][110] = '|';
     }
-    for (int i = 94; i < 110; i++) {
+    for (int i = 94; i <= 110; i++) {
         map1[30][i] = '-';
         map1[35][i] = '-';
     }
@@ -1035,7 +1038,7 @@ int create_map1() {
         map1[i][10] = '|';
         map1[i][20] = '|';
     }
-    for (int i = 10; i < 20; i++) {
+    for (int i = 10; i <= 20; i++) {
         map1[28][i] = '-';
         map1[37][i] = '-';
     }
@@ -1067,7 +1070,7 @@ int create_map2() {
         map2[i][10] = '|';
         map2[i][18] = '|';
     }
-    for (int i = 10; i < 18; i++) {
+    for (int i = 10; i <= 18; i++) {
         map2[6][i] = '-';
         map2[14][i] = '-';
     }
@@ -1086,7 +1089,7 @@ int create_map2() {
         map2[i][35] = '|';
         map2[i][48] = '|';
     }
-    for (int i = 35; i < 48; i++) {
+    for (int i = 35; i <= 48; i++) {
         map2[5][i] = '-';
         map2[13][i] = '-';
     }
@@ -1105,7 +1108,7 @@ int create_map2() {
         map2[i][120] = '|';
         map2[i][135] = '|';
     }
-    for (int i = 120; i < 135; i++) {
+    for (int i = 120; i <= 135; i++) {
         map2[3][i] = '-';
         map2[12][i] = '-';
     }
@@ -1124,7 +1127,7 @@ int create_map2() {
         map2[i][160] = '|';
         map2[i][175] = '|';
     }
-    for (int i = 160; i < 175; i++) {
+    for (int i = 160; i <= 175; i++) {
         map2[30][i] = '-';
         map2[41][i] = '-';
     }
@@ -1143,7 +1146,7 @@ int create_map2() {
         map2[i][94] = '|';
         map2[i][110] = '|';
     }
-    for (int i = 94; i < 110; i++) {
+    for (int i = 94; i <= 110; i++) {
         map2[30][i] = '-';
         map2[35][i] = '-';
     }
@@ -1162,7 +1165,7 @@ int create_map2() {
         map2[i][50] = '|';
         map2[i][60] = '|';
     }
-    for (int i = 50; i < 60; i++) {
+    for (int i = 50; i <= 60; i++) {
         map2[15][i] = '-';
         map2[22][i] = '-';
     }
@@ -1180,7 +1183,7 @@ int create_map2() {
         map2[i][11] = '|';
         map2[i][26] = '|';
     }
-    for (int i = 11; i < 26; i++) {
+    for (int i = 11; i <= 26; i++) {
         map2[28][i] = '-';
         map2[32][i] = '-';
     }
@@ -1210,7 +1213,7 @@ int create_map3() {
         map3[i][35] = '|';
         map3[i][41] = '|';
     }
-    for (int i = 35; i < 41; i++) {
+    for (int i = 35; i <= 41; i++) {
         map3[6][i] = '-';
         map3[15][i] = '-';
     }
@@ -1228,7 +1231,7 @@ int create_map3() {
         map3[i][70] = '|';
         map3[i][84] = '|';
     }
-    for (int i = 70; i < 84; i++) {
+    for (int i = 70; i <= 84; i++) {
         map3[12][i] = '-';
         map3[16][i] = '-';
     }
@@ -1247,7 +1250,7 @@ int create_map3() {
         map3[i][150] = '|';
         map3[i][160] = '|';
     }
-    for (int i = 150; i < 160; i++) {
+    for (int i = 150; i <= 160; i++) {
         map3[2][i] = '-';
         map3[8][i] = '-';
     }
@@ -1266,7 +1269,7 @@ int create_map3() {
         map3[i][160] = '|';
         map3[i][175] = '|';
     }
-    for (int i = 160; i < 175; i++) {
+    for (int i = 160; i <= 175; i++) {
         map3[30][i] = '-';
         map3[41][i] = '-';
     }
@@ -1284,7 +1287,7 @@ int create_map3() {
         map3[i][84] = '|';
         map3[i][100] = '|';
     }
-    for (int i = 84; i < 100; i++) {
+    for (int i = 84; i <= 100; i++) {
         map3[30][i] = '-';
         map3[35][i] = '-';
     }
@@ -1303,7 +1306,7 @@ int create_map3() {
         map3[i][17] = '|';
         map3[i][26] = '|';
     }
-    for (int i = 17; i < 26; i++) {
+    for (int i = 17; i <= 26; i++) {
         map3[35][i] = '-';
         map3[39][i] = '-';
     }
@@ -1332,7 +1335,7 @@ int create_map4() {
         map4[i][10] = '|';
         map4[i][18] = '|';
     }
-    for (int i = 10; i < 18; i++) {
+    for (int i = 10; i <= 18; i++) {
         map4[6][i] = '-';
         map4[14][i] = '-';
     }
@@ -1350,7 +1353,7 @@ int create_map4() {
         map4[i][35] = '|';
         map4[i][48] = '|';
     }
-    for (int i = 35; i < 48; i++) {
+    for (int i = 35; i <= 48; i++) {
         map4[5][i] = '-';
         map4[13][i] = '-';
     }
@@ -1369,7 +1372,7 @@ int create_map4() {
         map4[i][120] = '|';
         map4[i][135] = '|';
     }
-    for (int i = 120; i < 135; i++) {
+    for (int i = 120; i <= 135; i++) {
         map4[3][i] = '-';
         map4[12][i] = '-';
     }
@@ -1388,7 +1391,7 @@ int create_map4() {
         map4[i][160] = '|';
         map4[i][175] = '|';
     }
-    for (int i = 160; i < 175; i++) {
+    for (int i = 160; i <= 175; i++) {
         map4[30][i] = '-';
         map4[41][i] = '-';
     }
@@ -1407,7 +1410,7 @@ int create_map4() {
         map4[i][94] = '|';
         map4[i][110] = '|';
     }
-    for (int i = 94; i < 110; i++) {
+    for (int i = 94; i <= 110; i++) {
         map4[30][i] = '-';
         map4[35][i] = '-';
     }
@@ -1425,7 +1428,7 @@ int create_map4() {
         map4[i][50] = '|';
         map4[i][60] = '|';
     }
-    for (int i = 50; i < 60; i++) {
+    for (int i = 50; i <= 60; i++) {
         map4[15][i] = '-';
         map4[22][i] = '-';
     }
@@ -1444,7 +1447,7 @@ int create_map4() {
         map4[i][11] = '|';
         map4[i][26] = '|';
     }
-    for (int i = 11; i < 26; i++) {
+    for (int i = 11; i <= 26; i++) {
         map4[28][i] = '-';
         map4[32][i] = '-';
     }
@@ -1463,7 +1466,7 @@ int create_map4() {
         map4[i][45] = '|';
         map4[i][60] = '|';
     }
-    for (int i = 45; i < 60; i++) {
+    for (int i = 45; i <= 60; i++) {
         map4[30][i] = '-';
         map4[41][i] = '-';
     }
@@ -1488,7 +1491,18 @@ int handle_input(Player *player) {
     if(l_user.level_num==1){
         int ch = getch();
         int new_x = player->x, new_y = player->y;
-
+        if (ch == 'm') {
+            show_count++;
+            if(show_count>=4){
+                clear();
+                attron(COLOR_PAIR(2));
+                mvprintw(22,82,"YOU LOST");
+                getch();
+                endwin();
+                exit(0);
+            }
+            show_full_map_temporarily(player);
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1515,7 +1529,18 @@ int handle_input(Player *player) {
     else if(l_user.level_num==2){
         int ch = getch();
         int new_x = player->x, new_y = player->y;
-
+        if (ch == 'm') {
+            show_count++;
+            if(show_count>=4){
+                clear();
+                attron(COLOR_PAIR(2));
+                mvprintw(22,82,"YOU LOST");
+                getch();
+                endwin();
+                exit(0);
+            }
+            show_full_map_temporarily(player);
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1542,7 +1567,18 @@ int handle_input(Player *player) {
     else if(l_user.level_num==3){
         int ch = getch();
         int new_x = player->x, new_y = player->y;
-
+        if (ch == 'm') {
+            show_count++;
+            if(show_count>=4){
+                clear();
+                attron(COLOR_PAIR(2));
+                mvprintw(22,82,"YOU LOST");
+                getch();
+                endwin();
+                exit(0);
+            }
+            show_full_map_temporarily(player);
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1569,7 +1605,18 @@ int handle_input(Player *player) {
     else if(l_user.level_num==4){
         int ch = getch();
         int new_x = player->x, new_y = player->y;
-
+        if (ch == 'm') {
+            show_count++;
+            if(show_count>=4){
+                clear();
+                attron(COLOR_PAIR(2));
+                mvprintw(22,82,"YOU LOST");
+                getch();
+                endwin();
+                exit(0);
+            }
+            show_full_map_temporarily(player);
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1981,7 +2028,84 @@ int get_room_id(int x, int y) {
         return 0;
     }
 }
-
+void show_full_map_temporarily(Player *player) {
+    if(l_user.level_num==1){
+        for (int i = 0; i < MAP_HEIGHT; i++) {
+            for (int j = 0; j < MAP_WIDTH; j++) {
+                mvaddch(i, j, map1[i][j]);
+            }
+        }
+        refresh();
+        timeout(4000);
+        int ch = getch();
+        if(ch=='m'){
+            clear();
+            refresh_map(player,memory_map1,map1);
+        }
+        else {
+            clear();
+            refresh_map(player,memory_map1,map1);
+        }
+        timeout(-1);
+    }
+    else if(l_user.level_num==2){
+        for (int i = 0; i < MAP_HEIGHT; i++) {
+            for (int j = 0; j < MAP_WIDTH; j++) {
+                mvaddch(i, j, map2[i][j]);
+            }
+        }
+        refresh();
+        timeout(4000);
+        int ch = getch();
+        if(ch=='m'){
+            clear();
+            refresh_map(player,memory_map2,map2);
+        }
+        else {
+            clear();
+            refresh_map(player,memory_map2,map2);
+        }
+        timeout(-1);
+    }
+    else if(l_user.level_num==3){
+        for (int i = 0; i < MAP_HEIGHT; i++) {
+            for (int j = 0; j < MAP_WIDTH; j++) {
+                mvaddch(i, j, map3[i][j]);
+            }
+        }
+        refresh();
+        timeout(4000);
+        int ch = getch();
+        if(ch=='m'){
+            clear();
+            refresh_map(player,memory_map3,map3);
+        }
+        else {
+            clear();
+            refresh_map(player,memory_map3,map3); 
+        }
+        timeout(-1);
+    }
+    else if(l_user.level_num==4){
+        for (int i = 0; i < MAP_HEIGHT; i++) {
+            for (int j = 0; j < MAP_WIDTH; j++) {
+                mvaddch(i, j, map4[i][j]);
+            }
+        }
+        refresh();
+        timeout(4000);
+        int ch = getch();
+        if(ch=='m'){
+            clear();
+            refresh_map(player,memory_map4,map4);
+        }
+        else {
+            clear();
+            refresh_map(player,memory_map4,map4);
+        }
+        timeout(-1);
+    }
+}
 
 
 
