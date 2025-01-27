@@ -1,6 +1,7 @@
 #include<ncurses.h>
 #include<string.h>
 #include<stdlib.h>
+#include<unistd.h>
 #define MAP_HEIGHT 50
 #define MAP_WIDTH 200
 
@@ -83,6 +84,10 @@ int is_in_room(int x, int y);
 int get_room_id(int x, int y);
 void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]);
 void show_full_map_temporarily(Player *player);
+char *generate_code();
+void show_code(const char *code);
+char *enter_code();
+int check_code(const char *entered_code, const char *correct_code);
 // void save_information(User user);
 
 int main(){
@@ -756,6 +761,7 @@ void change_character_color(int *current_color) {
     }
 }
 void start_new_game(){
+    clear();
     initialize_memory_map(memory_map1);  
     create_map1();  
     Player player = {5, 4, '.'};
@@ -784,7 +790,7 @@ void start_level3(){
     l_user.level_num=3;
     initialize_memory_map(memory_map3);  
     create_map3();  
-    Player player = {18,36, '.'};
+    Player player = {20,26, '.'};
     refresh_map(&player,memory_map3,map3);  
 
     while (1) {
@@ -809,7 +815,7 @@ void continue_last_game(){
 }
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     char ch = map[y][x];
-    return ch == '.' || ch == '#' || ch == '+'||ch=='<';
+    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -852,14 +858,10 @@ void clear_player(Player *player) {
     else if (l_user.level_num==1)
     {
         if(player->y==9 && player->x==100){
-            attron(COLOR_PAIR(1));
-            mvprintw(9,100, "%c", '|');
-            attroff(COLOR_PAIR(1));
+            map1[9][100]='|';
         } 
         else if(player->y==34 && player->x==110){
-            attron(COLOR_PAIR(6));
-            mvprintw(34, 110, "%c", '|');
-            attroff(COLOR_PAIR(6));
+            map1[34][110]='|';
         }
         else{
             mvprintw(player->y, player->x, "%c", player->prev_char);
@@ -868,14 +870,10 @@ void clear_player(Player *player) {
     else if (l_user.level_num==2)
     {
         if(player->y==7 && player->x==120){
-            attron(COLOR_PAIR(7));
-            mvprintw(7,120, "%c", '|');
-            attroff(COLOR_PAIR(7));
+            map2[7][120]='|';
         } 
         else if(player->y==17 && player->x==60){
-            attron(COLOR_PAIR(1));
-            mvprintw(17, 60, "%c", '|');
-            attroff(COLOR_PAIR(1));
+            map2[17][60]='|';
         }
         else{
             mvprintw(player->y, player->x, "%c", player->prev_char);
@@ -884,14 +882,10 @@ void clear_player(Player *player) {
     else if (l_user.level_num==3)
     {
         if(player->y==39 && player->x==160){
-            attron(COLOR_PAIR(1));
-            mvprintw(39,160, "%c", '|');
-            attroff(COLOR_PAIR(1));
+            map3[39][160]='|';
         } 
         else if(player->y==8 && player->x==158){
-            attron(COLOR_PAIR(1));
-            mvprintw(8, 158, "%c", '-');
-            attroff(COLOR_PAIR(1));
+            map3[8][158]='-';
         }
         else{
             mvprintw(player->y, player->x, "%c", player->prev_char);
@@ -900,14 +894,10 @@ void clear_player(Player *player) {
     else if (l_user.level_num==4)
     {
         if(player->y==32 && player->x==94){
-            attron(COLOR_PAIR(1));
-            mvprintw(32,94, "%c", '|');
-            attroff(COLOR_PAIR(1));
+            map4[32][94]='|';
         } 
         else if(player->y==12 && player->x==127){
-            attron(COLOR_PAIR(6));
-            mvprintw(12, 127, "%c", '-');
-            attroff(COLOR_PAIR(6));
+            map4[12][127]='-';
         }
         else{
             mvprintw(player->y, player->x, "%c", player->prev_char);
@@ -1009,8 +999,9 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
+    map1[28][158] = '&';
     map1[20][152] = '+';
-    map1[25][150] = '+';
+    map1[25][150] = '@';
     map1[22][152] = 'o';
     map1[28][156] = 'o';
 
@@ -1098,8 +1089,9 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
+    map2[6][36] = '&';
     map2[12][35] = '+';
-    map2[9][48] = '+';
+    map2[9][48] = '@';
     map2[11][45] = 'o';
     map2[9][37] = 'o';
 
@@ -1155,7 +1147,8 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
-    map2[32][94] = '+';
+    map2[33][108] = '&';
+    map2[32][94] = '@';
     map2[34][110] = '+';
     map2[31][99] = 'o';
     map2[33][107] = 'o';
@@ -1240,7 +1233,8 @@ int create_map3() {
             map3[i][j] = '.';
         }
     }
-    map3[13][70] = '+';
+    map3[15][72] = '&';
+    map3[13][70] = '@';
     map3[14][84] = '+';
     map3[13][75] = 'o';
     map3[15][80] = 'o';
@@ -1296,31 +1290,32 @@ int create_map3() {
             map3[i][j] = '.';
         }
     }
+    map3[34][87] = '&';
     map3[32][84] = '+';
-    map3[34][100] = '+';
+    map3[34][100] = '@';
     map3[31][99] = 'o';
     map3[33][86] = 'o';
 
     //  room ۶
-    for (int i = 35; i < 40; i++) {
-        map3[i][17] = '|';
+    for (int i = 21; i < 35; i++) {
+        map3[i][12] = '|';
         map3[i][26] = '|';
     }
-    for (int i = 17; i <= 26; i++) {
-        map3[35][i] = '-';
-        map3[39][i] = '-';
+    for (int i = 12; i <= 26; i++) {
+        map3[21][i] = '-';
+        map3[34][i] = '-';
     }
-    for (int i = 36; i < 39; i++) {
-        for (int j = 18; j < 26; j++) {
+    for (int i = 22; i < 34; i++) {
+        for (int j = 13; j < 26; j++) {
             map3[i][j] = '.';
         }
     }
-    map3[37][26] = '+';
-    map3[37][22] = 'o';
-    map3[36][23] = '<';
+    map3[22][26] = '+';
+    map3[30][20] = 'o';
+    map3[30][20] = '<';
 
     // ایجاد راهروها
-    draw_path(27, 37, 84, 32,map3);
+    draw_path(27, 22, 84, 32,map3);
     draw_path(101, 34, 160, 39,map3);
     draw_path(167, 29, 158, 8,map3);
     draw_path(149, 6, 84, 14,map3);
@@ -1362,7 +1357,8 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
-    map4[12][35] = '+';
+    map4[6][37] = '&';
+    map4[12][35] = '@';
     map4[9][48] = '+';
     map4[11][45] = 'o';
     map4[9][37] = 'o';
@@ -1400,7 +1396,8 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
-    map4[30][167] = '+';
+    map4[40][174] = '&';
+    map4[30][167] = '@';
     map4[39][160] = '+';
     map4[35][169] = 'o';
     map4[40][163] = 'o';
@@ -1437,7 +1434,8 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
-    map4[17][60] = '+';
+    map4[16][52] = '&';
+    map4[17][60] = '@';
     map4[21][50] = '+';
     map4[20][53] = 'o';
     map4[19][57] = 'o';
@@ -1526,6 +1524,15 @@ int handle_input(Player *player) {
             else if (new_x == 95 && new_y == 32) {
                 map1[32][94]='+'; 
             }
+            else if(map1[new_y][new_x]=='&'){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map1[28][158] = '.';
+                    map1[25][150] = 'G';
+                }
+            }
             refresh_map(player,memory_map1,map1);  
         }
         else if(map1[new_y][new_x]=='<'){
@@ -1574,6 +1581,24 @@ int handle_input(Player *player) {
             else if (new_x == 51 && new_y == 21) {
                 map2[21][50]='+';
             }
+            else if(map2[new_y][new_x]=='&' && get_room_id(new_x,new_y)==2){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map2[6][36] = '.';
+                    map2[9][48] = 'G';
+                }
+            }
+            else if(map2[new_y][new_x]=='&' && get_room_id(new_x,new_y)==5){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map2[33][108] = '.';
+                    map2[32][94] = 'G';
+                }
+            }
             refresh_map(player,memory_map2,map2);
         }
         else if(map2[new_y][new_x]=='<'){
@@ -1617,6 +1642,24 @@ int handle_input(Player *player) {
             }
             else if (new_x == 151 && new_y == 6) {
                 map3[6][150]='+';
+            }
+            else if(map3[new_y][new_x]=='&' && get_room_id(new_x,new_y)==5){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map3[34][87] = '.';
+                    map3[34][100] = 'G';
+                }
+            }
+            else if(map3[new_y][new_x]=='&' && get_room_id(new_x,new_y)==2){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map3[15][72] = '.';
+                    map3[13][70] = 'G';
+                }
             }
             refresh_map(player,memory_map3,map3);  
         }
@@ -1665,6 +1708,33 @@ int handle_input(Player *player) {
             else if (new_x == 46 && new_y == 37) {
                 map4[37][45]='+';
             }
+            else if(map4[new_y][new_x]=='&' && get_room_id(new_x,new_y)==6){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map4[16][52] = '.';
+                    map4[17][60] = 'G';
+                }
+            }
+            else if(map4[new_y][new_x]=='&' && get_room_id(new_x,new_y)==4){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map4[40][174] = '.';
+                    map4[30][167] = 'G';
+                }
+            }
+            else if(map4[new_y][new_x]=='&' && get_room_id(new_x,new_y)==2){
+                char *code = generate_code();
+                show_code(code);
+                char *entered_code = enter_code();
+                if (check_code(entered_code, code)) {
+                    map4[6][37] = '.';
+                    map4[12][35] = 'G';
+                }
+            }
             refresh_map(player,memory_map4,map4);  
         }
     }
@@ -1675,14 +1745,25 @@ void initialize_memory_map(int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
 void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
     for (int i = 0; i < MAP_HEIGHT; i++) {
         for (int j = 0; j < MAP_WIDTH; j++) {
-            if (memory_map[i][j]) {
-            if (is_in_room(player_x, player_y) && map[i][j] == '#') {
-                    continue;
+            if (memory_map[i][j]){
+                if (map[i][j] == '@') {
+                        attron(COLOR_PAIR(2));
+                        mvaddch(i, j, '@');
+                        attroff(COLOR_PAIR(2));
+                    }
+                else if(map[i][j] == 'G'){
+                        attron(COLOR_PAIR(3));
+                        mvaddch(i, j,map[i][j]);
+                        attroff(COLOR_PAIR(3));
+                    }
+                else if(map[i][j] == '|' || map[i][j] == '-'){
+                    attron(COLOR_PAIR(7));
+                    mvaddch(i, j,map[i][j]);
+                    attroff(COLOR_PAIR(7));
                 }
-
-                attron(COLOR_PAIR(4));
-                mvaddch(i, j, map[i][j]);
-                attroff(COLOR_PAIR(4));
+                else{
+                    mvaddch(i, j,map[i][j]);
+                }
             }
         }
     }
@@ -1869,8 +1950,8 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
 
             else if (get_room_id(player_x, player_y) == 6) {
-                for (int i = 35; i <= 39; i++) {  
-                    for (int j = 17; j <= 26; j++) {  
+                for (int i = 21; i <= 35; i++) {  
+                    for (int j = 12; j <= 26; j++) {  
                         memory_map[i][j] = 1;
                     }
                 }
@@ -1998,7 +2079,7 @@ int is_in_room(int x, int y) {
         (x >= 150 && x <= 160 && y >= 2 && y <= 8) ||   
         (x >= 160 && x <= 175 && y >= 30 && y <= 41) ||   
         (x >= 84 && x <= 100 && y >= 30 && y <= 35) ||   
-        (x >= 17 && x <= 26 && y >= 35 && y <= 39)) {   
+        (x >= 12 && x <= 25 && y >= 21 && y <= 35)) {   
         return 1;
         }
     return 0;
@@ -2044,7 +2125,9 @@ int get_room_id(int x, int y) {
         if (x >= 150 && x <= 160 && y >= 2 && y <= 8) return 3;  
         if (x >= 160 && x <= 175 && y >= 30 && y <= 41) return 4;  
         if (x >= 84 && x <= 100 && y >= 30 && y <= 35) return 5;  
-        if (x >= 17 && x <= 26 && y >= 35 && y <= 39) return 6;  
+        if (x >= 12 && x <= 26 && y >= 21 && y <= 35) {
+            return 6;
+            }  
         return 0;
     }
     else if(l_user.level_num==4){
@@ -2137,8 +2220,65 @@ void show_full_map_temporarily(Player *player) {
         timeout(-1);
     }
 }
-
-
+char *generate_code() {
+    static char code[5];
+    const char digits[] = "0123456789";
+    for (int i = 0; i < 4; i++) {
+        code[i] = digits[rand() % 10];
+    }
+    code[4] = '\0';
+    return code;
+}
+void show_code(const char *code) {
+    mvprintw(LINES/2-2,COLS/2-22,"==============================");
+    mvprintw(LINES/2+2,COLS/2-22,"==============================");
+    for(int i = LINES/2-2 ; i <= LINES/2+2 ;i++){
+        mvprintw(i,COLS/2-23,"||");
+        mvprintw(i,COLS/2+8,"||");
+    }
+    mvprintw(LINES/2-1, COLS/2-18, "CODE IS: %s", code);
+}
+char *enter_code() {
+    static char input[5];
+    echo();
+    curs_set(1);
+    mvprintw(LINES/2,COLS/2-18, "ENTER PASS:");
+    getstr(input);
+    noecho();
+    curs_set(0);
+    return input;
+}
+int check_code(const char *entered_code, const char *correct_code) {
+    char real_code[5];
+    for(int i =3 ; i>=0 ;i--){
+        real_code[3-i]=entered_code[i];
+    }
+    if (strcmp(real_code, correct_code) == 0) {
+        mvprintw(LINES/2+1, COLS/2-18, "DOOR OPENED!");
+        getch();
+        move(LINES/2-2,COLS/2-23);
+        clrtoeol();
+        move(LINES/2-1,COLS/2-23);
+        clrtoeol();
+        move(LINES/2,COLS/2-23);
+        clrtoeol();
+        move(LINES/2+1,COLS/2-23);
+        clrtoeol();
+        move(LINES/2+2,COLS/2-23);
+        clrtoeol();
+        return 1;
+    } else {
+        mvprintw(LINES/2-1, COLS/2-20, "WRONG PASS HAHA!");
+        getch();
+        move(15,60);
+        clrtoeol();
+        move(16,60);
+        clrtoeol();
+        move(17,60);
+        clrtoeol();
+        return 0;
+    }
+}
 
 
 
