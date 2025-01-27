@@ -990,7 +990,7 @@ int create_map1() {
         }
     }
     map1[9][100] = '+';
-    map1[14][111] = '+';
+    //map1[14][111] = '+';
     map1[10][105] = 'o';
     map1[14][102] = 'o';
     map1[15][109] = 'o';
@@ -1028,7 +1028,7 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
-    map1[32][94] = '+';
+    //map1[32][94] = '+';
     map1[34][110] = '+';
     map1[31][99] = 'o';
     map1[33][107] = 'o';
@@ -1079,7 +1079,7 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
-    map2[7][18] = '+';
+    //map2[7][18] = '+';
     map2[10][12] = 'o';
     map2[8][16] = 'o';
     map2[9][17] = '<';
@@ -1520,11 +1520,18 @@ int handle_input(Player *player) {
             player->prev_char = map1[new_y][new_x];  
             player->x = new_x;
             player->y = new_y;
+            if (new_x == 110 && new_y == 14) {
+                map1[14][111]='+';
+            }
+            else if (new_x == 95 && new_y == 32) {
+                map1[32][94]='+'; 
+            }
             refresh_map(player,memory_map1,map1);  
         }
         else if(map1[new_y][new_x]=='<'){
             start_level2();
         }
+        
     }
     else if(l_user.level_num==2){
         int ch = getch();
@@ -1558,6 +1565,15 @@ int handle_input(Player *player) {
             player->prev_char = map2[new_y][new_x];  
             player->x = new_x;
             player->y = new_y;
+            if (new_x == 17 && new_y == 7) {
+                map2[7][18]='+';
+            }
+            else if (new_x == 128 && new_y == 11) {
+                map2[12][128]='+';
+            }
+            else if (new_x == 51 && new_y == 21) {
+                map2[21][50]='+';
+            }
             refresh_map(player,memory_map2,map2);
         }
         else if(map2[new_y][new_x]=='<'){
@@ -1596,6 +1612,12 @@ int handle_input(Player *player) {
             player->prev_char = map3[new_y][new_x];  
             player->x = new_x;
             player->y = new_y;
+            if (new_x == 167 && new_y == 31) {
+                map3[30][167]='+';
+            }
+            else if (new_x == 151 && new_y == 6) {
+                map3[6][150]='+';
+            }
             refresh_map(player,memory_map3,map3);  
         }
         else if(map3[new_y][new_x]=='<'){
@@ -1634,6 +1656,15 @@ int handle_input(Player *player) {
             player->prev_char = map4[new_y][new_x];  
             player->x = new_x;
             player->y = new_y;
+            if (new_x == 109 && new_y == 34) {
+                map4[34][110]='+';
+            }
+            else if (new_x == 121 && new_y == 7) {
+                map4[7][120]='+';
+            }
+            else if (new_x == 46 && new_y == 37) {
+                map4[37][45]='+';
+            }
             refresh_map(player,memory_map4,map4);  
         }
     }
@@ -1714,7 +1745,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
         }
         else{
-            int view_distance = 5;  
+            int view_distance = 3;  
 
             for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
                 for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
@@ -1784,7 +1815,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
         }
         else{
-            int view_distance = 5;  
+            int view_distance = 3;  
 
             for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
                 for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
@@ -1846,7 +1877,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
         }
         else{
-            int view_distance = 5;  
+            int view_distance = 3;  
 
             for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
                 for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
@@ -1924,7 +1955,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
         }
         else{
-            int view_distance = 5;  
+            int view_distance = 3;  
 
             for (int y = player_y - view_distance; y <= player_y + view_distance; y++) {
                 for (int x = player_x - view_distance; x <= player_x + view_distance; x++) {
