@@ -50,7 +50,9 @@ User s_user;
 int is_logged_in=0;
 int show_count = 0;
 int full_food =0;
-
+int pace=1;
+int pace_counter1=0;
+int pace_counter2=0;
 void main_menu();
 void log_in();
 void sign_up();
@@ -496,7 +498,7 @@ void play_game(){
 void play_as_guest(){
     l_user.level_num=1;
     l_user.gold = 0;
-    l_user.health=100;
+    l_user.health=1000;
     l_user.power=100;
     l_user.food_bar.normal=0;
     l_user.food_bar.special=0;
@@ -793,6 +795,7 @@ void start_level2(){
     clear();
     show_count = 0;
     l_user.level_num=2;
+    pace_counter2=0;
     memset(memory_map2,0,sizeof(memory_map2));
     create_map2();  
     Player player = {12,10, '.'};
@@ -806,6 +809,7 @@ void start_level3(){
     clear();
     show_count = 0;
     l_user.level_num=3;
+    pace_counter2=0;
     memset(memory_map3,0,sizeof(memory_map3)); 
     create_map3();  
     Player player = {20,26, '.'};
@@ -818,6 +822,7 @@ void start_level3(){
 void start_level4(){
     clear();
     show_count = 0;
+    pace_counter2=0;
     l_user.level_num=4;
     memset(memory_map4,0,sizeof(memory_map4));
     create_map4();  
@@ -959,7 +964,7 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
-    int n1 = rand() % 3 + 1;
+    int n1 = rand() % 5 + 3;
     for (int i = 0 ; i < n1 ;i++){
         int x = rand() % 5 + 4;
         int y = rand() % 19 + 4;
@@ -998,7 +1003,7 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
-    int n2 = rand() % 3 + 3;
+    int n2 = rand() % 5 + 4;
     for (int i = 0 ; i < n2 ;i++){
         int x = rand() % 12 + 8;
         int y = rand() % 14 + 51;
@@ -1035,7 +1040,7 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
-    int n3 = rand() % 3 + 1;
+    int n3 = rand() % 4 + 3;
     for (int i = 0 ; i < n3 ;i++){
         int x = rand() % 9 + 7;
         int y = rand() % 10 + 101;
@@ -1073,7 +1078,7 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
-    int n4 = rand() % 3 + 1;
+    int n4 = rand() % 4 + 3;
     for (int i = 0 ; i < n4 ;i++){
         int x = rand() % 8 + 21;
         int y = rand() % 8 + 151;
@@ -1091,7 +1096,7 @@ int create_map1() {
         }
         map1[x][y]='T';
     }
-    int a4 = rand() % 2+1;
+    int a4 = rand() % 2+2;
     for (int i = 0 ; i < a4 ;i++){
         int x = rand() % 8 + 21;
         int y = rand() % 8 + 151;
@@ -1120,7 +1125,7 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
-    int n5 = rand() % 3 + 1;
+    int n5 = rand() % 3 + 3;
     for (int i = 0 ; i < n5 ;i++){
         int x = rand() % 4 + 31;
         int y = rand() % 15 + 95;
@@ -1157,7 +1162,7 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
-    int n6 = rand() % 3 + 1;
+    int n6 = rand() % 3 + 2;
     for (int i = 0 ; i < n6 ;i++){
         int x = rand() % 8 + 29;
         int y = rand() % 9 + 11;
@@ -1831,10 +1836,33 @@ int handle_input(Player *player) {
     if(l_user.level_num==1){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            pace_counter1++;
             l_user.health--;
         }
         int new_x = player->x, new_y = player->y;
-        if (ch == 'm') {
+        if (ch == 's' && pace_counter2<5) {
+        pace=2;
+        pace_counter1=0;
+        pace_counter2++;
+
+        }
+        if(pace_counter1>=5){
+            pace = 1;
+        }
+        switch (ch) {
+        case '1': new_x -= pace; new_y += pace; break;
+        case '2': new_y += pace; break;
+        case '3': new_x += pace; new_y += pace; break;
+        case '4': new_x -= pace; break;
+        case '6': new_x += pace; break;
+        case '7': new_x -= pace; new_y -= pace; break;
+        case '8': new_y -= pace; break;
+        case '9': new_x += pace; new_y -= pace; break;
+        case 'e': food_table();
+            refresh_map(player,memory_map1,map1);
+            break;
+        case 'q':main_menu();
+        case 'm':
             show_count++;
             if(show_count>=4){
                 clear();
@@ -1845,21 +1873,6 @@ int handle_input(Player *player) {
                 exit(0);
             }
             show_full_map_temporarily(player);
-        }
-        if (ch == 'q') {
-            main_menu();
-        }
-        switch (ch) {
-            case '1': new_x--; new_y++; break; 
-            case '2': new_y++; break;         
-            case '3': new_x++; new_y++; break; 
-            case '4': new_x--; break;         
-            case '6': new_x++; break;     
-            case '7': new_x--; new_y--; break; 
-            case '8': new_y--; break;       
-            case '9': new_x++; new_y--; break;
-            case 'e': food_table();
-            refresh_map(player,memory_map1,map1);
             break;
         }
 
@@ -1911,34 +1924,42 @@ int handle_input(Player *player) {
         int ch = getch();
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            pace_counter1++;
             l_user.health--;
         }
-        if (ch == 'm') {
-            show_count++;
-            if(show_count>=4){
-                clear();
-                attron(COLOR_PAIR(2));
-                mvprintw(22,82,"YOU LOST");
-                getch();
-                endwin();
-                exit(0);
-            }
-            show_full_map_temporarily(player);
+        if (ch == 's' && pace_counter2<5) {
+        pace=2;
+        pace_counter1=0;
+        pace_counter2++;
+
         }
-        if (ch == 'q') {
-            main_menu();
+        if(pace_counter1>=5){
+            pace = 1;
         }
         switch (ch) {
-            case '1': new_x--; new_y++; break; 
-            case '2': new_y++; break;         
-            case '3': new_x++; new_y++; break; 
-            case '4': new_x--; break;         
-            case '6': new_x++; break;     
-            case '7': new_x--; new_y--; break; 
-            case '8': new_y--; break;       
-            case '9': new_x++; new_y--; break;
+        case '1': new_x -= pace; new_y += pace; break;
+        case '2': new_y += pace; break;
+        case '3': new_x += pace; new_y += pace; break;
+        case '4': new_x -= pace; break;
+        case '6': new_x += pace; break;
+        case '7': new_x -= pace; new_y -= pace; break;
+        case '8': new_y -= pace; break;
+        case '9': new_x += pace; new_y -= pace; break;
             case 'e': food_table();
             refresh_map(player,memory_map2,map2);
+            break;
+            case 'q':main_menu();
+            case 'm':        
+                show_count++;
+                if(show_count>=4){
+                    clear();
+                    attron(COLOR_PAIR(2));
+                    mvprintw(22,82,"YOU LOST");
+                    getch();
+                    endwin();
+                    exit(0);
+                }
+                show_full_map_temporarily(player);
             break;
         }
 
@@ -1998,9 +2019,32 @@ int handle_input(Player *player) {
         int ch = getch();
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            pace_counter1++;
             l_user.health--;
         }
-        if (ch == 'm') {
+        if (ch == 's' && pace_counter2<5) {
+            pace=2;
+            pace_counter1=0;
+            pace_counter2++;
+
+        }
+        if(pace_counter1>=5){
+            pace = 1;
+        }
+        switch (ch) {
+        case '1': new_x -= pace; new_y += pace; break;
+        case '2': new_y += pace; break;
+        case '3': new_x += pace; new_y += pace; break;
+        case '4': new_x -= pace; break;
+        case '6': new_x += pace; break;
+        case '7': new_x -= pace; new_y -= pace; break;
+        case '8': new_y -= pace; break;
+        case '9': new_x += pace; new_y -= pace; break;
+        case 'e': food_table();
+            refresh_map(player,memory_map3,map3);
+            break;
+        case 'q':main_menu();
+        case 'm':            
             show_count++;
             if(show_count>=4){
                 clear();
@@ -2011,23 +2055,9 @@ int handle_input(Player *player) {
                 exit(0);
             }
             show_full_map_temporarily(player);
-        }
-        if (ch == 'q') {
-            main_menu();
-        }
-        switch (ch) {
-            case '1': new_x--; new_y++; break; 
-            case '2': new_y++; break;         
-            case '3': new_x++; new_y++; break; 
-            case '4': new_x--; break;         
-            case '6': new_x++; break;     
-            case '7': new_x--; new_y--; break; 
-            case '8': new_y--; break;       
-            case '9': new_x++; new_y--; break;
-            case 'e': food_table();
-            refresh_map(player,memory_map3,map3);
             break;
         }
+        
 
         if (is_valid_move(new_x, new_y,map3)&& map3[new_y][new_x]!='<') {
             clear_player(player);
@@ -2082,9 +2112,33 @@ int handle_input(Player *player) {
         int ch = getch();
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            pace_counter1++;
             l_user.health--;
         }
-        if (ch == 'm') {
+        if (ch == 's' && pace_counter2<5) {
+            pace=2;
+            pace_counter1=0;
+            pace_counter2++;
+
+        }
+        if(pace_counter1>=5){
+            pace = 1;
+        }
+        switch (ch) {
+        case '1': new_x -= pace; new_y += pace; break;
+        case '2': new_y += pace; break;
+        case '3': new_x += pace; new_y += pace; break;
+        case '4': new_x -= pace; break;
+        case '6': new_x += pace; break;
+        case '7': new_x -= pace; new_y -= pace; break;
+        case '8': new_y -= pace; break;
+        case '9': new_x += pace; new_y -= pace; break;
+        case 'e':
+            food_table();
+            refresh_map(player,memory_map4,map4);
+            break;
+        case 'q':main_menu();
+        case 'm':
             show_count++;
             if(show_count>=4){
                 clear();
@@ -2095,21 +2149,6 @@ int handle_input(Player *player) {
                 exit(0);
             }
             show_full_map_temporarily(player);
-        }
-        if (ch == 'q') {
-            main_menu();
-        }
-        switch (ch) {
-            case '1': new_x--; new_y++; break; 
-            case '2': new_y++; break;         
-            case '3': new_x++; new_y++; break; 
-            case '4': new_x--; break;         
-            case '6': new_x++; break;     
-            case '7': new_x--; new_y--; break; 
-            case '8': new_y--; break;       
-            case '9': new_x++; new_y--; break;
-            case 'e': food_table();
-            refresh_map(player,memory_map4,map4);
             break;
         }
 
@@ -2202,7 +2241,7 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     update_memory_map(player->x, player->y,memory_map);
     draw_visible_map(player->x, player->y,memory_map,map);
     draw_player(player);
-    draw_bar(1, 142, 20, l_user.health, 100, "Health");
+    draw_bar(1, 142, 20, l_user.health, 1000, "Health");
     draw_bar(2, 142, 20, l_user.power, 100, "Power");
     draw_bar(3, 142, 20, l_user.gold, 100, "Gold");
     refresh();  
@@ -2777,51 +2816,69 @@ void food_table(){
     mvprintw(LINES/2-5,COLS/2-20,"      special food : %d",l_user.food_bar.special);
     mvprintw(LINES/2-4,COLS/2-50,"press n to consume normal food or press s to consume special food,to quit press any key");
     int ch = getch();
+    int x = rand() % 5;
     switch (ch){
         case 'n' : 
-        if(l_user.food_bar.normal>0){
-            if(l_user.health>=91){
-                mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
-                getch();
-                clear();
+        if(x){
+            if(l_user.food_bar.normal>0){
+                if(l_user.health>=995){
+                    mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
+                    getch();
+                    clear();
+                }
+                else{
+                    l_user.food_bar.normal--;
+                    l_user.health+=6;
+                    mvprintw(LINES/2-3,COLS/2-20,"           Yummy!");
+                    getch();
+                    clear();
+                }
+                
             }
             else{
-                l_user.food_bar.normal--;
-                l_user.health+=10;
-                mvprintw(LINES/2-3,COLS/2-20,"         Yummy!");
+                mvprintw(LINES/2-3,COLS/2-20,"You have no more normal food");
                 getch();
                 clear();
             }
-            
+            break;
         }
         else{
-            mvprintw(LINES/2-3,COLS/2-20,"You have no more normal food");
+            l_user.health-=6;
+            mvprintw(LINES/2-3,COLS/2-20,"HE HE HE HE :o");
             getch();
             clear();
         }
-        break;
+        
         case 's' : 
-        if(l_user.food_bar.special>0){
-            if(l_user.health>=51){
-                mvprintw(LINES/2-3,COLS/2-20,"          FULL!");
-                getch();
-                clear();
+        if(x){
+            if(l_user.food_bar.special>0){
+                if(l_user.health>=971){
+                    mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
+                    getch();
+                    clear();
+                }
+                else{
+                    l_user.food_bar.special--;
+                    l_user.health+=30;
+                    mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
+                    getch();
+                    clear();
+                }
+                
             }
             else{
-                l_user.food_bar.special--;
-                l_user.health+=50;
-                mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
+                mvprintw(LINES/2-3,COLS/2-20,"You have no more special food");
                 getch();
                 clear();
             }
-            
+            break;
         }
         else{
-            mvprintw(LINES/2-3,COLS/2-20,"You have no more special food");
+            mvprintw(LINES/2-3,COLS/2-20,"HE HE HE HE :o");
             getch();
             clear();
         }
-        break;
+        
         default :
         clear();
         break;
@@ -2832,7 +2889,7 @@ int gold_manager(char gold){
         l_user.gold+=5;
     }
     else{
-        l_user.gold+=50;
+        l_user.gold+=30;
     }
 }
 
