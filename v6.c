@@ -4,7 +4,10 @@
 #include<unistd.h>
 #define MAP_HEIGHT 50
 #define MAP_WIDTH 200
-
+typedef struct{
+    int normal;
+    int special;
+}Food;
 typedef struct{
     char password[50];
     char email[50];
@@ -13,11 +16,13 @@ typedef struct{
     int game;
     int gold;
     int health;
+    int power;
     char weapon;
     char spell;
     int difficulty;
     int color;
     int level_num;
+    Food food_bar;
 }User;
 typedef struct{
     int x,y;
@@ -42,6 +47,8 @@ User l_user;
 User s_user;
 int is_logged_in=0;
 int show_count = 0;
+int full_food =0;
+
 void main_menu();
 void log_in();
 void sign_up();
@@ -77,8 +84,7 @@ int handle_input(Player *player);
 void clear_player(Player *player);
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]);
 void initialize_memory_map(int memory_map[MAP_HEIGHT][MAP_WIDTH]);
-void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],
-                        char map[MAP_HEIGHT][MAP_WIDTH]);
+void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]);
 void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]);
 int is_in_room(int x, int y);
 int get_room_id(int x, int y);
@@ -88,6 +94,10 @@ char *generate_code();
 void show_code(const char *code);
 char *enter_code();
 int check_code(const char *entered_code, const char *correct_code);
+void draw_bar(int y, int x, int width, int value, int max_value, const char* label);
+int food_manager(char food);
+void food_table();
+int gold_manager(char gold);
 // void save_information(User user);
 
 int main(){
@@ -482,7 +492,12 @@ void play_game(){
 }
 void play_as_guest(){
     l_user.level_num=1;
-    initialize_memory_map(memory_map1);  
+    l_user.gold = 0;
+    l_user.health=100;
+    l_user.power=100;
+    l_user.food_bar.normal=0;
+    l_user.food_bar.special=0;
+    memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
@@ -762,7 +777,7 @@ void change_character_color(int *current_color) {
 }
 void start_new_game(){
     clear();
-    initialize_memory_map(memory_map1);  
+    memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
@@ -775,7 +790,7 @@ void start_level2(){
     clear();
     show_count = 0;
     l_user.level_num=2;
-    initialize_memory_map(memory_map2);  
+    memset(memory_map2,0,sizeof(memory_map2));
     create_map2();  
     Player player = {12,10, '.'};
     refresh_map(&player,memory_map2,map2);  
@@ -788,7 +803,7 @@ void start_level3(){
     clear();
     show_count = 0;
     l_user.level_num=3;
-    initialize_memory_map(memory_map3);  
+    memset(memory_map3,0,sizeof(memory_map3)); 
     create_map3();  
     Player player = {20,26, '.'};
     refresh_map(&player,memory_map3,map3);  
@@ -801,7 +816,7 @@ void start_level4(){
     clear();
     show_count = 0;
     l_user.level_num=4;
-    initialize_memory_map(memory_map4);  
+    memset(memory_map4,0,sizeof(memory_map4));
     create_map4();  
     Player player = {48,35, '.'};
     refresh_map(&player,memory_map4,map4);  
@@ -815,7 +830,7 @@ void continue_last_game(){
 }
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     char ch = map[y][x];
-    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G';
+    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G'||ch=='T'||ch=='Z'||ch=='X'||ch=='%';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -930,38 +945,76 @@ int create_map1() {
 
     for (int i = 4; i < 9; i++) {
         map1[i][3] = '|';
-        map1[i][10] = '|';
+        map1[i][23] = '|';
     }
-    for (int i = 3; i <= 10; i++) {
+    for (int i = 3; i <= 23; i++) {
         map1[3][i] = '-';
         map1[9][i] = '-';
     }
     for (int i = 4; i < 9; i++) {
-        for (int j = 4; j < 10; j++) {
+        for (int j = 4; j < 23; j++) {
             map1[i][j] = '.';
         }
     }
-    map1[6][10] = '+';
+    int n1 = rand() % 3 + 1;
+    for (int i = 0 ; i < n1 ;i++){
+        int x = rand() % 5 + 4;
+        int y = rand() % 19 + 4;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='%';
+    }
+    int t1 = rand() % 3 + 1;
+    for (int i = 0 ; i < t1 ;i++){
+        int x = rand() % 5 + 4;
+        int y = rand() % 19 + 4;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='T';
+    }
+    
+
+    map1[5][23] = '+';
     map1[7][5] = 'o';
-    map1[4][8] = 'o';
+    map1[5][15] = 'o';
     map1[8][9] = '<';
 
     //  room ۲
-    for (int i = 4; i < 11; i++) {
-        map1[i][40] = '|';
-        map1[i][48] = '|';
+    for (int i = 8; i < 20; i++) {
+        map1[i][50] = '|';
+        map1[i][65] = '|';
     }
-    for (int i = 40; i <= 48; i++) {
-        map1[4][i] = '-';
-        map1[10][i] = '-';
+    for (int i = 50; i <= 65; i++) {
+        map1[7][i] = '-';
+        map1[20][i] = '-';
     }
-    for (int i = 5; i < 10; i++) {
-        for (int j = 41; j < 48; j++) {
+    for (int i = 8; i <= 19; i++) {
+        for (int j = 51; j < 65; j++) {
             map1[i][j] = '.';
         }
     }
-    map1[9][40] = '+';
-    map1[7][48] = '+';
+    int n2 = rand() % 3 + 3;
+    for (int i = 0 ; i < n2 ;i++){
+        int x = rand() % 12 + 8;
+        int y = rand() % 14 + 51;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='%';
+    }
+    int m2 = rand() % 3;
+    for (int i = 0 ; i < m2 ;i++){
+        int x = rand() % 12 + 8;
+        int y = rand() % 14 + 51;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='T';
+    }
+    map1[7][58] = '+';
+    map1[18][65] = '+';
     map1[6][45] = 'o';
     map1[8][41] = 'o';
 
@@ -978,6 +1031,24 @@ int create_map1() {
         for (int j = 101; j < 111; j++) {
             map1[i][j] = '.';
         }
+    }
+    int n3 = rand() % 3 + 1;
+    for (int i = 0 ; i < n3 ;i++){
+        int x = rand() % 9 + 7;
+        int y = rand() % 10 + 101;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='%';
+    }
+    int m3 = rand() % 3;
+    for (int i = 0 ; i < m3 ;i++){
+        int x = rand() % 9 + 7;
+        int y = rand() % 10 + 101;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='T';
     }
     map1[9][100] = '+';
     //map1[14][111] = '+';
@@ -999,6 +1070,33 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
+    int n4 = rand() % 3 + 1;
+    for (int i = 0 ; i < n4 ;i++){
+        int x = rand() % 8 + 21;
+        int y = rand() % 8 + 151;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='%';
+    }
+    int m4 = rand() % 3;
+    for (int i = 0 ; i < m4 ;i++){
+        int x = rand() % 8 + 21;
+        int y = rand() % 8 + 151;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='T';
+    }
+    int a4 = rand() % 2+1;
+    for (int i = 0 ; i < a4 ;i++){
+        int x = rand() % 8 + 21;
+        int y = rand() % 8 + 151;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='X';
+    }
     map1[28][158] = '&';
     map1[20][152] = '+';
     map1[25][150] = '@';
@@ -1019,6 +1117,24 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
+    int n5 = rand() % 3 + 1;
+    for (int i = 0 ; i < n5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='%';
+    }
+    int m5 = rand() % 3;
+    for (int i = 0 ; i < m5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='T';
+    }
     //map1[32][94] = '+';
     map1[34][110] = '+';
     map1[31][99] = 'o';
@@ -1038,14 +1154,32 @@ int create_map1() {
             map1[i][j] = '.';
         }
     }
+    int n6 = rand() % 3 + 1;
+    for (int i = 0 ; i < n6 ;i++){
+        int x = rand() % 8 + 29;
+        int y = rand() % 9 + 11;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='%';
+    }
+    int m6 = rand() % 2+1;
+    for (int i = 0 ; i < m6 ;i++){
+        int x = rand() % 8 + 29;
+        int y = rand() % 9 + 11;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        map1[x][y]='Z';
+    }
     map1[30][20] = '+';
     map1[30][12] = 'o';
     map1[36][17] = 'o';
     map1[36][13] = '<';
 
     // ایجاد راهروها
-    draw_path(11, 6, 40, 9,map1);
-    draw_path(49, 7, 100, 9,map1);
+    draw_path(24, 5, 59, 6,map1);
+    draw_path(66,18, 100, 9,map1);
     draw_path(112, 14, 153, 19,map1);
     draw_path(149, 25, 110, 34,map1);
     draw_path(93, 32, 20, 30,map1);
@@ -1053,7 +1187,6 @@ int create_map1() {
     return 0;
 }
 int create_map2() {
-    // پاک کردن آرایه نقشه
     memset(map2, ' ', sizeof(map2));
 
     //  room ۱
@@ -1088,6 +1221,24 @@ int create_map2() {
         for (int j = 36; j < 48; j++) {
             map2[i][j] = '.';
         }
+    }
+    int n1 = rand() % 3 + 1;
+    for (int i = 0 ; i < n1 ;i++){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='%';
+    }
+    int t1 = rand() % 2 + 1;
+    for (int i = 0 ; i < t1 ;i++){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='T';
     }
     map2[6][36] = '&';
     map2[12][35] = '+';
@@ -1128,6 +1279,24 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
+    int n2 = rand() % 3 + 2;
+    for (int i = 0 ; i < n2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='%';
+    }
+    int t2 = rand() % 2 + 2;
+    for (int i = 0 ; i < t2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='T';
+    }
     map2[30][167] = '+';
     map2[39][160] = '+';
     map2[35][169] = 'o';
@@ -1167,6 +1336,24 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
+    int n3 = rand() % 3 ;
+    for (int i = 0 ; i < n3 ;i++){
+        int x = rand() % 6 + 16;
+        int y = rand() % 9 + 51;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='%';
+    }
+    int t3 = rand() % 2 + 1;
+    for (int i = 0 ; i < t3 ;i++){
+        int x = rand() % 6 + 166;
+        int y = rand() % 9 + 51;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='T';
+    }
     map2[17][60] = '+';
     map2[20][53] = 'o';
     map2[19][57] = 'o';
@@ -1198,7 +1385,6 @@ int create_map2() {
     draw_path(49, 21, 19, 27,map2);
 }
 int create_map3() {
-    // پاک کردن آرایه نقشه
     memset(map3, ' ', sizeof(map3));
 
     //  room ۱
@@ -1215,6 +1401,34 @@ int create_map3() {
             map3[i][j] = '.';
         }
     }
+    int n3 = rand() % 3;
+    for (int i = 0 ; i < n3 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='%';
+    }
+    int t3 = rand() % 2+1;
+    for (int i = 0 ; i < t3 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='T';
+    }
+    int m3 = rand() % 2+1;
+    for (int i = 0 ; i < m3 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='X';
+    }
+    
     map3[12][41] = '+';
     map3[11][40] = 'o';
     map3[9][37] = 'o';
@@ -1240,23 +1454,51 @@ int create_map3() {
     map3[15][80] = 'o';
 
     //  room ۳
-    for (int i = 2; i < 9; i++) {
-        map3[i][150] = '|';
-        map3[i][160] = '|';
+    for (int i = 5; i < 20; i++) {
+        map3[i][125] = '|';
+        map3[i][145] = '|';
     }
-    for (int i = 150; i <= 160; i++) {
-        map3[2][i] = '-';
-        map3[8][i] = '-';
+    for (int i = 125; i <= 145; i++) {
+        map3[5][i] = '-';
+        map3[19][i] = '-';
     }
-    for (int i = 3; i < 8; i++) {
-        for (int j = 151; j < 160; j++) {
+    for (int i = 6; i < 19; i++) {
+        for (int j = 126; j < 145; j++) {
             map3[i][j] = '.';
         }
     }
-    map3[8][158] = '+';
-    map3[4][155] = 'o';
-    map3[7][159] = 'o';
-    map3[4][151] = 'o';
+    int n1 = rand() % 3 + 3;
+    for (int i = 0 ; i < n1 ;i++){
+        int x = rand() % 13 + 6;
+        int y = rand() % 9 + 126;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='%';
+    }
+    int t1 = rand() % 5 + 3;
+    for (int i = 0 ; i < t1 ;i++){
+        int x = rand() % 13 + 6;
+        int y = rand() % 9 + 126;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='T';
+    }
+    int m1 = rand() % 2+1;
+    for (int i = 0 ; i < t3 ;i++){
+        int x = rand() % 13 + 6;
+        int y = rand() % 9 + 126;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='X';
+    }
+    //mvprintw(7,125,"+");
+    map3[19][132] = '+';
+    map3[10][140] = 'o';
+    map3[15][136] = 'o';
+    map3[18][130] = 'o';
 
     //  room ۴
     for (int i = 30; i < 42; i++) {
@@ -1272,6 +1514,25 @@ int create_map3() {
             map3[i][j] = '.';
         }
     }
+    int n2 = rand() % 3 + 3;
+    for (int i = 0 ; i < n2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='%';
+    }
+    int t2 = rand() % 5 + 3;
+    for (int i = 0 ; i < t2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='T';
+    }
+    //mvprintw(30,167,"+");
     map3[39][160] = '+';
     map3[35][169] = 'o';
     map3[40][163] = 'o';
@@ -1317,12 +1578,11 @@ int create_map3() {
     // ایجاد راهروها
     draw_path(27, 22, 84, 32,map3);
     draw_path(101, 34, 160, 39,map3);
-    draw_path(167, 29, 158, 8,map3);
-    draw_path(149, 6, 84, 14,map3);
+    draw_path(167, 29, 131, 20,map3);
+    draw_path(124, 7, 84, 14,map3);
     draw_path(69, 13, 41, 12,map3);
 }
 int create_map4() {
-    // پاک کردن آرایه نقشه
     memset(map4, ' ', sizeof(map4));
 
     //  room ۱
@@ -1356,6 +1616,24 @@ int create_map4() {
         for (int j = 36; j < 48; j++) {
             map4[i][j] = '.';
         }
+    }
+    int n1 = rand() % 3+1;
+    for (int i = 0 ; i < n1 ;i++){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int t1 = rand() % 2+1;
+    for (int i = 0 ; i < t1 ;i++){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
     }
     map4[6][37] = '&';
     map4[12][35] = '@';
@@ -1396,6 +1674,33 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
+    int n2 = rand() % 3+1;
+    for (int i = 0 ; i < n2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int t2 = rand() % 2+1;
+    for (int i = 0 ; i < t2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
+    }
+    int m2 = rand() % 2 + 1;
+    for (int i = 0 ; i < m2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='X';
+    }
     map4[40][174] = '&';
     map4[30][167] = '@';
     map4[39][160] = '+';
@@ -1415,6 +1720,33 @@ int create_map4() {
         for (int j = 95; j < 110; j++) {
             map4[i][j] = '.';
         }
+    }
+    int n3 =rand() % 2 + 1;
+    for (int i = 0 ; i < n3 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int t3 = rand() % 2;
+    for (int i = 0 ; i < t3 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
+    }
+    int m3 = rand() % 2 + 1;
+    for (int i = 0 ; i < m3 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='Z';
     }
     map4[32][94] = '+';
     map4[31][99] = 'o';
@@ -1486,8 +1818,18 @@ int create_map4() {
     draw_path(44, 37, 23, 33,map4);
 }
 int handle_input(Player *player) {
+    if(l_user.health<=0){
+        clear();
+        mvprintw(17,80,"YOU LOST");
+        mvprintw(18,80,"PRESS ANY KEY TO RETURN TO MAIN MENU");
+        getch();
+        main_menu();
+    }
     if(l_user.level_num==1){
         int ch = getch();
+        if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            l_user.health--;
+        }
         int new_x = player->x, new_y = player->y;
         if (ch == 'm') {
             show_count++;
@@ -1501,6 +1843,9 @@ int handle_input(Player *player) {
             }
             show_full_map_temporarily(player);
         }
+        if (ch == 'q') {
+            main_menu();
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1510,6 +1855,9 @@ int handle_input(Player *player) {
             case '7': new_x--; new_y--; break; 
             case '8': new_y--; break;       
             case '9': new_x++; new_y--; break;
+            case 'e': food_table();
+            refresh_map(player,memory_map1,map1);
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map1) && map1[new_y][new_x]!='<') {
@@ -1533,6 +1881,22 @@ int handle_input(Player *player) {
                     map1[25][150] = 'G';
                 }
             }
+
+            else if(map1[new_y][new_x]=='%'||map1[new_y][new_x]=='X')
+            {
+                food_manager(map1[new_y][new_x]);
+                if(full_food==0){
+                    map1[new_y][new_x]='.';
+                }
+            
+            }
+
+            else if(map1[new_y][new_x]=='T'||map1[new_y][new_x]=='Z')
+            {
+                gold_manager(map1[new_y][new_x]);
+                map1[new_y][new_x]='.';
+            }
+
             refresh_map(player,memory_map1,map1);  
         }
         else if(map1[new_y][new_x]=='<'){
@@ -1543,6 +1907,9 @@ int handle_input(Player *player) {
     else if(l_user.level_num==2){
         int ch = getch();
         int new_x = player->x, new_y = player->y;
+        if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            l_user.health--;
+        }
         if (ch == 'm') {
             show_count++;
             if(show_count>=4){
@@ -1555,6 +1922,9 @@ int handle_input(Player *player) {
             }
             show_full_map_temporarily(player);
         }
+        if (ch == 'q') {
+            main_menu();
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1564,6 +1934,9 @@ int handle_input(Player *player) {
             case '7': new_x--; new_y--; break; 
             case '8': new_y--; break;       
             case '9': new_x++; new_y--; break;
+            case 'e': food_table();
+            refresh_map(player,memory_map2,map2);
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map2) && map2[new_y][new_x]!='<') {
@@ -1599,6 +1972,19 @@ int handle_input(Player *player) {
                     map2[32][94] = 'G';
                 }
             }
+            else if(map2[new_y][new_x]=='%'||map2[new_y][new_x]=='X')
+            {
+                food_manager(map2[new_y][new_x]);
+                if(full_food==0){
+                    map2[new_y][new_x]='.';
+                }
+            }
+
+            else if(map2[new_y][new_x]=='T'||map2[new_y][new_x]=='Z')
+            {
+                gold_manager(map2[new_y][new_x]);
+                map2[new_y][new_x]='.';
+            }
             refresh_map(player,memory_map2,map2);
         }
         else if(map2[new_y][new_x]=='<'){
@@ -1608,6 +1994,9 @@ int handle_input(Player *player) {
     else if(l_user.level_num==3){
         int ch = getch();
         int new_x = player->x, new_y = player->y;
+        if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            l_user.health--;
+        }
         if (ch == 'm') {
             show_count++;
             if(show_count>=4){
@@ -1620,6 +2009,9 @@ int handle_input(Player *player) {
             }
             show_full_map_temporarily(player);
         }
+        if (ch == 'q') {
+            main_menu();
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1629,6 +2021,9 @@ int handle_input(Player *player) {
             case '7': new_x--; new_y--; break; 
             case '8': new_y--; break;       
             case '9': new_x++; new_y--; break;
+            case 'e': food_table();
+            refresh_map(player,memory_map3,map3);
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map3)&& map3[new_y][new_x]!='<') {
@@ -1640,8 +2035,8 @@ int handle_input(Player *player) {
             if (new_x == 167 && new_y == 31) {
                 map3[30][167]='+';
             }
-            else if (new_x == 151 && new_y == 6) {
-                map3[6][150]='+';
+            else if (new_x == 126 && new_y == 7) {
+                map3[7][125]='+';
             }
             else if(map3[new_y][new_x]=='&' && get_room_id(new_x,new_y)==5){
                 char *code = generate_code();
@@ -1661,6 +2056,19 @@ int handle_input(Player *player) {
                     map3[13][70] = 'G';
                 }
             }
+            else if(map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X')
+            {
+                food_manager(map3[new_y][new_x]);
+                if(full_food==0){
+                    map3[new_y][new_x]='.';
+                }
+            }
+
+            else if(map3[new_y][new_x]=='T'||map3[new_y][new_x]=='Z')
+            {
+                gold_manager(map3[new_y][new_x]);
+                map3[new_y][new_x]='.';
+            }
             refresh_map(player,memory_map3,map3);  
         }
         else if(map3[new_y][new_x]=='<'){
@@ -1670,6 +2078,9 @@ int handle_input(Player *player) {
     else if(l_user.level_num==4){
         int ch = getch();
         int new_x = player->x, new_y = player->y;
+        if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            l_user.health--;
+        }
         if (ch == 'm') {
             show_count++;
             if(show_count>=4){
@@ -1682,6 +2093,9 @@ int handle_input(Player *player) {
             }
             show_full_map_temporarily(player);
         }
+        if (ch == 'q') {
+            main_menu();
+        }
         switch (ch) {
             case '1': new_x--; new_y++; break; 
             case '2': new_y++; break;         
@@ -1691,6 +2105,9 @@ int handle_input(Player *player) {
             case '7': new_x--; new_y--; break; 
             case '8': new_y--; break;       
             case '9': new_x++; new_y--; break;
+            case 'e': food_table();
+            refresh_map(player,memory_map4,map4);
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map4)) {
@@ -1735,12 +2152,22 @@ int handle_input(Player *player) {
                     map4[12][35] = 'G';
                 }
             }
+            else if(map4[new_y][new_x]=='%'||map4[new_y][new_x]=='X')
+            {
+                food_manager(map4[new_y][new_x]);
+                if(full_food==0){
+                    map4[new_y][new_x]='.';
+                }            
+            }
+
+            else if(map4[new_y][new_x]=='T'||map4[new_y][new_x]=='Z')
+            {
+                gold_manager(map4[new_y][new_x]);
+                map4[new_y][new_x]='.';
+            }
             refresh_map(player,memory_map4,map4);  
         }
     }
-}
-void initialize_memory_map(int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
-    memset(memory_map,0,1000);
 }
 void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
     for (int i = 0; i < MAP_HEIGHT; i++) {
@@ -1772,6 +2199,9 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     update_memory_map(player->x, player->y,memory_map);
     draw_visible_map(player->x, player->y,memory_map,map);
     draw_player(player);
+    draw_bar(1, 142, 20, l_user.health, 100, "Health");
+    draw_bar(2, 142, 20, l_user.power, 100, "Power");
+    draw_bar(3, 142, 20, l_user.gold, 100, "Gold");
     refresh();  
 }
 void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
@@ -1779,15 +2209,15 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
         if(is_in_room(player_x,player_y)){
             if (get_room_id(player_x,player_y)==1) {
                 for (int i = 3; i <= 9; i++) {
-                    for (int j = 3; j <= 10; j++) {
+                    for (int j = 3; j <= 23; j++) {
                         memory_map[i][j] = 1;  
                     }
                 }
             }
             
             else if (get_room_id(player_x,player_y)==2) {
-                for (int i = 4; i <= 10; i++) {
-                    for (int j = 40; j <= 48; j++) {
+                for (int i = 7; i <= 20; i++) {
+                    for (int j = 50 ; j <= 65 ; j++) {
                         memory_map[i][j] = 1;
                     }
                 }
@@ -1926,8 +2356,8 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
 
             else if (get_room_id(player_x, player_y) == 3) {
-                for (int i = 2; i <= 8; i++) {  
-                    for (int j = 150; j <= 160; j++) {  
+                for (int i = 5; i <= 20; i++) {  
+                    for (int j = 125; j <= 145; j++) {  
                         memory_map[i][j] = 1;
                     }
                 }
@@ -2051,8 +2481,8 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
 }
 int is_in_room(int x, int y) {
     if(l_user.level_num==1){
-        if ((x >= 3 && x <= 10 && y >= 3 && y <= 9) ||  
-        (x >= 40 && x <= 48 && y >= 4 && y <= 10) ||  
+        if ((x >= 3 && x <= 23 && y >= 3 && y <= 9) ||  
+        (x >= 50 && x <= 65 && y >= 7 && y <= 20) ||  
         (x >= 100 && x <= 111 && y >= 6 && y <= 16) ||  
         (x >= 150 && x <= 159 && y >= 20 && y <= 29) ||  
         (x >= 94 && x <= 110 && y >= 30 && y <= 35) ||  
@@ -2076,7 +2506,7 @@ int is_in_room(int x, int y) {
     else if(l_user.level_num==3){
         if ((x >= 35 && x <= 41 && y >= 6 && y <= 15) ||   
         (x >= 70 && x <= 84 && y >= 12 && y <= 16) ||   
-        (x >= 150 && x <= 160 && y >= 2 && y <= 8) ||   
+        (x >= 125 && x <= 145 && y >= 5 && y <= 19) ||   
         (x >= 160 && x <= 175 && y >= 30 && y <= 41) ||   
         (x >= 84 && x <= 100 && y >= 30 && y <= 35) ||   
         (x >= 12 && x <= 25 && y >= 21 && y <= 35)) {   
@@ -2101,8 +2531,8 @@ int is_in_room(int x, int y) {
 }
 int get_room_id(int x, int y) {
     if(l_user.level_num==1){
-        if (x >= 4 && x <= 10 && y >= 4 && y <= 10) return 1;
-        if (x >= 41 && x <= 48 && y >= 5 && y <= 10) return 2;
+        if (x >= 4 && x <= 23 && y >= 4 && y <= 10) return 1;
+        if (x >= 51 && x <= 65 && y >= 7 && y <= 20) return 2;
         if (x >= 101 && x <= 111 && y >= 7 && y <= 16) return 3;
         if (x >= 151 && x <= 159 && y >= 21 && y <= 29) return 4;
         if (x >= 95 && x <= 110 && y >= 31 && y <= 35) return 5;
@@ -2122,7 +2552,7 @@ int get_room_id(int x, int y) {
     else if(l_user.level_num==3){
         if (x >= 35 && x <= 41 && y >= 6 && y <= 15) return 1;  
         if (x >= 70 && x <= 84 && y >= 12 && y <= 16) return 2;  
-        if (x >= 150 && x <= 160 && y >= 2 && y <= 8) return 3;  
+        if (x >= 125 && x <= 145 && y >= 6 && y <= 20) return 3;  
         if (x >= 160 && x <= 175 && y >= 30 && y <= 41) return 4;  
         if (x >= 84 && x <= 100 && y >= 30 && y <= 35) return 5;  
         if (x >= 12 && x <= 26 && y >= 21 && y <= 35) {
@@ -2230,19 +2660,21 @@ char *generate_code() {
     return code;
 }
 void show_code(const char *code) {
+    attron(COLOR_PAIR(2));
     mvprintw(LINES/2-2,COLS/2-22,"==============================");
     mvprintw(LINES/2+2,COLS/2-22,"==============================");
     for(int i = LINES/2-2 ; i <= LINES/2+2 ;i++){
         mvprintw(i,COLS/2-23,"||");
         mvprintw(i,COLS/2+8,"||");
     }
-    mvprintw(LINES/2-1, COLS/2-18, "CODE IS: %s", code);
+    attroff(COLOR_PAIR(2));
+    mvprintw(LINES/2-1, COLS/2-16, "CODE IS: %s", code);
 }
 char *enter_code() {
     static char input[5];
     echo();
     curs_set(1);
-    mvprintw(LINES/2,COLS/2-18, "ENTER PASS:");
+    mvprintw(LINES/2,COLS/2-16, "ENTER PASS:");
     getstr(input);
     noecho();
     curs_set(0);
@@ -2254,7 +2686,7 @@ int check_code(const char *entered_code, const char *correct_code) {
         real_code[3-i]=entered_code[i];
     }
     if (strcmp(real_code, correct_code) == 0) {
-        mvprintw(LINES/2+1, COLS/2-18, "DOOR OPENED!");
+        mvprintw(LINES/2+1, COLS/2-16, "DOOR OPENED!");
         getch();
         move(LINES/2-2,COLS/2-23);
         clrtoeol();
@@ -2268,21 +2700,138 @@ int check_code(const char *entered_code, const char *correct_code) {
         clrtoeol();
         return 1;
     } else {
-        mvprintw(LINES/2-1, COLS/2-20, "WRONG PASS HAHA!");
+        mvprintw(LINES/2+1, COLS/2-16, "WRONG PASS HAHA!");
         getch();
-        move(15,60);
+        getch();
+        move(LINES/2-2,COLS/2-23);
         clrtoeol();
-        move(16,60);
+        move(LINES/2-1,COLS/2-23);
         clrtoeol();
-        move(17,60);
+        move(LINES/2,COLS/2-23);
+        clrtoeol();
+        move(LINES/2+1,COLS/2-23);
+        clrtoeol();
+        move(LINES/2+2,COLS/2-23);
         clrtoeol();
         return 0;
     }
 }
+void draw_bar(int y, int x, int width, int value, int max_value, const char* label) {
+    mvprintw(y, x, "%s: ", label);
 
+    int bar_length = (value * width) / max_value;
 
+    attron(COLOR_PAIR(3) | A_REVERSE); 
+    for (int i = 0; i < bar_length; i++) {
+        mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+    }
+    attroff(COLOR_PAIR(3) | A_REVERSE);
 
-
+    attron(COLOR_PAIR(2) | A_REVERSE);
+    for (int i = bar_length; i < width; i++) {
+        mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+    }
+    attroff(COLOR_PAIR(2) | A_REVERSE);
+    mvprintw(y, x + strlen(label) + 2 + width + 1, " %d/%d", value, max_value);
+}
+int food_manager(char food){
+    if(food=='%'){
+        if(l_user.food_bar.normal+l_user.food_bar.special>=5){
+            full_food=1;
+            attron(COLOR_PAIR(2));
+            mvprintw(0,0,"not enough space to restore food!");
+            attroff(COLOR_PAIR(2));
+            getch();
+            mvprintw(0,0,"                                 ");
+            
+        }
+        else{
+            full_food=0;
+            l_user.food_bar.normal += 1;
+        }
+        
+    }
+    else if(food=='X'){
+        if(l_user.food_bar.normal+l_user.food_bar.special>=5){
+            full_food=1;
+            attron(COLOR_PAIR(2));
+            mvprintw(0,0,"not enough space to restore food!");
+            attroff(COLOR_PAIR(2));
+            getch();
+            mvprintw(0,0,"                                 ");
+            
+        }
+        else{
+            full_food=0;
+            l_user.food_bar.special += 1;
+        }
+        
+    }
+}
+void food_table(){
+    clear();
+    mvprintw(LINES/2-6,COLS/2-20,"      normal food : %d",l_user.food_bar.normal);
+    mvprintw(LINES/2-5,COLS/2-20,"      special food : %d",l_user.food_bar.special);
+    mvprintw(LINES/2-4,COLS/2-50,"press n to consume normal food or press s to consume special food,to quit press any key");
+    int ch = getch();
+    switch (ch){
+        case 'n' : 
+        if(l_user.food_bar.normal>0){
+            if(l_user.health>=91){
+                mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
+                getch();
+                clear();
+            }
+            else{
+                l_user.food_bar.normal--;
+                l_user.health+=10;
+                mvprintw(LINES/2-3,COLS/2-20,"         Yummy!");
+                getch();
+                clear();
+            }
+            
+        }
+        else{
+            mvprintw(LINES/2-3,COLS/2-20,"You have no more normal food");
+            getch();
+            clear();
+        }
+        break;
+        case 's' : 
+        if(l_user.food_bar.special>0){
+            if(l_user.health>=51){
+                mvprintw(LINES/2-3,COLS/2-20,"          FULL!");
+                getch();
+                clear();
+            }
+            else{
+                l_user.food_bar.special--;
+                l_user.health+=50;
+                mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
+                getch();
+                clear();
+            }
+            
+        }
+        else{
+            mvprintw(LINES/2-3,COLS/2-20,"You have no more special food");
+            getch();
+            clear();
+        }
+        break;
+        default :
+        clear();
+        break;
+    }
+}
+int gold_manager(char gold){
+    if(gold=='T'){
+        l_user.gold+=5;
+    }
+    else{
+        l_user.gold+=50;
+    }
+}
 
 
 
