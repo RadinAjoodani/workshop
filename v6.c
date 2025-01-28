@@ -2,6 +2,8 @@
 #include<string.h>
 #include<stdlib.h>
 #include<unistd.h>
+#include<time.h>
+
 #define MAP_HEIGHT 50
 #define MAP_WIDTH 200
 typedef struct{
@@ -106,6 +108,7 @@ int main(){
     cbreak();         
     keypad(stdscr, TRUE);
     start_color();
+    srand(time(NULL));
     init_pair(1, COLOR_YELLOW, COLOR_BLACK);
     init_pair(2, COLOR_RED, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
