@@ -102,6 +102,8 @@ void draw_bar(int y, int x, int width, int value, int max_value, const char* lab
 int food_manager(char food);
 void food_table();
 int gold_manager(char gold);
+int spell_manager(char spell);
+int spell_table();
 // void save_information(User user);
 
 int main(){
@@ -706,16 +708,8 @@ void select_difficulty(int *current_difficulty) {
             case '\n':
                 *current_difficulty = choice;
                 mvprintw(n_levels + 6, 1, "Difficulty set to %s!", difficulty_levels[choice]);
+                l_user.difficulty=choice;
                 getch();
-                if(strcmp(difficulty_levels[choice],"Easy")==0){
-                    l_user.difficulty=0;
-                }
-                else if(strcmp(difficulty_levels[choice],"Medium")==0){
-                    l_user.difficulty=1;
-                }
-                else if(strcmp(difficulty_levels[choice],"Hard")==0){
-                    l_user.difficulty=2;
-                }
                 return;
             case 27:  
                 return;
@@ -788,7 +782,6 @@ void start_new_game(){
     l_user.gold = 0;
     l_user.health=1000;
     l_user.power=100;
-    l_user.difficulty=1;
     l_user.food_bar.normal=0;
     l_user.food_bar.special=0;
     memset(memory_map1,0,sizeof(memory_map1));
@@ -847,7 +840,7 @@ void continue_last_game(){
 }
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     char ch = map[y][x];
-    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G'||ch=='T'||ch=='Z'||ch=='X'||ch=='%';
+    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G'||ch=='T'||ch=='Z'||ch=='X'||ch=='%'|ch=='S'|ch=='H'|ch=='8';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -991,6 +984,24 @@ int create_map1() {
         }
         map1[x][y]='T';
     }
+    int q1 = rand() % 3 ;
+    for (int i = 0 ; i < q1 ;i++){
+        int x = rand() % 5 + 4;
+        int y = rand() % 19 + 4;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map1[x][y]='S';
+        }
+        else if(p==1){
+            map1[x][y]='H';
+        }
+        else if(p==2){
+            map1[x][y]='8';
+        }
+    }
     
 
     map1[5][23] = '+';
@@ -1030,6 +1041,24 @@ int create_map1() {
         }
         map1[x][y]='T';
     }
+    int q2 = rand() % 3 ;
+    for (int i = 0 ; i < q2 ;i++){
+        int x = rand() % 12 + 8;
+        int y = rand() % 14 + 51;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map1[x][y]='S';
+        }
+        else if(p==1){
+            map1[x][y]='H';
+        }
+        else if(p==2){
+            map1[x][y]='8';
+        }
+    }
     map1[7][58] = '+';
     map1[18][65] = '+';
     map1[6][45] = 'o';
@@ -1066,6 +1095,24 @@ int create_map1() {
             continue;
         }
         map1[x][y]='T';
+    }
+    int q3 = rand() % 3 ;
+    for (int i = 0 ; i < q3 ;i++){
+        int x = rand() % 9 + 7;
+        int y = rand() % 10 + 101;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map1[x][y]='S';
+        }
+        else if(p==1){
+            map1[x][y]='H';
+        }
+        else if(p==2){
+            map1[x][y]='8';
+        }
     }
     map1[9][100] = '+';
     //map1[14][111] = '+';
@@ -1114,6 +1161,24 @@ int create_map1() {
         }
         map1[x][y]='X';
     }
+    int q4 = rand() % 2 + 1 ;
+    for (int i = 0 ; i < q4 ;i++){
+        int x = rand() % 8 + 21;
+        int y = rand() % 8 + 151;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map1[x][y]='S';
+        }
+        else if(p==1){
+            map1[x][y]='H';
+        }
+        else if(p==2){
+            map1[x][y]='8';
+        }
+    }
     map1[28][158] = '&';
     map1[20][152] = '+';
     map1[25][150] = '@';
@@ -1152,6 +1217,24 @@ int create_map1() {
         }
         map1[x][y]='T';
     }
+    int q5 = rand() % 3 + 4 ;
+    for (int i = 0 ; i < q5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map1[x][y]='S';
+        }
+        else if(p==1){
+            map1[x][y]='H';
+        }
+        else if(p==2){
+            map1[x][y]='8';
+        }
+    }
     //map1[32][94] = '+';
     map1[34][110] = '+';
     map1[31][99] = 'o';
@@ -1189,6 +1272,24 @@ int create_map1() {
         }
         map1[x][y]='Z';
     }
+    int q6 = rand() % 3 + 4 ;
+    for (int i = 0 ; i < q6 ;i++){
+        int x = rand() % 8 + 29;
+        int y = rand() % 9 + 11;
+        if(map1[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2+1;
+        if(p==0){
+            map1[x][y]='S';
+        }
+        else if(p==1){
+            map1[x][y]='H';
+        }
+        else if(p==2){
+            map1[x][y]='8';
+        }
+    }
     map1[30][20] = '+';
     map1[30][12] = 'o';
     map1[36][17] = 'o';
@@ -1220,6 +1321,24 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
+    int q1 = rand() % 3 + 7;
+    for (int i = 0 ; i < q1 ;i++){
+        int x = rand() % 7 + 7;
+        int y = rand() % 7 + 11;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map2[x][y]='S';
+        }
+        else if(p==1){
+            map2[x][y]='H';
+        }
+        else if(p==2){
+            map2[x][y]='8';
+        }
+    }
     //map2[7][18] = '+';
     map2[10][12] = 'o';
     map2[8][16] = 'o';
@@ -1239,7 +1358,7 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
-    int n1 = rand() % 3 + 1;
+    int n1 = rand() % 3 + 4;
     for (int i = 0 ; i < n1 ;i++){
         int x = rand() % 7 + 6;
         int y = rand() % 12 + 36;
@@ -1275,6 +1394,33 @@ int create_map2() {
     for (int i = 4; i < 12; i++) {
         for (int j = 121; j < 135; j++) {
             map2[i][j] = '.';
+        }
+    }
+    int n3 = rand() % 3 + 4;
+    for (int i = 0 ; i < n3 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='%';
+    }
+    int q3 = rand() % 3 +2;
+    for (int i = 0 ; i < q3 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map2[x][y]='S';
+        }
+        else if(p==1){
+            map2[x][y]='H';
+        }
+        else if(p==2){
+            map2[x][y]='8';
         }
     }
     map2[7][120] = '+';
@@ -1314,6 +1460,24 @@ int create_map2() {
         }
         map2[x][y]='T';
     }
+    int q4 = rand() % 3 + 1;
+    for (int i = 0 ; i < q4 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map2[x][y]='S';
+        }
+        else if(p==1){
+            map2[x][y]='H';
+        }
+        else if(p==2){
+            map2[x][y]='8';
+        }
+    }
     map2[30][167] = '+';
     map2[39][160] = '+';
     map2[35][169] = 'o';
@@ -1331,6 +1495,33 @@ int create_map2() {
     for (int i = 31; i < 35; i++) {
         for (int j = 95; j < 110; j++) {
             map2[i][j] = '.';
+        }
+    }
+    int n5 = rand() % 3 + 3;
+    for (int i = 0 ; i < n5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='%';
+    }
+    int q5 = rand() % 3 + 5;
+    for (int i = 0 ; i < q5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map2[x][y]='S';
+        }
+        else if(p==1){
+            map2[x][y]='H';
+        }
+        else if(p==2){
+            map2[x][y]='8';
         }
     }
     map2[33][108] = '&';
@@ -1353,8 +1544,8 @@ int create_map2() {
             map2[i][j] = '.';
         }
     }
-    int n3 = rand() % 3 ;
-    for (int i = 0 ; i < n3 ;i++){
+    int n6 = rand() % 3 +2 ;
+    for (int i = 0 ; i < n6 ;i++){
         int x = rand() % 6 + 16;
         int y = rand() % 9 + 51;
         if(map2[x][y]!='.'){
@@ -1370,6 +1561,24 @@ int create_map2() {
             continue;
         }
         map2[x][y]='T';
+    }
+    int q6 = rand() % 3 + 1;
+    for (int i = 0 ; i < q6 ;i++){
+        int x = rand() % 6 + 166;
+        int y = rand() % 9 + 51;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map2[x][y]='S';
+        }
+        else if(p==1){
+            map2[x][y]='H';
+        }
+        else if(p==2){
+            map2[x][y]='8';
+        }
     }
     map2[17][60] = '+';
     map2[20][53] = 'o';
@@ -1388,6 +1597,33 @@ int create_map2() {
         for (int j = 12; j < 26; j++) {
             map2[i][j] = '.';
         }
+    }
+    int q7 = rand() % 3 ;
+    for (int i = 0 ; i < q7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map2[x][y]='S';
+        }
+        else if(p==1){
+            map2[x][y]='H';
+        }
+        else if(p==2){
+            map2[x][y]='8';
+        }
+    }
+    int n7 = rand() % 3 + 2;
+    for (int i = 0 ; i < n7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='%';
     }
     map2[28][20] = '+';
     map2[30][12] = 'o';
@@ -1418,10 +1654,10 @@ int create_map3() {
             map3[i][j] = '.';
         }
     }
-    int n3 = rand() % 3;
+    int n3 = rand() % 3 + 1;
     for (int i = 0 ; i < n3 ;i++){
-        int x = rand() % 10 + 31;
-        int y = rand() % 14 + 161;
+        int x = rand() % 8 + 7;
+        int y = rand() % 5 + 36;
         if(map3[x][y]!='.'){
             continue;
         }
@@ -1429,8 +1665,8 @@ int create_map3() {
     }
     int t3 = rand() % 2+1;
     for (int i = 0 ; i < t3 ;i++){
-        int x = rand() % 10 + 31;
-        int y = rand() % 14 + 161;
+        int x = rand() % 8 + 7;
+        int y = rand() % 5 + 36;
         if(map3[x][y]!='.'){
             continue;
         }
@@ -1438,14 +1674,31 @@ int create_map3() {
     }
     int m3 = rand() % 2+1;
     for (int i = 0 ; i < m3 ;i++){
-        int x = rand() % 10 + 31;
-        int y = rand() % 14 + 161;
+        int x = rand() % 8 + 7;
+        int y = rand() % 5 + 36;
         if(map3[x][y]!='.'){
             continue;
         }
         map3[x][y]='X';
     }
-    
+    int q1 = rand() % 4 ;
+    for (int i = 0 ; i < q1 ;i++){
+        int x = rand() % 8 + 7;
+        int y = rand() % 5 + 36;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='S';
+        }
+        else if(p==1){
+            map3[x][y]='H';
+        }
+        else if(p==2){
+            map3[x][y]='8';
+        }
+    }
     map3[12][41] = '+';
     map3[11][40] = 'o';
     map3[9][37] = 'o';
@@ -1462,6 +1715,42 @@ int create_map3() {
     for (int i = 13; i < 16; i++) {
         for (int j = 71; j < 84; j++) {
             map3[i][j] = '.';
+        }
+    }
+    int n9 = rand() % 4 + 2;
+    for (int i = 0 ; i < n9 ;i++){
+        int x = rand() % 3 + 13;
+        int y = rand() % 13 + 71;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='%';
+    }
+    int t9 = rand() % 4 + 2;
+    for (int i = 0 ; i < t9 ;i++){
+        int x = rand() % 3 + 13;
+        int y = rand() % 13 + 71;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='t';
+    }
+    int q2 = rand() % 3 + 1;
+    for (int i = 0 ; i < q2 ;i++){
+        int x = rand() % 3 + 13;
+        int y = rand() % 13 + 71;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='S';
+        }
+        else if(p==1){
+            map3[x][y]='H';
+        }
+        else if(p==2){
+            map3[x][y]='8';
         }
     }
     map3[15][72] = '&';
@@ -1511,6 +1800,24 @@ int create_map3() {
         }
         map3[x][y]='X';
     }
+    int q3 = rand() % 3 + 1;
+    for (int i = 0 ; i < q3 ;i++){
+        int x = rand() % 13 + 6;
+        int y = rand() % 9 + 126;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='S';
+        }
+        else if(p==1){
+            map3[x][y]='H';
+        }
+        else if(p==2){
+            map3[x][y]='8';
+        }
+    }
     //mvprintw(7,125,"+");
     map3[19][132] = '+';
     map3[10][140] = 'o';
@@ -1531,7 +1838,7 @@ int create_map3() {
             map3[i][j] = '.';
         }
     }
-    int n2 = rand() % 3 + 3;
+    int n2 = rand() % 3 + 4;
     for (int i = 0 ; i < n2 ;i++){
         int x = rand() % 10 + 31;
         int y = rand() % 14 + 161;
@@ -1548,6 +1855,33 @@ int create_map3() {
             continue;
         }
         map3[x][y]='T';
+    }
+    int m2 = rand() % 2 + 1;
+    for (int i = 0 ; i < m2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='Z';
+    }
+    int q4 = rand() % 3;
+    for (int i = 0 ; i < q4 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='S';
+        }
+        else if(p==1){
+            map3[x][y]='H';
+        }
+        else if(p==2){
+            map3[x][y]='8';
+        }
     }
     //mvprintw(30,167,"+");
     map3[39][160] = '+';
@@ -1573,7 +1907,51 @@ int create_map3() {
     map3[34][100] = '@';
     map3[31][99] = 'o';
     map3[33][86] = 'o';
-
+    int t5 = rand() % 5 + 3;
+    for (int i = 0 ; i < t5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 85;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='T';
+    }
+    int a5 = rand() % 2 + 1;
+    for (int i = 0 ; i < a5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 85;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='Z';
+    }
+    int n5 = rand() % 5 + 3;
+    for (int i = 0 ; i < n5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 85;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='%';
+    }
+    int q5 = rand() % 3+2;
+    for (int i = 0 ; i < q5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 85;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='S';
+        }
+        else if(p==1){
+            map3[x][y]='H';
+        }
+        else if(p==2){
+            map3[x][y]='8';
+        }
+    }
     //  room ۶
     for (int i = 21; i < 35; i++) {
         map3[i][12] = '|';
@@ -1586,6 +1964,42 @@ int create_map3() {
     for (int i = 22; i < 34; i++) {
         for (int j = 13; j < 26; j++) {
             map3[i][j] = '.';
+        }
+    }
+    int n7 = rand() % 5 + 4;
+    for (int i = 0 ; i < n7 ;i++){
+        int x = rand() % 12 + 22;
+        int y = rand() % 13 + 13;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='%';
+    }
+    int t7 = rand() % 3 + 2;
+    for (int i = 0 ; i < t7 ;i++){
+        int x = rand() % 12 + 22;
+        int y = rand() % 13 + 13;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        map3[x][y]='T';
+    }
+    int q6 = rand() % 7 + 4;
+    for (int i = 0 ; i < q6 ;i++){
+        int x = rand() % 12 + 22;
+        int y = rand() % 13 + 13;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='S';
+        }
+        else if(p==1){
+            map3[x][y]='H';
+        }
+        else if(p==2){
+            map3[x][y]='8';
         }
     }
     map3[22][26] = '+';
@@ -1616,6 +2030,33 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
+    int n0 = rand() % 3+3;
+    for (int i = 0 ; i < n0 ;i++){
+        int x = rand() % 7 + 7;
+        int y = rand() % 7 + 11;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int t0 = rand() % 4+4;
+    for (int i = 0 ; i < t0 ;i++){
+        int x = rand() % 7 + 7;
+        int y = rand() % 7 + 11;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='Z';
+    }
+    int a1 = rand() % 5+6;
+    for (int i = 0 ; i < a1 ;i++){
+        int x = rand() % 7 + 7;
+        int y = rand() % 7 + 11;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
+    }
     map4[7][18] = '+';
     map4[10][12] = 'o';
     map4[8][16] = 'o';
@@ -1634,7 +2075,7 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
-    int n1 = rand() % 3+1;
+    int n1 = rand() % 3+3;
     for (int i = 0 ; i < n1 ;i++){
         int x = rand() % 7 + 6;
         int y = rand() % 12 + 36;
@@ -1643,7 +2084,7 @@ int create_map4() {
         }
         map4[x][y]='%';
     }
-    int t1 = rand() % 2+1;
+    int t1 = rand() % 2+3;
     for (int i = 0 ; i < t1 ;i++){
         int x = rand() % 7 + 6;
         int y = rand() % 12 + 36;
@@ -1651,6 +2092,24 @@ int create_map4() {
             continue;
         }
         map4[x][y]='T';
+    }
+    int q2 = rand() % 3 + 2 ;
+    for (int i = 0 ; i < q2 ;i++){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='S';
+        }
+        else if(p==1){
+            map4[x][y]='H';
+        }
+        else if(p==2){
+            map4[x][y]='8';
+        }
     }
     map4[6][37] = '&';
     map4[12][35] = '@';
@@ -1672,6 +2131,51 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
+    int n5 = rand() % 3+4;
+    for (int i = 0 ; i < n5 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int t5 = rand() % 2+2;
+    for (int i = 0 ; i < t5 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
+    }
+    int m5 = rand() % 2+1;
+    for (int i = 0 ; i < m5 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='Z';
+    }
+    int q3 = rand() % 5 + 5 ;
+    for (int i = 0 ; i < q3 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='S';
+        }
+        else if(p==1){
+            map4[x][y]='H';
+        }
+        else if(p==2){
+            map4[x][y]='8';
+        }
+    }
     map4[12][127] = '+';
     map4[5][126] = 'o';
     map4[6][131] = 'o';
@@ -1691,7 +2195,7 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
-    int n2 = rand() % 3+1;
+    int n2 = rand() % 3+2;
     for (int i = 0 ; i < n2 ;i++){
         int x = rand() % 10 + 31;
         int y = rand() % 14 + 161;
@@ -1700,7 +2204,7 @@ int create_map4() {
         }
         map4[x][y]='%';
     }
-    int t2 = rand() % 2+1;
+    int t2 = rand() % 2+4;
     for (int i = 0 ; i < t2 ;i++){
         int x = rand() % 10 + 31;
         int y = rand() % 14 + 161;
@@ -1709,7 +2213,7 @@ int create_map4() {
         }
         map4[x][y]='T';
     }
-    int m2 = rand() % 2 + 1;
+    int m2 = rand() % 2;
     for (int i = 0 ; i < m2 ;i++){
         int x = rand() % 10 + 31;
         int y = rand() % 14 + 161;
@@ -1717,6 +2221,24 @@ int create_map4() {
             continue;
         }
         map4[x][y]='X';
+    }
+    int q4 = rand() % 2 + 2 ;
+    for (int i = 0 ; i < q4 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='S';
+        }
+        else if(p==1){
+            map4[x][y]='H';
+        }
+        else if(p==2){
+            map4[x][y]='8';
+        }
     }
     map4[40][174] = '&';
     map4[30][167] = '@';
@@ -1738,7 +2260,7 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
-    int n3 =rand() % 2 + 1;
+    int n3 =rand() % 2 + 3;
     for (int i = 0 ; i < n3 ;i++){
         int x = rand() % 4 + 31;
         int y = rand() % 15 + 95;
@@ -1763,7 +2285,25 @@ int create_map4() {
         if(map4[x][y]!='.'){
             continue;
         }
-        map4[x][y]='Z';
+        map4[x][y]='X';
+    }
+    int q5 = rand() % 2 + 2 ;
+    for (int i = 0 ; i < q5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='S';
+        }
+        else if(p==1){
+            map4[x][y]='H';
+        }
+        else if(p==2){
+            map4[x][y]='8';
+        }
     }
     map4[32][94] = '+';
     map4[31][99] = 'o';
@@ -1781,6 +2321,42 @@ int create_map4() {
     for (int i = 16; i < 22; i++) {
         for (int j = 51; j < 60; j++) {
             map4[i][j] = '.';
+        }
+    }
+    int t6 = rand() % 3 ;
+    for (int i = 0 ; i < t6 ;i++){
+        int x = rand() % 6 + 16;
+        int y = rand() % 9 + 51;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
+    }
+    int n6 = rand() % 3 ;
+    for (int i = 0 ; i < n6 ;i++){
+        int x = rand() % 6 + 16;
+        int y = rand() % 9 + 51;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int q6 = rand() % 5 + 4 ;
+    for (int i = 0 ; i < q6 ;i++){
+        int x = rand() % 6 + 16;
+        int y = rand() % 9 + 51;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='S';
+        }
+        else if(p==1){
+            map4[x][y]='H';
+        }
+        else if(p==2){
+            map4[x][y]='8';
         }
     }
     map4[16][52] = '&';
@@ -1803,12 +2379,57 @@ int create_map4() {
             map4[i][j] = '.';
         }
     }
+    int m7 = rand() % 2 + 1 ;
+    for (int i = 0 ; i < m7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='Z';
+    }
+    int t7 = rand() % 3 ;
+    for (int i = 0 ; i < t7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
+    }
+    int n7 = rand() % 3 + 1 ;
+    for (int i = 0 ; i < n7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int q7 = rand() % 2 + 2 ;
+    for (int i = 0 ; i < q7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='S';
+        }
+        else if(p==1){
+            map4[x][y]='H';
+        }
+        else if(p==2){
+            map4[x][y]='8';
+        }
+    }
     map4[28][20] = '+';
     map4[32][24] = '+';
     map4[30][12] = 'o';
     map4[29][17] = 'o';
 
-    // اتاق ۸
+    // room 8
     for (int i = 30; i < 42; i++) {
         map4[i][45] = '|';
         map4[i][60] = '|';
@@ -1820,6 +2441,51 @@ int create_map4() {
     for (int i = 31; i < 41; i++) {
         for (int j = 46; j < 60; j++) {
             map4[i][j] = '.';
+        }
+    }
+    int m8 = rand() % 2 + 1 ;
+    for (int i = 0 ; i < m8 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 46;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='Z';
+    }
+    int t8 = rand() % 3 + 3 ;
+    for (int i = 0 ; i < t8 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 46;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='T';
+    }
+    int n8 = rand() % 3 + 3 ;
+    for (int i = 0 ; i < n8 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 46;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='%';
+    }
+    int q8 = rand() % 5 + 5 ;
+    for (int i = 0 ; i < q8 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 46;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='S';
+        }
+        else if(p==1){
+            map4[x][y]='H';
+        }
+        else if(p==2){
+            map4[x][y]='8';
         }
     }
     map4[33][55] = 'o';
@@ -1849,10 +2515,10 @@ int handle_input(Player *player) {
             if(l_user.difficulty==0){
                 l_user.health-=5;
             }
-            if(l_user.difficulty==1){
+            else if(l_user.difficulty==1){
                 l_user.health-=10;
             }
-            if(l_user.difficulty==2){
+            else if(l_user.difficulty==2){
                 l_user.health-=20;
             }
             
@@ -2863,14 +3529,14 @@ void food_table(){
         case 'n' : 
         if(x){
             if(l_user.food_bar.normal>0){
-                if(l_user.health>=995){
+                if(l_user.health>=990){
                     mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
                     getch();
                     clear();
                 }
                 else{
                     l_user.food_bar.normal--;
-                    l_user.health+=6;
+                    l_user.health+=10;
                     mvprintw(LINES/2-3,COLS/2-20,"           Yummy!");
                     getch();
                     clear();
@@ -2894,14 +3560,14 @@ void food_table(){
         case 's' : 
         if(x){
             if(l_user.food_bar.special>0){
-                if(l_user.health>=971){
+                if(l_user.health>=920){
                     mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
                     getch();
                     clear();
                 }
                 else{
                     l_user.food_bar.special--;
-                    l_user.health+=30;
+                    l_user.health+=80;
                     mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
                     getch();
                     clear();
@@ -2934,7 +3600,12 @@ int gold_manager(char gold){
         l_user.gold+=30;
     }
 }
+int spell_manager(char spell){
 
+}
+int spell_table(){
+
+}
 
 
 
