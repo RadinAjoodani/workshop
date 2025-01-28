@@ -286,7 +286,7 @@ void sign_up(){
             s_user.gold=0;
             s_user.score=0;
             s_user.difficulty=0;
-            s_user.color=2;
+            s_user.color=0;
         }
         if(sign==3){
             save_user();
@@ -496,10 +496,12 @@ void play_game(){
     }
 }
 void play_as_guest(){
+    clear();
     l_user.level_num=1;
     l_user.gold = 0;
     l_user.health=1000;
     l_user.power=100;
+    l_user.difficulty=1;
     l_user.food_bar.normal=0;
     l_user.food_bar.special=0;
     memset(memory_map1,0,sizeof(memory_map1));
@@ -739,7 +741,7 @@ void change_character_color(int *current_color) {
         for (int i = 0; i < n_colors; i++) {
             if (i == choice)
                 attron(COLOR_PAIR(2));
-            mvprintw(i + 2, 1, "%s%s", colors[i], (i == *current_color) ? " (Selected)" : "");
+            mvprintw(i + 2, 1, "%s%s", colors[i], (i == *current_color) ? " " : "");
             if (i == choice)
                 attroff(COLOR_PAIR(2));
         }
@@ -782,6 +784,13 @@ void change_character_color(int *current_color) {
 }
 void start_new_game(){
     clear();
+    l_user.level_num=1;
+    l_user.gold = 0;
+    l_user.health=1000;
+    l_user.power=100;
+    l_user.difficulty=1;
+    l_user.food_bar.normal=0;
+    l_user.food_bar.special=0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     Player player = {5, 4, '.'};
@@ -1837,7 +1846,16 @@ int handle_input(Player *player) {
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             pace_counter1++;
-            l_user.health--;
+            if(l_user.difficulty==0){
+                l_user.health-=5;
+            }
+            if(l_user.difficulty==1){
+                l_user.health-=10;
+            }
+            if(l_user.difficulty==2){
+                l_user.health-=20;
+            }
+            
         }
         int new_x = player->x, new_y = player->y;
         if (ch == 's' && pace_counter2<5) {
@@ -1924,8 +1942,16 @@ int handle_input(Player *player) {
         int ch = getch();
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            if(l_user.difficulty==0){
+                l_user.health-=5;
+            }
+            if(l_user.difficulty==1){
+                l_user.health-=10;
+            }
+            if(l_user.difficulty==2){
+                l_user.health-=20;
+            }
             pace_counter1++;
-            l_user.health--;
         }
         if (ch == 's' && pace_counter2<5) {
         pace=2;
@@ -2020,7 +2046,15 @@ int handle_input(Player *player) {
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             pace_counter1++;
-            l_user.health--;
+            if(l_user.difficulty==0){
+                l_user.health-=5;
+            }
+            if(l_user.difficulty==1){
+                l_user.health-=10;
+            }
+            if(l_user.difficulty==2){
+                l_user.health-=20;
+            }
         }
         if (ch == 's' && pace_counter2<5) {
             pace=2;
@@ -2113,7 +2147,15 @@ int handle_input(Player *player) {
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             pace_counter1++;
-            l_user.health--;
+            if(l_user.difficulty==0){
+                l_user.health-=5;
+            }
+            if(l_user.difficulty==1){
+                l_user.health-=10;
+            }
+            if(l_user.difficulty==2){
+                l_user.health-=20;
+            }
         }
         if (ch == 's' && pace_counter2<5) {
             pace=2;
