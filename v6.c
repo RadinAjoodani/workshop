@@ -11,6 +11,11 @@ typedef struct{
     int special;
 }Food;
 typedef struct{
+    int H;
+    int S;
+    int G;
+}Spell;
+typedef struct{
     char password[50];
     char email[50];
     char username[50];
@@ -25,6 +30,7 @@ typedef struct{
     int color;
     int level_num;
     Food food_bar;
+    Spell spell_bar;
 }User;
 typedef struct{
     int x,y;
@@ -50,9 +56,16 @@ User s_user;
 int is_logged_in=0;
 int show_count = 0;
 int full_food =0;
+int full_spell=0;
 int pace=1;
 int pace_counter1=0;
 int pace_counter2=0;
+int Hspell;
+int Sspell;
+int Gspell;
+int Hspellc=0;
+int Sspellc=0;
+int Gspellc=0;
 void main_menu();
 void log_in();
 void sign_up();
@@ -104,6 +117,7 @@ void food_table();
 int gold_manager(char gold);
 int spell_manager(char spell);
 int spell_table();
+char message(int height, int width);
 // void save_information(User user);
 
 int main(){
@@ -501,11 +515,14 @@ void play_as_guest(){
     clear();
     l_user.level_num=1;
     l_user.gold = 0;
-    l_user.health=1000;
+    l_user.health=10000;
     l_user.power=100;
     l_user.difficulty=1;
     l_user.food_bar.normal=0;
     l_user.food_bar.special=0;
+    l_user.spell_bar.H=0;
+    l_user.spell_bar.S=0;
+    l_user.spell_bar.G=0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     Player player = {5, 4, '.'};
@@ -780,10 +797,13 @@ void start_new_game(){
     clear();
     l_user.level_num=1;
     l_user.gold = 0;
-    l_user.health=1000;
+    l_user.health=10000;
     l_user.power=100;
     l_user.food_bar.normal=0;
     l_user.food_bar.special=0;
+    l_user.spell_bar.H=0;
+    l_user.spell_bar.S=0;
+    l_user.spell_bar.G=0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     Player player = {5, 4, '.'};
@@ -840,7 +860,8 @@ void continue_last_game(){
 }
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     char ch = map[y][x];
-    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G'||ch=='T'||ch=='Z'||ch=='X'||ch=='%'|ch=='S'|ch=='H'|ch=='8';
+    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G'||ch=='T'||ch=='Z'
+    ||ch=='X'||ch=='%'|ch=='S'|ch=='H'|ch=='8'||ch=='^'||ch=='?';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -882,7 +903,10 @@ void clear_player(Player *player) {
     }
     else if (l_user.level_num==1)
     {
-        if(player->y==9 && player->x==100){
+        if(player->prev_char=='^'){
+            map1[player->y][player->x]='?';
+        }
+        else if(player->y==9 && player->x==100){
             map1[9][100]='|';
         } 
         else if(player->y==34 && player->x==110){
@@ -894,7 +918,10 @@ void clear_player(Player *player) {
     }
     else if (l_user.level_num==2)
     {
-        if(player->y==7 && player->x==120){
+        if(player->prev_char=='^'){
+            map2[player->y][player->x]='?';
+        }
+        else if(player->y==7 && player->x==120){
             map2[7][120]='|';
         } 
         else if(player->y==17 && player->x==60){
@@ -906,7 +933,10 @@ void clear_player(Player *player) {
     }
     else if (l_user.level_num==3)
     {
-        if(player->y==39 && player->x==160){
+        if(player->prev_char=='^'){
+            map3[player->y][player->x]='?';
+        }
+        else if(player->y==39 && player->x==160){
             map3[39][160]='|';
         } 
         else if(player->y==8 && player->x==158){
@@ -918,7 +948,10 @@ void clear_player(Player *player) {
     }
     else if (l_user.level_num==4)
     {
-        if(player->y==32 && player->x==94){
+        if(player->prev_char=='^'){
+            map4[player->y][player->x]='?';
+        }
+        else if(player->y==32 && player->x==94){
             map4[32][94]='|';
         } 
         else if(player->y==12 && player->x==127){
@@ -952,7 +985,7 @@ void draw_path(int x1, int y1, int x2, int y2,char map[MAP_HEIGHT][MAP_WIDTH]) {
 }
 int create_map1() {
     memset(map1, ' ', sizeof(map1));
-
+    //room 1
     for (int i = 4; i < 9; i++) {
         map1[i][3] = '|';
         map1[i][23] = '|';
@@ -1032,6 +1065,12 @@ int create_map1() {
         }
         map1[x][y]='%';
     }
+    for(int i = 0 ; i < 3;i++){
+        int x = rand() % 12 + 8;
+        int y = rand() % 14 + 51;
+        map1[x][y]='^';
+    }
+
     int m2 = rand() % 3;
     for (int i = 0 ; i < m2 ;i++){
         int x = rand() % 12 + 8;
@@ -1114,6 +1153,12 @@ int create_map1() {
             map1[x][y]='8';
         }
     }
+    for(int i = 0 ;i<2;i++){
+        int x = rand() % 9 + 7;
+        int y = rand() % 10 + 101;
+        map1[x][y]='^';
+    }
+
     map1[9][100] = '+';
     //map1[14][111] = '+';
     map1[10][105] = 'o';
@@ -1235,6 +1280,9 @@ int create_map1() {
             map1[x][y]='8';
         }
     }
+    int x = rand() % 4 + 31;
+    int y = rand() % 15 + 95;
+    map1[x][y]='^';
     //map1[32][94] = '+';
     map1[34][110] = '+';
     map1[31][99] = 'o';
@@ -1289,6 +1337,11 @@ int create_map1() {
         else if(p==2){
             map1[x][y]='8';
         }
+    }
+    for(int i = 0 ; i < 2 ; i++){
+        int x = rand() % 8 + 29;
+        int y = rand() % 9 + 11;
+        map1[x][y]='^';
     }
     map1[30][20] = '+';
     map1[30][12] = 'o';
@@ -2511,14 +2564,24 @@ int handle_input(Player *player) {
     if(l_user.level_num==1){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            if(Hspell==1){
+                Hspellc++;
+            }
+            if(Sspell==1&&Sspellc<=10){
+                pace = 2;
+                Sspellc++;
+            }
+            if(Gspell==1){
+                Gspellc++;
+            }
             pace_counter1++;
             if(l_user.difficulty==0){
                 l_user.health-=5;
             }
-            else if(l_user.difficulty==1){
+            if(l_user.difficulty==1){
                 l_user.health-=10;
             }
-            else if(l_user.difficulty==2){
+            if(l_user.difficulty==2){
                 l_user.health-=20;
             }
             
@@ -2530,7 +2593,7 @@ int handle_input(Player *player) {
         pace_counter2++;
 
         }
-        if(pace_counter1>=5){
+        if(pace_counter1>=5 &&Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -2558,6 +2621,9 @@ int handle_input(Player *player) {
             }
             show_full_map_temporarily(player);
             break;
+        case 'p': spell_table();
+            refresh_map(player,memory_map1,map1);
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map1) && map1[new_y][new_x]!='<') {
@@ -2584,17 +2650,29 @@ int handle_input(Player *player) {
 
             else if(map1[new_y][new_x]=='%'||map1[new_y][new_x]=='X')
             {
-                food_manager(map1[new_y][new_x]);
-                if(full_food==0){
-                    map1[new_y][new_x]='.';
+                if(message(5,40)=='\n'){ 
+                    food_manager(map1[new_y][new_x]);
+                    if(full_food==0){
+                        map1[new_y][new_x]='.';
+                    }   
                 }
-            
             }
 
             else if(map1[new_y][new_x]=='T'||map1[new_y][new_x]=='Z')
             {
                 gold_manager(map1[new_y][new_x]);
                 map1[new_y][new_x]='.';
+            }
+            else if(map1[new_y][new_x]=='^'){
+                l_user.health-=10;
+            }
+            else if(map1[new_y][new_x]=='H'||map1[new_y][new_x]=='S'||map1[new_y][new_x]=='8'){
+                if(message(5,40)=='\n'){
+                    spell_manager(map1[new_y][new_x]);
+                    if(full_spell==0){
+                        map1[new_y][new_x]='.';
+                    } 
+                }
             }
 
             refresh_map(player,memory_map1,map1);  
@@ -2608,6 +2686,16 @@ int handle_input(Player *player) {
         int ch = getch();
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            if(Hspell==1){
+                Hspellc++;
+            }
+            if(Sspell==1&&Sspellc<=10){
+                pace = 2;
+                Sspellc++;
+            }
+            if(Gspell==1){
+                Gspellc++;
+            }
             if(l_user.difficulty==0){
                 l_user.health-=5;
             }
@@ -2625,7 +2713,7 @@ int handle_input(Player *player) {
         pace_counter2++;
 
         }
-        if(pace_counter1>=5){
+        if(pace_counter1>=5 &&Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -2653,6 +2741,9 @@ int handle_input(Player *player) {
                 }
                 show_full_map_temporarily(player);
             break;
+            case 'p': spell_table();
+                refresh_map(player,memory_map2,map2);
+                break;
         }
 
         if (is_valid_move(new_x, new_y,map2) && map2[new_y][new_x]!='<') {
@@ -2690,9 +2781,11 @@ int handle_input(Player *player) {
             }
             else if(map2[new_y][new_x]=='%'||map2[new_y][new_x]=='X')
             {
-                food_manager(map2[new_y][new_x]);
-                if(full_food==0){
-                    map2[new_y][new_x]='.';
+                if(message(5,40)=='\n'){
+                    food_manager(map2[new_y][new_x]);
+                    if(full_food==0){
+                        map2[new_y][new_x]='.';
+                    }
                 }
             }
 
@@ -2700,6 +2793,17 @@ int handle_input(Player *player) {
             {
                 gold_manager(map2[new_y][new_x]);
                 map2[new_y][new_x]='.';
+            }
+            else if(map2[new_y][new_x]=='^'){
+                l_user.health-=10;
+            }
+            else if(map2[new_y][new_x]=='H'||map2[new_y][new_x]=='S'||map2[new_y][new_x]=='8'){
+                if(message(5,40)=='\n'){
+                    spell_manager(map2[new_y][new_x]);
+                    if(full_spell==0){
+                        map2[new_y][new_x]='.';
+                    } 
+                }
             }
             refresh_map(player,memory_map2,map2);
         }
@@ -2711,6 +2815,16 @@ int handle_input(Player *player) {
         int ch = getch();
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
+            if(Hspell==1){
+                Hspellc++;
+            }
+            if(Sspell==1&&Sspellc<=10){
+                pace = 2;
+                Sspellc++;
+            }
+            if(Gspell==1){
+                Gspellc++;
+            }
             pace_counter1++;
             if(l_user.difficulty==0){
                 l_user.health-=5;
@@ -2728,7 +2842,7 @@ int handle_input(Player *player) {
             pace_counter2++;
 
         }
-        if(pace_counter1>=5){
+        if(pace_counter1>=5 &&Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -2756,6 +2870,9 @@ int handle_input(Player *player) {
             }
             show_full_map_temporarily(player);
             break;
+            case 'p': spell_table();
+                refresh_map(player,memory_map3,map3);
+                break;
         }
         
 
@@ -2791,9 +2908,11 @@ int handle_input(Player *player) {
             }
             else if(map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X')
             {
-                food_manager(map3[new_y][new_x]);
-                if(full_food==0){
-                    map3[new_y][new_x]='.';
+                if(message(5,40)=='\n'){
+                    food_manager(map3[new_y][new_x]);
+                    if(full_food==0){
+                        map3[new_y][new_x]='.';
+                    }
                 }
             }
 
@@ -2801,6 +2920,17 @@ int handle_input(Player *player) {
             {
                 gold_manager(map3[new_y][new_x]);
                 map3[new_y][new_x]='.';
+            }
+            else if(map3[new_y][new_x]=='^'){
+                l_user.health-=10;
+            }
+            else if(map3[new_y][new_x]=='H'||map3[new_y][new_x]=='S'||map3[new_y][new_x]=='8'){
+                if(message(5,40)=='\n'){
+                    spell_manager(map3[new_y][new_x]);
+                    if(full_spell==0){
+                        map3[new_y][new_x]='.';
+                    } 
+                }
             }
             refresh_map(player,memory_map3,map3);  
         }
@@ -2813,6 +2943,16 @@ int handle_input(Player *player) {
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             pace_counter1++;
+            if(Hspell==1){
+                Hspellc++;
+            }
+            if(Sspell==1&&Sspellc<=10){
+                pace = 2;
+                Sspellc++;
+            }
+            if(Gspell==1){
+                Gspellc++;
+            }
             if(l_user.difficulty==0){
                 l_user.health-=5;
             }
@@ -2829,7 +2969,7 @@ int handle_input(Player *player) {
             pace_counter2++;
 
         }
-        if(pace_counter1>=5){
+        if(pace_counter1>=5 && Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -2858,6 +2998,9 @@ int handle_input(Player *player) {
             }
             show_full_map_temporarily(player);
             break;
+            case 'p': spell_table();
+                refresh_map(player,memory_map4,map4);
+                break;
         }
 
         if (is_valid_move(new_x, new_y,map4)) {
@@ -2904,16 +3047,28 @@ int handle_input(Player *player) {
             }
             else if(map4[new_y][new_x]=='%'||map4[new_y][new_x]=='X')
             {
-                food_manager(map4[new_y][new_x]);
-                if(full_food==0){
-                    map4[new_y][new_x]='.';
-                }            
+                if(message(5,40)=='\n'){
+                    food_manager(map4[new_y][new_x]);
+                    if(full_food==0){
+                        map4[new_y][new_x]='.';
+                    } 
+                }           
             }
-
             else if(map4[new_y][new_x]=='T'||map4[new_y][new_x]=='Z')
             {
                 gold_manager(map4[new_y][new_x]);
                 map4[new_y][new_x]='.';
+            }
+            else if(map4[new_y][new_x]=='^'){
+                l_user.health-=10;
+            }
+            else if(map4[new_y][new_x]=='H'||map4[new_y][new_x]=='S'||map4[new_y][new_x]=='8'){
+                if(message(5,40)=='\n'){
+                    spell_manager(map4[new_y][new_x]);
+                    if(full_spell==0){
+                        map4[new_y][new_x]='.';
+                    } 
+                }
             }
             refresh_map(player,memory_map4,map4);  
         }
@@ -2949,9 +3104,9 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     update_memory_map(player->x, player->y,memory_map);
     draw_visible_map(player->x, player->y,memory_map,map);
     draw_player(player);
-    draw_bar(1, 142, 20, l_user.health, 1000, "Health");
-    draw_bar(2, 142, 20, l_user.power, 100, "Power");
-    draw_bar(3, 142, 20, l_user.gold, 100, "Gold");
+    draw_bar(LINES-2, 12, 20, l_user.health, 10000, "Health");
+    draw_bar(LINES-2, 72, 20, l_user.power, 100, "Power");
+    draw_bar(LINES-2, 132, 20, l_user.gold, 10000, "Gold");
     refresh();  
 }
 void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
@@ -3467,22 +3622,42 @@ int check_code(const char *entered_code, const char *correct_code) {
     }
 }
 void draw_bar(int y, int x, int width, int value, int max_value, const char* label) {
-    mvprintw(y, x, "%s: ", label);
+    if(strcmp(label,"Gold")==0){
+        mvprintw(y, x, "%s: ", label);
 
-    int bar_length = (value * width) / max_value;
+        int bar_length = (value * width) / max_value;
 
-    attron(COLOR_PAIR(3) | A_REVERSE); 
-    for (int i = 0; i < bar_length; i++) {
-        mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+        attron(COLOR_PAIR(1) | A_REVERSE); 
+        for (int i = 0; i < bar_length; i++) {
+            mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+        }
+        attroff(COLOR_PAIR(1) | A_REVERSE);
+
+        //attron(COLOR_PAIR(1) | A_REVERSE);
+        for (int i = bar_length; i < width; i++) {
+            mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+        }
+       // attroff(COLOR_PAIR(1) | A_REVERSE);
+        mvprintw(y, x + strlen(label) + 2 + width + 1, " %d/%d", value, max_value);
     }
-    attroff(COLOR_PAIR(3) | A_REVERSE);
+    else{
+        mvprintw(y, x, "%s: ", label);
 
-    attron(COLOR_PAIR(2) | A_REVERSE);
-    for (int i = bar_length; i < width; i++) {
-        mvaddch(y, x + strlen(label) + 2 + i, ' '); 
-    }
-    attroff(COLOR_PAIR(2) | A_REVERSE);
-    mvprintw(y, x + strlen(label) + 2 + width + 1, " %d/%d", value, max_value);
+        int bar_length = (value * width) / max_value;
+
+        attron(COLOR_PAIR(3) | A_REVERSE); 
+        for (int i = 0; i < bar_length; i++) {
+            mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+        }
+        attroff(COLOR_PAIR(3) | A_REVERSE);
+
+        attron(COLOR_PAIR(2) | A_REVERSE);
+        for (int i = bar_length; i < width; i++) {
+            mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+        }
+        attroff(COLOR_PAIR(2) | A_REVERSE);
+        mvprintw(y, x + strlen(label) + 2 + width + 1, " %d/%d", value, max_value);
+        }
 }
 int food_manager(char food){
     if(food=='%'){
@@ -3525,71 +3700,72 @@ void food_table(){
     mvprintw(LINES/2-4,COLS/2-50,"press n to consume normal food or press s to consume special food,to quit press any key");
     int ch = getch();
     int x = rand() % 5;
+    int add1 = 10;
+    int add2 = 80;
+    if(Hspell==1&&Hspellc<10){
+        add1 = 20;
+        add2 = 160;
+    }
     switch (ch){
         case 'n' : 
-        if(x){
-            if(l_user.food_bar.normal>0){
-                if(l_user.health>=990){
-                    mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
-                    getch();
-                    clear();
+            if(x){
+                if(l_user.food_bar.normal>0){
+                    if(l_user.health>=9990&&Hspell==0||l_user.health>=9980&&Hspell==1){
+                        mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
+                        getch();
+                        clear();
+                    }
+                    else{
+                        l_user.food_bar.normal--;
+                        l_user.health+=add1;
+                        mvprintw(LINES/2-3,COLS/2-20,"            Yummy!");
+                        getch();
+                        clear();
+                    }
+                    
                 }
                 else{
-                    l_user.food_bar.normal--;
-                    l_user.health+=10;
-                    mvprintw(LINES/2-3,COLS/2-20,"           Yummy!");
+                    mvprintw(LINES/2-3,COLS/2-20,"You have no more normal food");
                     getch();
                     clear();
                 }
-                
+                break;
             }
             else{
-                mvprintw(LINES/2-3,COLS/2-20,"You have no more normal food");
+                l_user.health-=6;
+                mvprintw(LINES/2-3,COLS/2-20,"         HE HE HE HE :o");
                 getch();
                 clear();
+                
             }
             break;
-        }
-        else{
-            l_user.health-=6;
-            mvprintw(LINES/2-3,COLS/2-20,"HE HE HE HE :o");
-            getch();
-            clear();
-        }
         
         case 's' : 
-        if(x){
-            if(l_user.food_bar.special>0){
-                if(l_user.health>=920){
-                    mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
-                    getch();
-                    clear();
+            
+                if(l_user.food_bar.special>0){
+                    if(l_user.health>=9920&&Hspell==0||l_user.health>=9840&&Hspell==1){
+                        mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
+                        getch();
+                        clear();
+                    }
+                    else{
+                        l_user.food_bar.special--;
+                        l_user.health+=add2;
+                        mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
+                        getch();
+                        clear();
+                    }
+                    
                 }
                 else{
-                    l_user.food_bar.special--;
-                    l_user.health+=80;
-                    mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
+                    mvprintw(LINES/2-3,COLS/2-20,"You have no more special food");
                     getch();
                     clear();
                 }
-                
-            }
-            else{
-                mvprintw(LINES/2-3,COLS/2-20,"You have no more special food");
-                getch();
-                clear();
-            }
             break;
-        }
-        else{
-            mvprintw(LINES/2-3,COLS/2-20,"HE HE HE HE :o");
-            getch();
-            clear();
-        }
-        
         default :
-        clear();
-        break;
+            clear();
+            break;
     }
 }
 int gold_manager(char gold){
@@ -3601,12 +3777,132 @@ int gold_manager(char gold){
     }
 }
 int spell_manager(char spell){
-
+    if(l_user.spell_bar.H+l_user.spell_bar.S+l_user.spell_bar.G>=15){
+        full_spell=1;
+        attron(COLOR_PAIR(2));
+        mvprintw(0,0,"not enough space to restore spell!");
+        attroff(COLOR_PAIR(2));
+        getch();
+        mvprintw(0,0,"                                 ");
+    }
+    else{
+        full_spell=0;
+        if(spell=='H'){
+            l_user.spell_bar.H++;
+        }
+        else if(spell=='S'){
+            l_user.spell_bar.S++;
+        }
+        else if(spell=='8'){
+            l_user.spell_bar.G++;
+        } 
+    }
 }
 int spell_table(){
-
+    clear();
+    mvprintw(LINES/2-4,COLS/2-27,"Health spell : %d press h to consume Health spell",l_user.spell_bar.H);
+    mvprintw(LINES/2-3,COLS/2-27,"Speed  spell : %d press s to consume Speed  spell",l_user.spell_bar.S);
+    mvprintw(LINES/2-2,COLS/2-27,"Power  spell : %d press p to consume Power  spell",l_user.spell_bar.G);
+    mvprintw(LINES/2,COLS/2-27,"            press any other key to quit");
+    int ch = getch();
+    switch(ch){
+        case 'h':
+        if(l_user.spell_bar.H<=0){
+            mvprintw(LINES/2+2,COLS/2-27,"               not enough spell!");
+            getch();
+            clear();
+            break;
+        }
+        else{
+            mvprintw(LINES/2+1,COLS/2-27,"                    Healthy!");
+            l_user.spell_bar.H--;
+            Hspell=1;
+            Hspellc=0;
+            getch();
+            clear();
+            break;
+        }
+            
+        case 's':
+        if(l_user.spell_bar.S<=0){
+            mvprintw(LINES/2+2,COLS/2-27,"               not enough spell!");
+            getch();
+            clear();
+            break;
+        }
+        else{
+            mvprintw(LINES/2+1,COLS/2-27,"                    Speedy!");
+            l_user.spell_bar.S--;
+            Sspell=1;
+            Sspellc=0;
+            getch();
+            clear();
+            break;
+        }
+            
+        case 'p':
+        if(l_user.spell_bar.G<=0){
+            mvprintw(LINES/2+2,COLS/2-27,"               not enough spell!");
+            getch();
+            clear();
+            break;
+        }
+        else{
+            mvprintw(LINES/2+1,COLS/2-27,"                   Powerful!");
+            l_user.spell_bar.G--;
+            Gspell=1;
+            Gspellc=0;
+            getch();
+            clear();
+            break;
+        } 
+        default:
+            clear();    
+            break;
+    }
 }
-
+char message(int height, int width){
+    int yMax, xMax;
+    getmaxyx(stdscr, yMax, xMax);
+    int startY = (yMax - height) / 2;
+    int startX = (xMax - width) / 2;
+    
+    for (int i = 0; i < width; i++) {
+        mvaddch(startY, startX + i, '-');
+        mvaddch(startY + height - 1, startX + i, '-');
+    }
+    for (int i = 0; i < height; i++) {
+        mvaddch(startY + i, startX, '|');
+        mvaddch(startY + i, startX + width - 1, '|');
+    }
+    mvaddch(startY, startX, '+');
+    mvaddch(startY, startX + width - 1, '+');
+    mvaddch(startY + height - 1, startX, '+');
+    mvaddch(startY + height - 1, startX + width - 1, '+');
+    attron(COLOR_PAIR(4));
+    mvprintw(startY, startX + (width - 10) / 2, "CHOOSE :)");
+    mvprintw(startY + height / 2 - 1, startX + 2, "                   ");
+    mvprintw(startY + height / 2, startX + (width - 18) / 2-2, "press ENTER to pick");
+    mvprintw(startY + height / 2 + 1, startX + 2, "                   ");
+    attroff(COLOR_PAIR(4));
+    int c = getch();
+    if(c=='\n'){
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                mvaddch(startY + i, startX + j, ' ');
+            }
+        }
+        return '\n';
+    }
+    else{
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                mvaddch(startY + i, startX + j, ' ');
+            }
+        }
+        return 'a';
+    }
+}
 
 
 
