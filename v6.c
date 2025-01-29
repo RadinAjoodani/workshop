@@ -38,7 +38,15 @@ typedef struct{
     int difficulty;
     char prev_char;
 }Player;
-
+typedef struct{
+    int y,x;
+    int health;
+    int damage;
+    int following_distance;
+    int damage_distance;
+    int following;
+    char face;
+}Enemy;
 char map1[MAP_HEIGHT][MAP_WIDTH];
 char map2[MAP_HEIGHT][MAP_WIDTH];
 char map3[MAP_HEIGHT][MAP_WIDTH];
@@ -47,10 +55,14 @@ char map4[MAP_HEIGHT][MAP_WIDTH];
 int memory_map1[MAP_HEIGHT][MAP_WIDTH];
 int memory_map2[MAP_HEIGHT][MAP_WIDTH];  
 int memory_map3[MAP_HEIGHT][MAP_WIDTH];  
-int memory_map4[MAP_HEIGHT][MAP_WIDTH];  
+int memory_map4[MAP_HEIGHT][MAP_WIDTH];
+
+Enemy enemy_map1[6];
+Enemy enemy_map2[5];
+Enemy enemy_map3[6];
+Enemy enemy_map4[8];
 
 int fmsign=0;
-Player l_player;
 User l_user;
 User s_user;
 int is_logged_in=0;
@@ -118,6 +130,11 @@ int gold_manager(char gold);
 int spell_manager(char spell);
 int spell_table();
 char message(int height, int width);
+void placing_enemy_map1();
+void placing_enemy_map2();
+void placing_enemy_map3();
+void placing_enemy_map4();
+int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]);
 // void save_information(User user);
 
 int main(){
@@ -525,6 +542,7 @@ void play_as_guest(){
     l_user.spell_bar.G=0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
+    placing_enemy_map1();
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
 
@@ -806,6 +824,7 @@ void start_new_game(){
     l_user.spell_bar.G=0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
+    placing_enemy_map1();
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
 
@@ -820,6 +839,7 @@ void start_level2(){
     pace_counter2=0;
     memset(memory_map2,0,sizeof(memory_map2));
     create_map2();  
+    placing_enemy_map2();
     Player player = {12,10, '.'};
     refresh_map(&player,memory_map2,map2);  
 
@@ -833,7 +853,8 @@ void start_level3(){
     l_user.level_num=3;
     pace_counter2=0;
     memset(memory_map3,0,sizeof(memory_map3)); 
-    create_map3();  
+    create_map3();
+    placing_enemy_map3();
     Player player = {20,26, '.'};
     refresh_map(&player,memory_map3,map3);  
 
@@ -847,7 +868,8 @@ void start_level4(){
     pace_counter2=0;
     l_user.level_num=4;
     memset(memory_map4,0,sizeof(memory_map4));
-    create_map4();  
+    create_map4();
+    placing_enemy_map4();
     Player player = {48,35, '.'};
     refresh_map(&player,memory_map4,map4);  
 
@@ -860,8 +882,8 @@ void continue_last_game(){
 }
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     char ch = map[y][x];
-    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='G'||ch=='T'||ch=='Z'
-    ||ch=='X'||ch=='%'|ch=='S'|ch=='H'|ch=='8'||ch=='^'||ch=='?';
+    return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='Q'||ch=='T'||ch=='Z'
+    ||ch=='X'||ch=='%'|ch=='R'|ch=='H'|ch=='8'||ch=='^'||ch=='?';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -1026,7 +1048,7 @@ int create_map1() {
         }
         int p = rand()%3;
         if(p==0){
-            map1[x][y]='S';
+            map1[x][y]='R';
         }
         else if(p==1){
             map1[x][y]='H';
@@ -1089,7 +1111,7 @@ int create_map1() {
         }
         int p = rand()%3;
         if(p==0){
-            map1[x][y]='S';
+            map1[x][y]='R';
         }
         else if(p==1){
             map1[x][y]='H';
@@ -1144,7 +1166,7 @@ int create_map1() {
         }
         int p = rand()%3;
         if(p==0){
-            map1[x][y]='S';
+            map1[x][y]='R';
         }
         else if(p==1){
             map1[x][y]='H';
@@ -1215,7 +1237,7 @@ int create_map1() {
         }
         int p = rand()%3;
         if(p==0){
-            map1[x][y]='S';
+            map1[x][y]='R';
         }
         else if(p==1){
             map1[x][y]='H';
@@ -1271,7 +1293,7 @@ int create_map1() {
         }
         int p = rand()%3;
         if(p==0){
-            map1[x][y]='S';
+            map1[x][y]='R';
         }
         else if(p==1){
             map1[x][y]='H';
@@ -1329,7 +1351,7 @@ int create_map1() {
         }
         int p = rand()%2+1;
         if(p==0){
-            map1[x][y]='S';
+            map1[x][y]='R';
         }
         else if(p==1){
             map1[x][y]='H';
@@ -1383,7 +1405,7 @@ int create_map2() {
         }
         int p = rand()%3;
         if(p==0){
-            map2[x][y]='S';
+            map2[x][y]='R';
         }
         else if(p==1){
             map2[x][y]='H';
@@ -1467,7 +1489,7 @@ int create_map2() {
         }
         int p = rand()%3;
         if(p==0){
-            map2[x][y]='S';
+            map2[x][y]='R';
         }
         else if(p==1){
             map2[x][y]='H';
@@ -1522,7 +1544,7 @@ int create_map2() {
         }
         int p = rand()%3;
         if(p==0){
-            map2[x][y]='S';
+            map2[x][y]='R';
         }
         else if(p==1){
             map2[x][y]='H';
@@ -1568,7 +1590,7 @@ int create_map2() {
         }
         int p = rand()%3;
         if(p==0){
-            map2[x][y]='S';
+            map2[x][y]='R';
         }
         else if(p==1){
             map2[x][y]='H';
@@ -1624,7 +1646,7 @@ int create_map2() {
         }
         int p = rand()%3;
         if(p==0){
-            map2[x][y]='S';
+            map2[x][y]='R';
         }
         else if(p==1){
             map2[x][y]='H';
@@ -1660,7 +1682,7 @@ int create_map2() {
         }
         int p = rand()%3;
         if(p==0){
-            map2[x][y]='S';
+            map2[x][y]='R';
         }
         else if(p==1){
             map2[x][y]='H';
@@ -1743,7 +1765,7 @@ int create_map3() {
         }
         int p = rand()%3;
         if(p==0){
-            map3[x][y]='S';
+            map3[x][y]='R';
         }
         else if(p==1){
             map3[x][y]='H';
@@ -1797,7 +1819,7 @@ int create_map3() {
         }
         int p = rand()%3;
         if(p==0){
-            map3[x][y]='S';
+            map3[x][y]='R';
         }
         else if(p==1){
             map3[x][y]='H';
@@ -1862,7 +1884,7 @@ int create_map3() {
         }
         int p = rand()%3;
         if(p==0){
-            map3[x][y]='S';
+            map3[x][y]='R';
         }
         else if(p==1){
             map3[x][y]='H';
@@ -1927,7 +1949,7 @@ int create_map3() {
         }
         int p = rand()%3;
         if(p==0){
-            map3[x][y]='S';
+            map3[x][y]='R';
         }
         else if(p==1){
             map3[x][y]='H';
@@ -1996,7 +2018,7 @@ int create_map3() {
         }
         int p = rand()%3;
         if(p==0){
-            map3[x][y]='S';
+            map3[x][y]='R';
         }
         else if(p==1){
             map3[x][y]='H';
@@ -2046,7 +2068,7 @@ int create_map3() {
         }
         int p = rand()%3;
         if(p==0){
-            map3[x][y]='S';
+            map3[x][y]='R';
         }
         else if(p==1){
             map3[x][y]='H';
@@ -2155,7 +2177,7 @@ int create_map4() {
         }
         int p = rand()%3;
         if(p==0){
-            map4[x][y]='S';
+            map4[x][y]='R';
         }
         else if(p==1){
             map4[x][y]='H';
@@ -2220,7 +2242,7 @@ int create_map4() {
         }
         int p = rand()%3;
         if(p==0){
-            map4[x][y]='S';
+            map4[x][y]='R';
         }
         else if(p==1){
             map4[x][y]='H';
@@ -2284,7 +2306,7 @@ int create_map4() {
         }
         int p = rand()%3;
         if(p==0){
-            map4[x][y]='S';
+            map4[x][y]='R';
         }
         else if(p==1){
             map4[x][y]='H';
@@ -2349,7 +2371,7 @@ int create_map4() {
         }
         int p = rand()%3;
         if(p==0){
-            map4[x][y]='S';
+            map4[x][y]='R';
         }
         else if(p==1){
             map4[x][y]='H';
@@ -2403,7 +2425,7 @@ int create_map4() {
         }
         int p = rand()%3;
         if(p==0){
-            map4[x][y]='S';
+            map4[x][y]='R';
         }
         else if(p==1){
             map4[x][y]='H';
@@ -2468,7 +2490,7 @@ int create_map4() {
         }
         int p = rand()%3;
         if(p==0){
-            map4[x][y]='S';
+            map4[x][y]='R';
         }
         else if(p==1){
             map4[x][y]='H';
@@ -2532,7 +2554,7 @@ int create_map4() {
         }
         int p = rand()%3;
         if(p==0){
-            map4[x][y]='S';
+            map4[x][y]='R';
         }
         else if(p==1){
             map4[x][y]='H';
@@ -2644,7 +2666,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map1[28][158] = '.';
-                    map1[25][150] = 'G';
+                    map1[25][150] = 'Q';
                 }
             }
 
@@ -2666,7 +2688,7 @@ int handle_input(Player *player) {
             else if(map1[new_y][new_x]=='^'){
                 l_user.health-=10;
             }
-            else if(map1[new_y][new_x]=='H'||map1[new_y][new_x]=='S'||map1[new_y][new_x]=='8'){
+            else if(map1[new_y][new_x]=='H'||map1[new_y][new_x]=='R'||map1[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
                     spell_manager(map1[new_y][new_x]);
                     if(full_spell==0){
@@ -2767,7 +2789,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map2[6][36] = '.';
-                    map2[9][48] = 'G';
+                    map2[9][48] = 'Q';
                 }
             }
             else if(map2[new_y][new_x]=='&' && get_room_id(new_x,new_y)==5){
@@ -2776,7 +2798,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map2[33][108] = '.';
-                    map2[32][94] = 'G';
+                    map2[32][94] = 'Q';
                 }
             }
             else if(map2[new_y][new_x]=='%'||map2[new_y][new_x]=='X')
@@ -2797,7 +2819,7 @@ int handle_input(Player *player) {
             else if(map2[new_y][new_x]=='^'){
                 l_user.health-=10;
             }
-            else if(map2[new_y][new_x]=='H'||map2[new_y][new_x]=='S'||map2[new_y][new_x]=='8'){
+            else if(map2[new_y][new_x]=='H'||map2[new_y][new_x]=='R'||map2[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
                     spell_manager(map2[new_y][new_x]);
                     if(full_spell==0){
@@ -2894,7 +2916,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map3[34][87] = '.';
-                    map3[34][100] = 'G';
+                    map3[34][100] = 'Q';
                 }
             }
             else if(map3[new_y][new_x]=='&' && get_room_id(new_x,new_y)==2){
@@ -2903,7 +2925,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map3[15][72] = '.';
-                    map3[13][70] = 'G';
+                    map3[13][70] = 'Q';
                 }
             }
             else if(map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X')
@@ -2924,7 +2946,7 @@ int handle_input(Player *player) {
             else if(map3[new_y][new_x]=='^'){
                 l_user.health-=10;
             }
-            else if(map3[new_y][new_x]=='H'||map3[new_y][new_x]=='S'||map3[new_y][new_x]=='8'){
+            else if(map3[new_y][new_x]=='H'||map3[new_y][new_x]=='R'||map3[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
                     spell_manager(map3[new_y][new_x]);
                     if(full_spell==0){
@@ -3024,7 +3046,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map4[16][52] = '.';
-                    map4[17][60] = 'G';
+                    map4[17][60] = 'Q';
                 }
             }
             else if(map4[new_y][new_x]=='&' && get_room_id(new_x,new_y)==4){
@@ -3033,7 +3055,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map4[40][174] = '.';
-                    map4[30][167] = 'G';
+                    map4[30][167] = 'Q';
                 }
             }
             else if(map4[new_y][new_x]=='&' && get_room_id(new_x,new_y)==2){
@@ -3042,7 +3064,7 @@ int handle_input(Player *player) {
                 char *entered_code = enter_code();
                 if (check_code(entered_code, code)) {
                     map4[6][37] = '.';
-                    map4[12][35] = 'G';
+                    map4[12][35] = 'Q';
                 }
             }
             else if(map4[new_y][new_x]=='%'||map4[new_y][new_x]=='X')
@@ -3062,7 +3084,7 @@ int handle_input(Player *player) {
             else if(map4[new_y][new_x]=='^'){
                 l_user.health-=10;
             }
-            else if(map4[new_y][new_x]=='H'||map4[new_y][new_x]=='S'||map4[new_y][new_x]=='8'){
+            else if(map4[new_y][new_x]=='H'||map4[new_y][new_x]=='R'||map4[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
                     spell_manager(map4[new_y][new_x]);
                     if(full_spell==0){
@@ -3083,7 +3105,7 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
                         mvaddch(i, j, '@');
                         attroff(COLOR_PAIR(2));
                     }
-                else if(map[i][j] == 'G'){
+                else if(map[i][j] == 'Q'){
                         attron(COLOR_PAIR(3));
                         mvaddch(i, j,map[i][j]);
                         attroff(COLOR_PAIR(3));
@@ -3790,7 +3812,7 @@ int spell_manager(char spell){
         if(spell=='H'){
             l_user.spell_bar.H++;
         }
-        else if(spell=='S'){
+        else if(spell=='R'){
             l_user.spell_bar.S++;
         }
         else if(spell=='8'){
@@ -3801,7 +3823,7 @@ int spell_manager(char spell){
 int spell_table(){
     clear();
     mvprintw(LINES/2-4,COLS/2-27,"Health spell : %d press h to consume Health spell",l_user.spell_bar.H);
-    mvprintw(LINES/2-3,COLS/2-27,"Speed  spell : %d press s to consume Speed  spell",l_user.spell_bar.S);
+    mvprintw(LINES/2-3,COLS/2-27,"Speed  spell : %d press r to consume Speed  spell",l_user.spell_bar.S);
     mvprintw(LINES/2-2,COLS/2-27,"Power  spell : %d press p to consume Power  spell",l_user.spell_bar.G);
     mvprintw(LINES/2,COLS/2-27,"            press any other key to quit");
     int ch = getch();
@@ -3823,7 +3845,7 @@ int spell_table(){
             break;
         }
             
-        case 's':
+        case 'r':
         if(l_user.spell_bar.S<=0){
             mvprintw(LINES/2+2,COLS/2-27,"               not enough spell!");
             getch();
@@ -3903,7 +3925,364 @@ char message(int height, int width){
         return 'a';
     }
 }
-
+void placing_enemy_map1(){
+    //room 1
+    //G
+    while(1){
+        int y = rand() % 5 + 4;
+        int x = rand() % 19 + 4;
+        if(is_valid_enemy){
+            enemy_map1[0].x=x;
+            enemy_map1[0].y=y;
+            enemy_map1[0].health=15;
+            enemy_map1[0].damage=10;
+            enemy_map1[0].following_distance=5;
+            enemy_map1[0].damage_distance=2;
+            enemy_map1[0].face='G';
+            map1[y][x]=enemy_map1[0].face;
+            break;
+        }
+    }
+    //room 2
+    //S
+    while(1){
+        int x = rand() % 12 + 8;
+        int y = rand() % 14 + 51;
+        if(is_valid_enemy){
+            enemy_map1[1].x=x;
+            enemy_map1[1].y=y;
+            enemy_map1[1].health=20;
+            enemy_map1[1].damage=20;
+            enemy_map1[1].following_distance=15;
+            enemy_map1[1].damage_distance=4;
+            enemy_map1[1].face='S';
+            map1[x][y]=enemy_map1[1].face;
+            break;
+        }
+    }
+    //room 3
+    //D
+    while(1){
+        int x = rand() % 9 + 7;
+        int y = rand() % 10 + 101;
+        if(is_valid_enemy){
+            enemy_map1[2].x=x;
+            enemy_map1[2].y=y;
+            enemy_map1[2].health=5;
+            enemy_map1[2].damage=3;
+            enemy_map1[2].following_distance=0;
+            enemy_map1[2].damage_distance=3;
+            enemy_map1[2].face='D';
+            map1[x][y]=enemy_map1[2].face;
+            break;
+        }
+    }
+    //room 4
+    //F
+    while(1){
+        int x = rand() % 8 + 21;
+        int y = rand() % 8 + 151;
+        if(is_valid_enemy){
+            enemy_map1[3].x=x;
+            enemy_map1[3].y=y;
+            enemy_map1[3].health=10;
+            enemy_map1[3].damage=7;
+            enemy_map1[3].following_distance=2;
+            enemy_map1[3].damage_distance=3;
+            enemy_map1[3].face='F';
+            map1[x][y]=enemy_map1[3].face;
+            break;
+        }
+    }
+    //room 5
+    //U
+    while(1){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(is_valid_enemy){
+            enemy_map1[4].x=x;
+            enemy_map1[4].y=y;
+            enemy_map1[4].health=30;
+            enemy_map1[4].damage=30;
+            enemy_map1[4].following_distance=2;
+            enemy_map1[4].damage_distance=15;
+            enemy_map1[4].face='U';
+            map1[x][y]=enemy_map1[4].face;
+            break;
+        }
+    }
+    //room 6
+    //U
+    while(1){
+        int x = rand() % 8 + 29;
+        int y = rand() % 9 + 11;
+        if(is_valid_enemy){
+            enemy_map1[4].x=x;
+            enemy_map1[4].y=y;
+            enemy_map1[4].health=15;
+            enemy_map1[4].damage=10;
+            enemy_map1[4].following_distance=5;
+            enemy_map1[4].damage_distance=2;
+            enemy_map1[4].face='G';
+            map1[x][y]=enemy_map1[4].face;
+            break;
+        }
+    }
+}
+void placing_enemy_map2(){
+    //room 1
+    //D
+    while(1){
+        int x = rand() % 7 + 7;
+        int y = rand() % 7 + 11;
+        if(is_valid_enemy){
+            enemy_map2[0].x=x;
+            enemy_map2[0].y=y;
+            enemy_map2[0].health=5;
+            enemy_map2[0].damage=3;
+            enemy_map2[0].following_distance=0;
+            enemy_map2[0].damage_distance=3;
+            enemy_map2[0].face='D';
+            map2[x][y]=enemy_map2[0].face;
+            break;
+        }
+    }
+    //room 2
+    //U
+    while(1){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(is_valid_enemy){
+            enemy_map2[1].x=x;
+            enemy_map2[1].y=y;
+            enemy_map2[1].health=30;
+            enemy_map2[1].damage=30;
+            enemy_map2[1].following_distance=5;
+            enemy_map2[1].damage_distance=13;
+            enemy_map2[1].face='U';
+            map2[x][y]=enemy_map2[1].face;
+            break;
+        }
+    }
+    //room 4
+    //S
+    while(1){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(is_valid_enemy){
+            enemy_map2[2].x=x;
+            enemy_map2[2].y=y;
+            enemy_map2[2].health=20;
+            enemy_map2[2].damage=20;
+            enemy_map2[2].following_distance=15;
+            enemy_map2[2].damage_distance=4;
+            enemy_map2[2].face='S';
+            map2[x][y]=enemy_map2[2].face;
+            break;
+        }
+    }
+    //room 5
+    //F
+    while(1){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(is_valid_enemy){
+            enemy_map2[3].x=x;
+            enemy_map2[3].y=y;
+            enemy_map2[3].health=10;
+            enemy_map2[3].damage=7;
+            enemy_map2[3].following_distance=2;
+            enemy_map2[3].damage_distance=3;
+            enemy_map2[3].face='F';
+            map2[x][y]=enemy_map2[3].face;
+            break;
+        }
+    }
+    //room 6
+    //D
+    while(1){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(is_valid_enemy){
+            enemy_map2[4].x=x;
+            enemy_map2[4].y=y;
+            enemy_map2[4].health=5;
+            enemy_map2[4].damage=3;
+            enemy_map2[4].following_distance=0;
+            enemy_map2[4].damage_distance=3;
+            enemy_map2[4].face='U';
+            map2[x][y]=enemy_map2[4].face;
+            break;
+        }
+    }
+}
+void placing_enemy_map3(){
+    //room 1
+    //S
+    while(1){
+        int x = rand() % 8 + 7;
+        int y = rand() % 5 + 36;
+        if(is_valid_enemy){
+            enemy_map3[0].x=x;
+            enemy_map3[0].y=y;
+            enemy_map3[0].health=20;
+            enemy_map3[0].damage=20;
+            enemy_map3[0].following_distance=9;
+            enemy_map3[0].damage_distance=4;
+            enemy_map3[0].face='S';
+            map3[x][y]=enemy_map3[0].face;
+            break;
+        }
+    }
+    //room 5
+    //F
+    while(1){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 85;
+        if(is_valid_enemy){
+            enemy_map3[1].x=x;
+            enemy_map3[1].y=y;
+            enemy_map3[1].health=10;
+            enemy_map3[1].damage=7;
+            enemy_map3[1].following_distance=2;
+            enemy_map3[1].damage_distance=3;
+            enemy_map3[1].face='F';
+            map3[x][y]=enemy_map3[1].face;
+            break;
+        }
+    }
+    //room 4
+    //U
+    while(1){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(is_valid_enemy){
+            enemy_map3[2].x=x;
+            enemy_map3[2].y=y;
+            enemy_map3[2].health=30;
+            enemy_map3[2].damage=30;
+            enemy_map3[2].following_distance=15;
+            enemy_map3[2].damage_distance=5;
+            enemy_map3[2].face='U';
+            map3[x][y]=enemy_map3[2].face;
+            break;
+        }
+    }
+    //room 6
+    //G
+    while(1){
+        int x = rand() % 12 + 22;
+        int y = rand() % 13 + 13;
+        if(is_valid_enemy){
+            enemy_map3[3].x=x;
+            enemy_map3[3].y=y;
+            enemy_map3[3].health=15;
+            enemy_map3[3].damage=10;
+            enemy_map3[3].following_distance=5;
+            enemy_map3[3].damage_distance=2;
+            enemy_map3[3].face='G';
+            map3[x][y]=enemy_map3[3].face;
+            break;
+        }
+    }
+}
+void placing_enemy_map4(){
+    //room 8
+    //G
+    while(1){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 46;
+        if(is_valid_enemy){
+            enemy_map4[0].x=x;
+            enemy_map4[0].y=y;
+            enemy_map4[0].health=15;
+            enemy_map4[0].damage=10;
+            enemy_map4[0].following_distance=5;
+            enemy_map4[0].damage_distance=2;
+            enemy_map4[0].face='G';
+            map4[x][y]=enemy_map4[0].face;
+            break;
+        }
+    }
+    //room 7
+    //D
+    while(1){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(is_valid_enemy){
+            enemy_map4[1].x=x;
+            enemy_map4[1].y=y;
+            enemy_map4[1].health=5;
+            enemy_map4[1].damage=3;
+            enemy_map4[1].following_distance=0;
+            enemy_map4[1].damage_distance=3;
+            enemy_map4[1].face='D';
+            map4[x][y]=enemy_map4[1].face;
+            break;
+        }
+    }
+    //room 5
+    //F
+    while(1){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(is_valid_enemy){
+            enemy_map4[2].x=x;
+            enemy_map4[2].y=y;
+            enemy_map4[2].health=10;
+            enemy_map4[2].damage=7;
+            enemy_map4[2].following_distance=2;
+            enemy_map4[2].damage_distance=3;
+            enemy_map4[2].face='F';
+            map4[x][y]=enemy_map4[2].face;
+            break;
+        }
+    }
+    //room 4
+    //U
+    while(1){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(is_valid_enemy){
+            enemy_map4[3].x=x;
+            enemy_map4[3].y=y;
+            enemy_map4[3].health=30;
+            enemy_map4[3].damage=30;
+            enemy_map4[3].following_distance=15;
+            enemy_map4[3].damage_distance=5;
+            enemy_map4[3].face='U';
+            map4[x][y]=enemy_map4[3].face;
+            break;
+        }
+    }
+    //room 2
+    //S
+    while(1){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(is_valid_enemy){
+            enemy_map4[4].x=x;
+            enemy_map4[4].y=y;
+            enemy_map4[4].health=30;
+            enemy_map4[4].damage=20;
+            enemy_map4[4].following_distance=15;
+            enemy_map4[4].damage_distance=4;
+            enemy_map4[4].face='S';
+            map4[x][y]=enemy_map4[4].face;
+            break;
+        }
+    }
+}
+int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]){
+    if((map[y][x]=='.'||map[y][x]=='%'||map[y][x]=='T'||map[y][x]=='Z'||map[y][x]=='X'||
+       map[y][x]=='H'||map[y][x]=='R'||map[y][x]=='8'||map[y][x]=='&')&&map[y][x]!='@'&&
+       map[y][x]!='o'&&map[y][x]!='@'&&map[y][x]!='<'){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
 
 
 
