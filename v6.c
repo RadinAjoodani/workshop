@@ -1,3 +1,4 @@
+
 #include<ncurses.h>
 #include<string.h>
 #include<stdlib.h>
@@ -141,6 +142,7 @@ void placing_enemy_map4();
 int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]);
 void draw_enemy(Player *player);
 void clear_enemy(Enemy enemy);
+void damage_player(Enemy *enemy,Player *player);
 // void save_information(User user);
 
 int main(){
@@ -1128,8 +1130,8 @@ int create_map1() {
     }
     map1[7][58] = '+';
     map1[18][65] = '+';
-    map1[6][45] = 'o';
-    map1[8][41] = 'o';
+    map1[14][55] = 'o';
+    map1[8][56] = 'o';
 
     //  room ۳
     for (int i = 6; i < 17; i++) {
@@ -3911,7 +3913,7 @@ char message(int height, int width){
     attron(COLOR_PAIR(4));
     mvprintw(startY, startX + (width - 10) / 2, "CHOOSE :)");
     mvprintw(startY + height / 2 - 1, startX + 2, "                   ");
-    mvprintw(startY + height / 2, startX + (width - 18) / 2-2, "press ENTER to pick");
+    mvprintw(startY + height / 2, startX + (width - 18) / 2-5, "   press ENTER to pick");
     mvprintw(startY + height / 2 + 1, startX + 2, "                   ");
     attroff(COLOR_PAIR(4));
     int c = getch();
@@ -3935,6 +3937,7 @@ char message(int height, int width){
 void placing_enemy_map1(){
     //room 1
     //G
+    srand(time(NULL));
     while(1){
         int y = rand() % 5 + 4;
         int x = rand() % 19 + 4;
@@ -3953,85 +3956,85 @@ void placing_enemy_map1(){
     //room 2
     //S
     while(1){
-        int x = rand() % 12 + 8;
-        int y = rand() % 14 + 51;
-        if(is_valid_enemy(x,y,map1)){
+        int y = rand() % 12 + 8;
+        int x = rand() % 14 + 51;
+        if(is_valid_enemy(y,x,map1)){
             enemy_map1[1].x=x;
             enemy_map1[1].y=y;
             enemy_map1[1].health=20;
             enemy_map1[1].damage=20;
-            enemy_map1[1].following_distance=15;
-            enemy_map1[1].damage_distance=4;
+            enemy_map1[1].following_distance=1000;
+            enemy_map1[1].damage_distance=6;
             enemy_map1[1].face='S';
-            map1[x][y]=enemy_map1[1].face;
+            map1[y][x]=enemy_map1[1].face;
             break;
         }
     }
     //room 3
     //D
     while(1){
-        int x = rand() % 9 + 7;
-        int y = rand() % 10 + 101;
-        if(is_valid_enemy(x,y,map1)){
+        int y = rand() % 9 + 7;
+        int x = rand() % 10 + 101;
+        if(is_valid_enemy(y,x,map1)){
             enemy_map1[2].x=x;
             enemy_map1[2].y=y;
             enemy_map1[2].health=5;
             enemy_map1[2].damage=3;
-            enemy_map1[2].following_distance=0;
-            enemy_map1[2].damage_distance=3;
+            enemy_map1[2].following_distance=2;
+            enemy_map1[2].damage_distance=2;
             enemy_map1[2].face='D';
-            map1[x][y]=enemy_map1[2].face;
+            map1[y][x]=enemy_map1[2].face;
             break;
         }
     }
     //room 4
     //F
     while(1){
-        int x = rand() % 8 + 21;
-        int y = rand() % 8 + 151;
-        if(is_valid_enemy(x,y,map1)){
+        int y = rand() % 8 + 21;
+        int x = rand() % 8 + 151;
+        if(is_valid_enemy(y,x,map1)){
             enemy_map1[3].x=x;
             enemy_map1[3].y=y;
             enemy_map1[3].health=10;
             enemy_map1[3].damage=7;
-            enemy_map1[3].following_distance=2;
-            enemy_map1[3].damage_distance=3;
+            enemy_map1[3].following_distance=4;
+            enemy_map1[3].damage_distance=2;
             enemy_map1[3].face='F';
-            map1[x][y]=enemy_map1[3].face;
+            map1[y][x]=enemy_map1[3].face;
             break;
         }
     }
     //room 5
     //U
     while(1){
-        int x = rand() % 4 + 31;
-        int y = rand() % 15 + 95;
-        if(is_valid_enemy(x,y,map1)){
+        int y = (rand() % 4 )+ 31;
+        int x = (rand() % 15 )+ 95;
+        if(is_valid_enemy(y,x,map1)){
             enemy_map1[4].x=x;
             enemy_map1[4].y=y;
             enemy_map1[4].health=30;
             enemy_map1[4].damage=30;
-            enemy_map1[4].following_distance=2;
-            enemy_map1[4].damage_distance=15;
+            enemy_map1[4].following_distance=1000;
+            enemy_map1[4].damage_distance=3;
             enemy_map1[4].face='U';
-            map1[x][y]=enemy_map1[4].face;
+            map1[y][x]=enemy_map1[4].face;
             break;
         }
     }
     //room 6
-    //U
+    //G
     while(1){
-        int x = rand() % 8 + 29;
-        int y = rand() % 9 + 11;
-        if(is_valid_enemy(x,y,map1)){
-            enemy_map1[4].x=x;
-            enemy_map1[4].y=y;
-            enemy_map1[4].health=15;
-            enemy_map1[4].damage=10;
-            enemy_map1[4].following_distance=5;
-            enemy_map1[4].damage_distance=2;
-            enemy_map1[4].face='G';
-            map1[x][y]=enemy_map1[4].face;
+        int y = rand() % 8 + 29;
+        int x = rand() % 9 + 11;
+        if(is_valid_enemy(y,x,map1)){
+            enemy_map1[5].x=x;
+            enemy_map1[5].y=y;
+            enemy_map1[5].health=15;
+            enemy_map1[5].damage=10;
+            enemy_map1[5].following_distance=5;
+            enemy_map1[5].damage_distance=2;
+            enemy_map1[5].face='G';
+            map1[y][x]=enemy_map1[5].face;
             break;
         }
     }
@@ -4040,85 +4043,85 @@ void placing_enemy_map2(){
     //room 1
     //D
     while(1){
-        int x = rand() % 7 + 7;
-        int y = rand() % 7 + 11;
-        if(is_valid_enemy){
+        int y = rand() % 7 + 7;
+        int x = rand() % 7 + 11;
+        if(is_valid_enemy(y,x,map2)){
             enemy_map2[0].x=x;
             enemy_map2[0].y=y;
             enemy_map2[0].health=5;
             enemy_map2[0].damage=3;
-            enemy_map2[0].following_distance=0;
-            enemy_map2[0].damage_distance=3;
+            enemy_map2[0].following_distance=2;
+            enemy_map2[0].damage_distance=2;
             enemy_map2[0].face='D';
-            map2[x][y]=enemy_map2[0].face;
+            map2[y][x]=enemy_map2[0].face;
             break;
         }
     }
     //room 2
     //U
     while(1){
-        int x = rand() % 7 + 6;
-        int y = rand() % 12 + 36;
-        if(is_valid_enemy){
+        int y = rand() % 7 + 6;
+        int x = rand() % 12 + 36;
+        if(is_valid_enemy(y,x,map2)){
             enemy_map2[1].x=x;
             enemy_map2[1].y=y;
             enemy_map2[1].health=30;
             enemy_map2[1].damage=30;
-            enemy_map2[1].following_distance=5;
-            enemy_map2[1].damage_distance=13;
+            enemy_map2[1].following_distance=100;
+            enemy_map2[1].damage_distance=3;
             enemy_map2[1].face='U';
-            map2[x][y]=enemy_map2[1].face;
+            map2[y][x]=enemy_map2[1].face;
             break;
         }
     }
     //room 4
     //S
     while(1){
-        int x = rand() % 10 + 31;
-        int y = rand() % 14 + 161;
-        if(is_valid_enemy){
+        int y = rand() % 10 + 31;
+        int x = rand() % 14 + 161;
+        if(is_valid_enemy(y,x,map2)){
             enemy_map2[2].x=x;
             enemy_map2[2].y=y;
             enemy_map2[2].health=20;
             enemy_map2[2].damage=20;
-            enemy_map2[2].following_distance=15;
-            enemy_map2[2].damage_distance=4;
+            enemy_map2[2].following_distance=100;
+            enemy_map2[2].damage_distance=6;
             enemy_map2[2].face='S';
-            map2[x][y]=enemy_map2[2].face;
+            map2[y][x]=enemy_map2[2].face;
             break;
         }
     }
     //room 5
     //F
     while(1){
-        int x = rand() % 4 + 31;
-        int y = rand() % 15 + 95;
-        if(is_valid_enemy){
+        int y = rand() % 4 + 31;
+        int x = rand() % 15 + 95;
+        if(is_valid_enemy(y,x,map2)){
             enemy_map2[3].x=x;
             enemy_map2[3].y=y;
             enemy_map2[3].health=10;
             enemy_map2[3].damage=7;
-            enemy_map2[3].following_distance=2;
-            enemy_map2[3].damage_distance=3;
+            enemy_map2[3].following_distance=4;
+            enemy_map2[3].damage_distance=2;
             enemy_map2[3].face='F';
-            map2[x][y]=enemy_map2[3].face;
+            map2[y][x]=enemy_map2[3].face;
             break;
         }
     }
-    //room 6
-    //D
+    //room 7
+    //U
     while(1){
-        int x = rand() % 3 + 29;
-        int y = rand() % 14 + 12;
-        if(is_valid_enemy){
+        int y = rand() % 3 + 29;
+        int x = rand() % 14 + 12;
+        if(is_valid_enemy(y,x,map2)){
             enemy_map2[4].x=x;
             enemy_map2[4].y=y;
             enemy_map2[4].health=5;
             enemy_map2[4].damage=3;
-            enemy_map2[4].following_distance=0;
+            enemy_map2[4].following_distance=1000;
             enemy_map2[4].damage_distance=3;
             enemy_map2[4].face='U';
-            map2[x][y]=enemy_map2[4].face;
+            map2[y][x]=enemy_map2[4].face;
             break;
         }
     }
@@ -4127,60 +4130,60 @@ void placing_enemy_map3(){
     //room 1
     //S
     while(1){
-        int x = rand() % 8 + 7;
-        int y = rand() % 5 + 36;
-        if(is_valid_enemy){
+        int y = rand() % 8 + 7;
+        int x = rand() % 5 + 36;
+        if(is_valid_enemy(y,x,map3)){
             enemy_map3[0].x=x;
             enemy_map3[0].y=y;
             enemy_map3[0].health=20;
             enemy_map3[0].damage=20;
-            enemy_map3[0].following_distance=9;
-            enemy_map3[0].damage_distance=4;
+            enemy_map3[0].following_distance=100;
+            enemy_map3[0].damage_distance=6;
             enemy_map3[0].face='S';
-            map3[x][y]=enemy_map3[0].face;
+            map3[y][x]=enemy_map3[0].face;
             break;
         }
     }
     //room 5
     //F
     while(1){
-        int x = rand() % 4 + 31;
-        int y = rand() % 15 + 85;
-        if(is_valid_enemy){
+        int y = rand() % 4 + 31;
+        int x = rand() % 15 + 85;
+        if(is_valid_enemy(y,x,map3)){
             enemy_map3[1].x=x;
             enemy_map3[1].y=y;
             enemy_map3[1].health=10;
             enemy_map3[1].damage=7;
-            enemy_map3[1].following_distance=2;
-            enemy_map3[1].damage_distance=3;
+            enemy_map3[1].following_distance=4;
+            enemy_map3[1].damage_distance=2;
             enemy_map3[1].face='F';
-            map3[x][y]=enemy_map3[1].face;
+            map3[y][x]=enemy_map3[1].face;
             break;
         }
     }
     //room 4
     //U
     while(1){
-        int x = rand() % 10 + 31;
-        int y = rand() % 14 + 161;
-        if(is_valid_enemy){
+        int y = rand() % 10 + 31;
+        int x = rand() % 14 + 161;
+        if(is_valid_enemy(y,x,map3)){
             enemy_map3[2].x=x;
             enemy_map3[2].y=y;
             enemy_map3[2].health=30;
             enemy_map3[2].damage=30;
-            enemy_map3[2].following_distance=15;
-            enemy_map3[2].damage_distance=5;
+            enemy_map3[2].following_distance=100;
+            enemy_map3[2].damage_distance=3;
             enemy_map3[2].face='U';
-            map3[x][y]=enemy_map3[2].face;
+            map3[y][x]=enemy_map3[2].face;
             break;
         }
     }
     //room 6
     //G
     while(1){
-        int x = rand() % 12 + 22;
-        int y = rand() % 13 + 13;
-        if(is_valid_enemy){
+        int y = rand() % 12 + 22;
+        int x = rand() % 13 + 13;
+        if(is_valid_enemy(y,x,map3)){
             enemy_map3[3].x=x;
             enemy_map3[3].y=y;
             enemy_map3[3].health=15;
@@ -4188,7 +4191,7 @@ void placing_enemy_map3(){
             enemy_map3[3].following_distance=5;
             enemy_map3[3].damage_distance=2;
             enemy_map3[3].face='G';
-            map3[x][y]=enemy_map3[3].face;
+            map3[y][x]=enemy_map3[3].face;
             break;
         }
     }
@@ -4197,9 +4200,9 @@ void placing_enemy_map4(){
     //room 8
     //G
     while(1){
-        int x = rand() % 10 + 31;
-        int y = rand() % 14 + 46;
-        if(is_valid_enemy){
+        int y = rand() % 10 + 31;
+        int x = rand() % 14 + 46;
+        if(is_valid_enemy(y,x,map4)){
             enemy_map4[0].x=x;
             enemy_map4[0].y=y;
             enemy_map4[0].health=15;
@@ -4207,16 +4210,16 @@ void placing_enemy_map4(){
             enemy_map4[0].following_distance=5;
             enemy_map4[0].damage_distance=2;
             enemy_map4[0].face='G';
-            map4[x][y]=enemy_map4[0].face;
+            map4[y][x]=enemy_map4[0].face;
             break;
         }
     }
     //room 7
     //D
     while(1){
-        int x = rand() % 3 + 29;
-        int y = rand() % 14 + 12;
-        if(is_valid_enemy){
+        int y = rand() % 3 + 29;
+        int x = rand() % 14 + 12;
+        if(is_valid_enemy(y,x,map4)){
             enemy_map4[1].x=x;
             enemy_map4[1].y=y;
             enemy_map4[1].health=5;
@@ -4224,66 +4227,66 @@ void placing_enemy_map4(){
             enemy_map4[1].following_distance=0;
             enemy_map4[1].damage_distance=3;
             enemy_map4[1].face='D';
-            map4[x][y]=enemy_map4[1].face;
+            map4[y][x]=enemy_map4[1].face;
             break;
         }
     }
     //room 5
     //F
     while(1){
-        int x = rand() % 4 + 31;
-        int y = rand() % 15 + 95;
-        if(is_valid_enemy){
+        int y = rand() % 4 + 31;
+        int x = rand() % 15 + 95;
+        if(is_valid_enemy(y,x,map4)){
             enemy_map4[2].x=x;
             enemy_map4[2].y=y;
             enemy_map4[2].health=10;
             enemy_map4[2].damage=7;
-            enemy_map4[2].following_distance=2;
-            enemy_map4[2].damage_distance=3;
+            enemy_map4[2].following_distance=4;
+            enemy_map4[2].damage_distance=2;
             enemy_map4[2].face='F';
-            map4[x][y]=enemy_map4[2].face;
+            map4[y][x]=enemy_map4[2].face;
             break;
         }
     }
     //room 4
     //U
     while(1){
-        int x = rand() % 10 + 31;
-        int y = rand() % 14 + 161;
-        if(is_valid_enemy){
+        int y = rand() % 10 + 31;
+        int x = rand() % 14 + 161;
+        if(is_valid_enemy(y,x,map4)){
             enemy_map4[3].x=x;
             enemy_map4[3].y=y;
             enemy_map4[3].health=30;
             enemy_map4[3].damage=30;
-            enemy_map4[3].following_distance=15;
-            enemy_map4[3].damage_distance=5;
+            enemy_map4[3].following_distance=100;
+            enemy_map4[3].damage_distance=3;
             enemy_map4[3].face='U';
-            map4[x][y]=enemy_map4[3].face;
+            map4[y][x]=enemy_map4[3].face;
             break;
         }
     }
     //room 2
     //S
     while(1){
-        int x = rand() % 7 + 6;
-        int y = rand() % 12 + 36;
-        if(is_valid_enemy){
+        int y = rand() % 7 + 6;
+        int x = rand() % 12 + 36;
+        if(is_valid_enemy(y,x,map4)){
             enemy_map4[4].x=x;
             enemy_map4[4].y=y;
             enemy_map4[4].health=30;
             enemy_map4[4].damage=20;
-            enemy_map4[4].following_distance=15;
-            enemy_map4[4].damage_distance=4;
+            enemy_map4[4].following_distance=100;
+            enemy_map4[4].damage_distance=6;
             enemy_map4[4].face='S';
-            map4[x][y]=enemy_map4[4].face;
+            map4[y][x]=enemy_map4[4].face;
             break;
         }
     }
 }
 int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]){
     if((map[y][x]=='.'||map[y][x]=='%'||map[y][x]=='T'||map[y][x]=='Z'||map[y][x]=='X'||
-       map[y][x]=='H'||map[y][x]=='R'||map[y][x]=='8'||map[y][x]=='&')&&map[y][x]!='@'&&
-       map[y][x]!='o'&&map[y][x]!='@'&&map[y][x]!='<'){
+       map[y][x]=='H'||map[y][x]=='R'||map[y][x]=='8')&&map[y][x]!='@'&&
+       map[y][x]!='o'&&map[y][x]!='<'&&map[y][x]!='&'){
         return 1;
     }
     else{
@@ -4296,14 +4299,20 @@ void draw_enemy(Player *player){
         if(l_user.level_num==1){
             if(get_room_id(player->x,player->y)==1){
                 if(abs(player->x - enemy_map1[0].x) < enemy_map1[0].following_distance && abs(player->y - enemy_map1[0].y) < enemy_map1[0].following_distance){
+                    damage_player(&enemy_map1[0],player);
+                    damage_player(&enemy_map1[0],player);
                     new_x=enemy_map1[0].x;
                     new_y=enemy_map1[0].y;
-                    if (player->x > enemy_map1[0].x) new_x++;
-                    else if (player->x < enemy_map1[0].x) new_x--;
-                    if (player->y > enemy_map1[0].y) new_y++;
-                    else if (player->y < enemy_map1[0].y) new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)&&(enemy_map1[0].x!=player->x||enemy_map1[0].y!=player->y)){
-                        map1[enemy_map1[0].y][enemy_map1[0].x]='.';
+                    int x0=enemy_map1[0].x;
+                    int y0=enemy_map1[0].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map1[0].x) if(s)new_x++;
+                    else if (player->x < enemy_map1[0].x)if(s) new_x--;
+                    if (player->y > enemy_map1[0].y) if(s)new_y++;
+                    else if (player->y < enemy_map1[0].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map1)){
+                        map1[y0][x0]='.';
+                        enemy_map1[0].perv=map1[enemy_map1[0].y][enemy_map1[0].x];
                         clear_enemy(enemy_map1[0]);
                         enemy_map1[0].x=new_x;
                         enemy_map1[0].y=new_y;
@@ -4312,29 +4321,447 @@ void draw_enemy(Player *player){
                 }
             }
             if(get_room_id(player->x,player->y)==2){
-                
+                if(abs(player->x - enemy_map1[1].x) < enemy_map1[1].following_distance && abs(player->y - enemy_map1[1].y) < enemy_map1[1].following_distance){
+                    damage_player(&enemy_map1[1],player);
+                    new_x=enemy_map1[1].x;
+                    new_y=enemy_map1[1].y;
+                    int x0=enemy_map1[1].x;
+                    int y0=enemy_map1[1].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map1[1].x) if(s)new_x++;
+                    else if (player->x < enemy_map1[1].x) if(s)new_x--;
+                    if (player->y > enemy_map1[1].y) if(s)new_y++;
+                    else if (player->y < enemy_map1[1].y) if(s)new_y--;
+                    if(is_valid_enemy(new_y,new_x,map1)){
+                        map1[y0][x0]='.';
+                        enemy_map1[1].perv=map1[enemy_map1[1].y][enemy_map1[1].x];
+                        clear_enemy(enemy_map1[1]);
+                        enemy_map1[1].x=new_x;
+                        enemy_map1[1].y=new_y;
+                        mvprintw(enemy_map1[1].y,enemy_map1[1].x,"%c",enemy_map1[1].face);
+                    }
+                }
             }
             if(get_room_id(player->x,player->y)==3){
-                
+                if(abs(player->x - enemy_map1[2].x) < enemy_map1[2].following_distance && abs(player->y - enemy_map1[2].y) < enemy_map1[2].following_distance){
+                    damage_player(&enemy_map1[2],player);
+                    new_x=enemy_map1[2].x;
+                    new_y=enemy_map1[2].y;
+                    int x0=enemy_map1[2].x;
+                    int y0=enemy_map1[2].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map1[2].x)if(s) new_x++;
+                    else if (player->x < enemy_map1[2].x)if(s) new_x--;
+                    if (player->y > enemy_map1[2].y)if(s) new_y++;
+                    else if (player->y < enemy_map1[2].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map1)){
+                        map1[y0][x0]='.';
+                        enemy_map1[2].perv=map1[enemy_map1[2].y][enemy_map1[2].x];
+                        clear_enemy(enemy_map1[2]);
+                        enemy_map1[2].x=new_x;
+                        enemy_map1[2].y=new_y;
+                        mvprintw(enemy_map1[2].y,enemy_map1[2].x,"%c",enemy_map1[2].face);
+                    }
+                }
             }
             if(get_room_id(player->x,player->y)==4){
-                
+                if(abs(player->x - enemy_map1[3].x) < enemy_map1[3].following_distance && abs(player->y - enemy_map1[3].y) < enemy_map1[3].following_distance){
+                    damage_player(&enemy_map1[3],player);
+                    // mvprintw(25,20,"px %d",player->x);
+                    // mvprintw(26,20,"py %d",player->y);
+                    // mvprintw(27,20,"ex %d",enemy_map1[3].x);
+                    // mvprintw(28,20,"ey %d",enemy_map1[3].y);
+                    new_x=enemy_map1[3].x;
+                    new_y=enemy_map1[3].y;
+                    int x0=enemy_map1[3].x;
+                    int y0=enemy_map1[3].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map1[3].x)if(s) new_x++;
+                    else if (player->x < enemy_map1[3].x)if(s) new_x--;
+                    if (player->y > enemy_map1[3].y)if(s) new_y++;
+                    else if (player->y < enemy_map1[3].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map1)){
+                        map1[y0][x0]='.';
+                        enemy_map1[3].perv=map1[enemy_map1[3].y][enemy_map1[3].x];
+                        clear_enemy(enemy_map1[3]);
+                        enemy_map1[3].x=new_x;
+                        enemy_map1[3].y=new_y;
+                        mvprintw(enemy_map1[3].y,enemy_map1[3].x,"%c",enemy_map1[3].face);
+                    }
+                }
             }
             if(get_room_id(player->x,player->y)==5){
-                
+                if(abs(player->x - enemy_map1[4].x) < enemy_map1[4].following_distance && abs(player->y - enemy_map1[4].y) < enemy_map1[4].following_distance){
+                    damage_player(&enemy_map1[4],player);
+                    new_x=enemy_map1[4].x;
+                    new_y=enemy_map1[4].y;
+                    int x0=enemy_map1[4].x;
+                    int y0=enemy_map1[4].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map1[4].x)if(s) new_x++;
+                    else if (player->x < enemy_map1[4].x)if(s) new_x--;
+                    if (player->y > enemy_map1[4].y)if(s) new_y++;
+                    else if (player->y < enemy_map1[4].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map1)){
+                        map1[y0][x0]='.';
+                        enemy_map1[4].perv=map1[enemy_map1[4].y][enemy_map1[4].x];
+                        clear_enemy(enemy_map1[4]);
+                        enemy_map1[4].x=new_x;
+                        enemy_map1[4].y=new_y;
+                        mvprintw(enemy_map1[4].y,enemy_map1[4].x,"%c",enemy_map1[4].face);
+                    }
+                }
             }
             if(get_room_id(player->x,player->y)==6){
-                
+                if(abs(player->x - enemy_map1[5].x) < enemy_map1[5].following_distance && abs(player->y - enemy_map1[5].y) < enemy_map1[5].following_distance){
+                    damage_player(&enemy_map1[5],player);
+                    new_x=enemy_map1[5].x;
+                    new_y=enemy_map1[5].y;
+                    int x0=enemy_map1[5].x;
+                    int y0=enemy_map1[5].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map1[5].x)if(s) new_x++;
+                    else if (player->x < enemy_map1[5].x)if(s) new_x--;
+                    if (player->y > enemy_map1[5].y)if(s) new_y++;
+                    else if (player->y < enemy_map1[5].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map1)){
+                        map1[y0][x0]='.';
+                        enemy_map1[5].perv=map1[enemy_map1[5].y][enemy_map1[5].x];
+                        clear_enemy(enemy_map1[5]);
+                        enemy_map1[5].x=new_x;
+                        enemy_map1[5].y=new_y;
+                        mvprintw(enemy_map1[5].y,enemy_map1[5].x,"%c",enemy_map1[5].face);
+                    }
+                }
             }
         }
         else if(l_user.level_num==2){
-
+            if(get_room_id(player->x,player->y)==1){
+                
+                if(abs(player->x - enemy_map2[0].x) < enemy_map2[0].following_distance && abs(player->y - enemy_map2[0].y) < enemy_map2[0].following_distance){
+                    damage_player(&enemy_map2[0],player);
+                    new_x=enemy_map2[0].x;
+                    new_y=enemy_map2[0].y;
+                    int x0=enemy_map2[0].x;
+                    int y0=enemy_map2[0].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map2[0].x)if(s) new_x++;
+                    else if (player->x < enemy_map2[0].x)if(s) new_x--;
+                    if (player->y > enemy_map2[0].y)if(s) new_y++;
+                    else if (player->y < enemy_map2[0].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map2)){
+                        map2[y0][x0]='.';
+                        enemy_map2[0].perv=map2[enemy_map2[0].y][enemy_map2[0].x];
+                        clear_enemy(enemy_map2[0]);
+                        enemy_map2[0].x=new_x;
+                        enemy_map2[0].y=new_y;
+                        mvprintw(enemy_map2[0].y,enemy_map2[0].x,"%c",enemy_map2[0].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==2){
+                
+                if(abs(player->x - enemy_map2[1].x) < enemy_map2[1].following_distance && abs(player->y - enemy_map2[1].y) < enemy_map2[1].following_distance){
+                    damage_player(&enemy_map2[1],player);
+                    new_x=enemy_map2[1].x;
+                    new_y=enemy_map2[1].y;
+                    int x0=enemy_map2[1].x;
+                    int y0=enemy_map2[1].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map2[1].x)if(s) new_x++;
+                    else if (player->x < enemy_map2[1].x)if(s) new_x--;
+                    if (player->y > enemy_map2[1].y)if(s) new_y++;
+                    else if (player->y < enemy_map2[1].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map2)){
+                        map2[y0][x0]='.';
+                        enemy_map2[1].perv=map2[enemy_map2[1].y][enemy_map2[1].x];
+                        clear_enemy(enemy_map2[1]);
+                        enemy_map2[1].x=new_x;
+                        enemy_map2[1].y=new_y;
+                        mvprintw(enemy_map2[1].y,enemy_map2[1].x,"%c",enemy_map2[1].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==4){
+                
+                if(abs(player->x - enemy_map2[2].x) < enemy_map2[2].following_distance && abs(player->y - enemy_map2[2].y) < enemy_map2[2].following_distance){
+                    damage_player(&enemy_map2[2],player);
+                    new_x=enemy_map2[2].x;
+                    new_y=enemy_map2[2].y;
+                    int x0=enemy_map2[2].x;
+                    int y0=enemy_map2[2].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map2[2].x)if(s) new_x++;
+                    else if (player->x < enemy_map2[2].x)if(s) new_x--;
+                    if (player->y > enemy_map2[2].y)if(s) new_y++;
+                    else if (player->y < enemy_map2[2].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map2)){
+                        map2[y0][x0]='.';
+                        enemy_map2[2].perv=map2[enemy_map2[2].y][enemy_map2[2].x];
+                        clear_enemy(enemy_map2[2]);
+                        enemy_map2[2].x=new_x;
+                        enemy_map2[2].y=new_y;
+                        mvprintw(enemy_map2[2].y,enemy_map2[2].x,"%c",enemy_map2[2].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==5){
+                
+                if(abs(player->x - enemy_map2[3].x) < enemy_map2[3].following_distance && abs(player->y - enemy_map2[3].y) < enemy_map2[3].following_distance){
+                    damage_player(&enemy_map2[3],player);
+                    new_x=enemy_map2[3].x;
+                    new_y=enemy_map2[3].y;
+                    int x0=enemy_map2[3].x;
+                    int y0=enemy_map2[3].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map2[3].x)if(s) new_x++;
+                    else if (player->x < enemy_map2[3].x)if(s) new_x--;
+                    if (player->y > enemy_map2[3].y)if(s) new_y++;
+                    else if (player->y < enemy_map2[3].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map2)){
+                        map2[y0][x0]='.';
+                        enemy_map2[3].perv=map2[enemy_map2[3].y][enemy_map2[3].x];
+                        clear_enemy(enemy_map2[3]);
+                        enemy_map2[3].x=new_x;
+                        enemy_map2[3].y=new_y;
+                        mvprintw(enemy_map2[3].y,enemy_map2[3].x,"%c",enemy_map2[3].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==7){
+                
+                if(abs(player->x - enemy_map2[4].x) < enemy_map2[4].following_distance && abs(player->y - enemy_map2[4].y) < enemy_map2[4].following_distance){
+                    damage_player(&enemy_map2[4],player);
+                    new_x=enemy_map2[4].x;
+                    new_y=enemy_map2[4].y;
+                    int x0=enemy_map2[4].x;
+                    int y0=enemy_map2[4].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map2[4].x)if(s) new_x++;
+                    else if (player->x < enemy_map2[4].x)if(s) new_x--;
+                    if (player->y > enemy_map2[4].y)if(s) new_y++;
+                    else if (player->y < enemy_map2[4].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map2)){
+                        map2[y0][x0]='.';
+                        enemy_map2[4].perv=map2[enemy_map2[4].y][enemy_map2[4].x];
+                        clear_enemy(enemy_map2[4]);
+                        enemy_map2[4].x=new_x;
+                        enemy_map2[4].y=new_y;
+                        mvprintw(enemy_map2[4].y,enemy_map2[4].x,"%c",enemy_map2[4].face);
+                    }
+                }
+            }
         }
         else if(l_user.level_num==3){
-
+            if(get_room_id(player->x,player->y)==1){
+                
+                if(abs(player->x - enemy_map3[0].x) < enemy_map3[0].following_distance && abs(player->y - enemy_map3[0].y) < enemy_map3[0].following_distance){
+                    damage_player(&enemy_map3[0],player);
+                    new_x=enemy_map3[0].x;
+                    new_y=enemy_map3[0].y;
+                    int x0=enemy_map3[0].x;
+                    int y0=enemy_map3[0].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map3[0].x)if(s) new_x++;
+                    else if (player->x < enemy_map3[0].x)if(s) new_x--;
+                    if (player->y > enemy_map3[0].y)if(s) new_y++;
+                    else if (player->y < enemy_map3[0].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map3)){
+                        map3[y0][x0]='.';
+                        enemy_map3[0].perv=map3[enemy_map3[0].y][enemy_map3[0].x];
+                        clear_enemy(enemy_map3[0]);
+                        enemy_map3[0].x=new_x;
+                        enemy_map3[0].y=new_y;
+                        mvprintw(enemy_map3[0].y,enemy_map3[0].x,"%c",enemy_map3[0].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==5){
+                
+                if(abs(player->x - enemy_map3[1].x) < enemy_map3[1].following_distance && abs(player->y - enemy_map3[1].y) < enemy_map3[1].following_distance){
+                    damage_player(&enemy_map3[1],player);
+                    new_x=enemy_map3[1].x;
+                    new_y=enemy_map3[1].y;
+                    int x0=enemy_map3[1].x;
+                    int y0=enemy_map3[1].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map3[1].x)if(s) new_x++;
+                    else if (player->x < enemy_map3[1].x)if(s) new_x--;
+                    if (player->y > enemy_map3[1].y)if(s) new_y++;
+                    else if (player->y < enemy_map3[1].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map3)){
+                        map3[y0][x0]='.';
+                        enemy_map3[1].perv=map3[enemy_map3[1].y][enemy_map3[1].x];
+                        clear_enemy(enemy_map3[1]);
+                        enemy_map3[1].x=new_x;
+                        enemy_map3[1].y=new_y;
+                        mvprintw(enemy_map3[1].y,enemy_map3[1].x,"%c",enemy_map3[1].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==4){
+                
+                if(abs(player->x - enemy_map3[2].x) < enemy_map3[2].following_distance && abs(player->y - enemy_map3[2].y) < enemy_map3[2].following_distance){
+                    damage_player(&enemy_map3[2],player);
+                    new_x=enemy_map3[2].x;
+                    new_y=enemy_map3[2].y;
+                    int x0=enemy_map3[2].x;
+                    int y0=enemy_map3[2].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map3[2].x)if(s) new_x++;
+                    else if (player->x < enemy_map3[2].x)if(s) new_x--;
+                    if (player->y > enemy_map3[2].y)if(s) new_y++;
+                    else if (player->y < enemy_map3[2].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map3)){
+                        map3[y0][x0]='.';
+                        enemy_map3[2].perv=map3[enemy_map3[2].y][enemy_map3[2].x];
+                        clear_enemy(enemy_map3[2]);
+                        enemy_map3[2].x=new_x;
+                        enemy_map3[2].y=new_y;
+                        mvprintw(enemy_map3[2].y,enemy_map3[2].x,"%c",enemy_map3[2].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==6){
+                
+                if(abs(player->x - enemy_map3[3].x) < enemy_map3[3].following_distance && abs(player->y - enemy_map3[3].y) < enemy_map3[3].following_distance){
+                    damage_player(&enemy_map3[3],player);
+                    new_x=enemy_map3[3].x;
+                    new_y=enemy_map3[3].y;
+                    int x0=enemy_map3[3].x;
+                    int y0=enemy_map3[3].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map3[3].x)if(s) new_x++;
+                    else if (player->x < enemy_map3[3].x)if(s) new_x--;
+                    if (player->y > enemy_map3[3].y)if(s) new_y++;
+                    else if (player->y < enemy_map3[3].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map3)){
+                        map3[y0][x0]='.';
+                        enemy_map3[3].perv=map3[enemy_map3[3].y][enemy_map3[3].x];
+                        clear_enemy(enemy_map3[3]);
+                        enemy_map3[3].x=new_x;
+                        enemy_map3[3].y=new_y;
+                        mvprintw(enemy_map3[3].y,enemy_map3[3].x,"%c",enemy_map3[3].face);
+                    }
+                }
+            }
         }
         else if(l_user.level_num==4){
-
+            if(get_room_id(player->x,player->y)==8){
+                
+                if(abs(player->x - enemy_map4[0].x) < enemy_map4[0].following_distance && abs(player->y - enemy_map4[0].y) < enemy_map4[0].following_distance){
+                    damage_player(&enemy_map4[0],player);
+                    new_x=enemy_map4[0].x;
+                    new_y=enemy_map4[0].y;
+                    int x0=enemy_map4[0].x;
+                    int y0=enemy_map4[0].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map4[0].x)if(s) new_x++;
+                    else if (player->x < enemy_map4[0].x)if(s) new_x--;
+                    if (player->y > enemy_map4[0].y)if(s) new_y++;
+                    else if (player->y < enemy_map4[0].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map4)){
+                        map4[y0][x0]='.';
+                        enemy_map4[0].perv=map4[enemy_map4[0].y][enemy_map4[0].x];
+                        clear_enemy(enemy_map4[0]);
+                        enemy_map4[0].x=new_x;
+                        enemy_map4[0].y=new_y;
+                        mvprintw(enemy_map4[0].y,enemy_map4[0].x,"%c",enemy_map4[0].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==7){
+                
+                if(abs(player->x - enemy_map4[1].x) < enemy_map4[1].following_distance && abs(player->y - enemy_map4[1].y) < enemy_map4[1].following_distance){
+                    damage_player(&enemy_map4[1],player);
+                    new_x=enemy_map4[1].x;
+                    new_y=enemy_map4[1].y;
+                    int x0=enemy_map4[1].x;
+                    int y0=enemy_map4[1].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map4[1].x)if(s) new_x++;
+                    else if (player->x < enemy_map4[1].x)if(s) new_x--;
+                    if (player->y > enemy_map4[1].y)if(s) new_y++;
+                    else if (player->y < enemy_map4[1].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map4)){
+                        map4[y0][x0]='.';
+                        enemy_map4[1].perv=map4[enemy_map4[1].y][enemy_map4[1].x];
+                        clear_enemy(enemy_map4[1]);
+                        enemy_map4[1].x=new_x;
+                        enemy_map4[1].y=new_y;
+                        mvprintw(enemy_map4[1].y,enemy_map4[1].x,"%c",enemy_map4[1].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==5){
+                
+                if(abs(player->x - enemy_map4[2].x) < enemy_map4[2].following_distance && abs(player->y - enemy_map4[2].y) < enemy_map4[2].following_distance){
+                    damage_player(&enemy_map4[2],player);
+                    new_x=enemy_map4[2].x;
+                    new_y=enemy_map4[2].y;
+                    int x0=enemy_map4[2].x;
+                    int y0=enemy_map4[2].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map4[2].x)if(s) new_x++;
+                    else if (player->x < enemy_map4[2].x)if(s) new_x--;
+                    if (player->y > enemy_map4[2].y)if(s) new_y++;
+                    else if (player->y < enemy_map4[2].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map4)){
+                        map4[y0][x0]='.';
+                        enemy_map4[2].perv=map4[enemy_map4[2].y][enemy_map4[2].x];
+                        clear_enemy(enemy_map4[2]);
+                        enemy_map4[2].x=new_x;
+                        enemy_map4[2].y=new_y;
+                        mvprintw(enemy_map4[2].y,enemy_map4[2].x,"%c",enemy_map4[2].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==4){
+                
+                if(abs(player->x - enemy_map4[3].x) < enemy_map4[3].following_distance && abs(player->y - enemy_map4[3].y) < enemy_map4[3].following_distance){
+                    damage_player(&enemy_map4[3],player);
+                    new_x=enemy_map4[3].x;
+                    new_y=enemy_map4[3].y;
+                    int x0=enemy_map4[3].x;
+                    int y0=enemy_map4[3].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map4[3].x)if(s) new_x++;
+                    else if (player->x < enemy_map4[3].x)if(s) new_x--;
+                    if (player->y > enemy_map4[3].y)if(s) new_y++;
+                    else if (player->y < enemy_map4[3].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map4)){
+                        map4[y0][x0]='.';
+                        enemy_map4[3].perv=map4[enemy_map4[3].y][enemy_map4[3].x];
+                        clear_enemy(enemy_map4[3]);
+                        enemy_map4[3].x=new_x;
+                        enemy_map4[3].y=new_y;
+                        mvprintw(enemy_map4[3].y,enemy_map4[3].x,"%c",enemy_map4[3].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==2){
+                
+                if(abs(player->x - enemy_map4[4].x) < enemy_map4[4].following_distance && abs(player->y - enemy_map4[4].y) < enemy_map4[4].following_distance){
+                    damage_player(&enemy_map4[4],player);
+                    new_x=enemy_map4[4].x;
+                    new_y=enemy_map4[4].y;
+                    int x0=enemy_map4[4].x;
+                    int y0=enemy_map4[4].y;
+                    int s = rand()%2;
+                    if (player->x > enemy_map4[4].x)if(s) new_x++;
+                    else if (player->x < enemy_map4[4].x)if(s) new_x--;
+                    if (player->y > enemy_map4[4].y)if(s) new_y++;
+                    else if (player->y < enemy_map4[4].y)if(s) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map4)){
+                        map4[y0][x0]='.';
+                        enemy_map4[4].perv=map4[enemy_map4[4].y][enemy_map4[4].x];
+                        clear_enemy(enemy_map4[4]);
+                        enemy_map4[4].x=new_x;
+                        enemy_map4[4].y=new_y;
+                        mvprintw(enemy_map4[4].y,enemy_map4[4].x,"%c",enemy_map4[4].face);
+                    }
+                }
+            }
         }
     }
     gmsign1=1;
@@ -4348,6 +4775,38 @@ void clear_enemy(Enemy enemy){
         mvprintw(enemy.y, enemy.x, "%c", enemy.perv);
     }
 }
+void damage_player(Enemy *enemy,Player *player){
+    if (abs(player->x - enemy->x) <= enemy->damage_distance && abs(player->y - enemy->y) <= enemy->damage_distance) {
+        l_user.health -= enemy->damage;
+        int yMax, xMax;
+        getmaxyx(stdscr, yMax, xMax);
+        int startY = (yMax - 3) / 2;
+        int startX = (xMax - 40) / 2;
+        
+        for (int i = 0; i < 40; i++) {
+            mvaddch(startY, startX + i, '-');
+            mvaddch(startY + 3 - 1, startX + i, '-');
+        }
+        for (int i = 0; i < 3; i++) {
+            mvaddch(startY + i, startX, '|');
+            mvaddch(startY + i, startX + 40 - 1, '|');
+        }
+        mvaddch(startY, startX, '+');
+        mvaddch(startY, startX + 40 - 1, '+');
+        mvaddch(startY + 3 - 1, startX, '+');
+        mvaddch(startY + 3 - 1, startX + 40 - 1, '+');
+        attron(COLOR_PAIR(2));
+        mvprintw(startY, startX + (40 - 10) / 2, "DAMAGE!!!");
+        mvprintw(startY + 3 / 2, startX + (40 - 18) / 2-6, "   -%d Health,Pay attention",enemy->damage);
+        attroff(COLOR_PAIR(2));
+        getch();
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 40; j++) {
+                mvaddch(startY + i, startX + j, ' ');
+            }
+        }
+    }
+}
 
 
 
@@ -4360,8 +4819,7 @@ void clear_enemy(Enemy enemy){
 
 
 
-
-// void save_information(User user){
+// vo2d save_information(Use1 1ser){
 //     FILE *reed=fopen("users.txt","r");
 //     FILE *write=fopen("temp.txt", "w");
 //     char buffer[1024];
