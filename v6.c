@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<time.h>
+#include<math.h>
 
 #define MAP_HEIGHT 50
 #define MAP_WIDTH 200
@@ -46,6 +47,7 @@ typedef struct{
     int damage_distance;
     int following;
     char face;
+    char perv;
 }Enemy;
 char map1[MAP_HEIGHT][MAP_WIDTH];
 char map2[MAP_HEIGHT][MAP_WIDTH];
@@ -63,6 +65,8 @@ Enemy enemy_map3[6];
 Enemy enemy_map4[8];
 
 int fmsign=0;
+int gmsign1=0;
+int gmsign2=0;
 User l_user;
 User s_user;
 int is_logged_in=0;
@@ -135,6 +139,8 @@ void placing_enemy_map2();
 void placing_enemy_map3();
 void placing_enemy_map4();
 int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]);
+void draw_enemy(Player *player);
+void clear_enemy(Enemy enemy);
 // void save_information(User user);
 
 int main(){
@@ -2615,7 +2621,7 @@ int handle_input(Player *player) {
         pace_counter2++;
 
         }
-        if(pace_counter1>=5 &&Sspellc>=10){
+        if(pace_counter1>=5 || Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -2735,7 +2741,7 @@ int handle_input(Player *player) {
         pace_counter2++;
 
         }
-        if(pace_counter1>=5 &&Sspellc>=10){
+        if(pace_counter1>=5 || Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -2864,7 +2870,7 @@ int handle_input(Player *player) {
             pace_counter2++;
 
         }
-        if(pace_counter1>=5 &&Sspellc>=10){
+        if(pace_counter1>=5 || Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -3125,6 +3131,7 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
 void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[MAP_HEIGHT][MAP_WIDTH]) {
     update_memory_map(player->x, player->y,memory_map);
     draw_visible_map(player->x, player->y,memory_map,map);
+    draw_enemy(player);
     draw_player(player);
     draw_bar(LINES-2, 12, 20, l_user.health, 10000, "Health");
     draw_bar(LINES-2, 72, 20, l_user.power, 100, "Power");
@@ -3931,7 +3938,7 @@ void placing_enemy_map1(){
     while(1){
         int y = rand() % 5 + 4;
         int x = rand() % 19 + 4;
-        if(is_valid_enemy){
+        if(is_valid_enemy(y,x,map1)){
             enemy_map1[0].x=x;
             enemy_map1[0].y=y;
             enemy_map1[0].health=15;
@@ -3948,7 +3955,7 @@ void placing_enemy_map1(){
     while(1){
         int x = rand() % 12 + 8;
         int y = rand() % 14 + 51;
-        if(is_valid_enemy){
+        if(is_valid_enemy(x,y,map1)){
             enemy_map1[1].x=x;
             enemy_map1[1].y=y;
             enemy_map1[1].health=20;
@@ -3965,7 +3972,7 @@ void placing_enemy_map1(){
     while(1){
         int x = rand() % 9 + 7;
         int y = rand() % 10 + 101;
-        if(is_valid_enemy){
+        if(is_valid_enemy(x,y,map1)){
             enemy_map1[2].x=x;
             enemy_map1[2].y=y;
             enemy_map1[2].health=5;
@@ -3982,7 +3989,7 @@ void placing_enemy_map1(){
     while(1){
         int x = rand() % 8 + 21;
         int y = rand() % 8 + 151;
-        if(is_valid_enemy){
+        if(is_valid_enemy(x,y,map1)){
             enemy_map1[3].x=x;
             enemy_map1[3].y=y;
             enemy_map1[3].health=10;
@@ -3999,7 +4006,7 @@ void placing_enemy_map1(){
     while(1){
         int x = rand() % 4 + 31;
         int y = rand() % 15 + 95;
-        if(is_valid_enemy){
+        if(is_valid_enemy(x,y,map1)){
             enemy_map1[4].x=x;
             enemy_map1[4].y=y;
             enemy_map1[4].health=30;
@@ -4016,7 +4023,7 @@ void placing_enemy_map1(){
     while(1){
         int x = rand() % 8 + 29;
         int y = rand() % 9 + 11;
-        if(is_valid_enemy){
+        if(is_valid_enemy(x,y,map1)){
             enemy_map1[4].x=x;
             enemy_map1[4].y=y;
             enemy_map1[4].health=15;
@@ -4283,8 +4290,64 @@ int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]){
         return 0;
     }
 }
+void draw_enemy(Player *player){
+    if(gmsign1!=0){
+        int new_x,new_y;
+        if(l_user.level_num==1){
+            if(get_room_id(player->x,player->y)==1){
+                if(abs(player->x - enemy_map1[0].x) < enemy_map1[0].following_distance && abs(player->y - enemy_map1[0].y) < enemy_map1[0].following_distance){
+                    new_x=enemy_map1[0].x;
+                    new_y=enemy_map1[0].y;
+                    if (player->x > enemy_map1[0].x) new_x++;
+                    else if (player->x < enemy_map1[0].x) new_x--;
+                    if (player->y > enemy_map1[0].y) new_y++;
+                    else if (player->y < enemy_map1[0].y) new_y--;
+                    if(is_valid_enemy(new_y,new_x,map1)&&(enemy_map1[0].x!=player->x||enemy_map1[0].y!=player->y)){
+                        map1[enemy_map1[0].y][enemy_map1[0].x]='.';
+                        clear_enemy(enemy_map1[0]);
+                        enemy_map1[0].x=new_x;
+                        enemy_map1[0].y=new_y;
+                        mvprintw(enemy_map1[0].y,enemy_map1[0].x,"%c",enemy_map1[0].face);
+                    }
+                }
+            }
+            if(get_room_id(player->x,player->y)==2){
+                
+            }
+            if(get_room_id(player->x,player->y)==3){
+                
+            }
+            if(get_room_id(player->x,player->y)==4){
+                
+            }
+            if(get_room_id(player->x,player->y)==5){
+                
+            }
+            if(get_room_id(player->x,player->y)==6){
+                
+            }
+        }
+        else if(l_user.level_num==2){
 
+        }
+        else if(l_user.level_num==3){
 
+        }
+        else if(l_user.level_num==4){
+
+        }
+    }
+    gmsign1=1;
+}
+void clear_enemy(Enemy enemy){
+    if(gmsign2==0){
+       mvprintw(enemy.y, enemy.x, "%c", '.');
+       gmsign2=1;
+    }
+    else{
+        mvprintw(enemy.y, enemy.x, "%c", enemy.perv);
+    }
+}
 
 
 
