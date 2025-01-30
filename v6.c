@@ -56,6 +56,7 @@ typedef struct{
     int following;
     char face;
     char perv;
+    int exe;
 }Enemy;
 
 char map1[MAP_HEIGHT][MAP_WIDTH];
@@ -156,7 +157,8 @@ void clear_enemy(Enemy enemy);
 void damage_player(Enemy *enemy,Player *player);
 int weapon_manager(char weapon);
 int weapon_table();
-int damage_enemy(int level,int room,char weapon);
+int damage_enemy(int level,int room,char weapon,Player *player);
+void killing_message();
 // void save_information(User user);
 
 int main(){
@@ -3005,7 +3007,7 @@ int handle_input(Player *player) {
             refresh_map(player,memory_map1,map1);
             break;
         case ' ':
-            damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon);
+            damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
             break;
         }
 
@@ -4318,6 +4320,7 @@ void placing_enemy_map1(){
             enemy_map1[0].following_distance=5;
             enemy_map1[0].damage_distance=2;
             enemy_map1[0].face='G';
+            enemy_map1[0].exe=1;
             map1[y][x]=enemy_map1[0].face;
             break;
         }
@@ -4335,6 +4338,7 @@ void placing_enemy_map1(){
             enemy_map1[1].following_distance=1000;
             enemy_map1[1].damage_distance=6;
             enemy_map1[1].face='S';
+            enemy_map1[1].exe=1;
             map1[y][x]=enemy_map1[1].face;
             break;
         }
@@ -4352,6 +4356,7 @@ void placing_enemy_map1(){
             enemy_map1[2].following_distance=2;
             enemy_map1[2].damage_distance=2;
             enemy_map1[2].face='D';
+            enemy_map1[2].exe=1;
             map1[y][x]=enemy_map1[2].face;
             break;
         }
@@ -4369,6 +4374,7 @@ void placing_enemy_map1(){
             enemy_map1[3].following_distance=4;
             enemy_map1[3].damage_distance=2;
             enemy_map1[3].face='F';
+            enemy_map1[3].exe=1;
             map1[y][x]=enemy_map1[3].face;
             break;
         }
@@ -4386,6 +4392,7 @@ void placing_enemy_map1(){
             enemy_map1[4].following_distance=3;
             enemy_map1[4].damage_distance=3;
             enemy_map1[4].face='U';
+            enemy_map1[4].exe=1;
             map1[y][x]=enemy_map1[4].face;
             break;
         }
@@ -4403,6 +4410,7 @@ void placing_enemy_map1(){
             enemy_map1[5].following_distance=5;
             enemy_map1[5].damage_distance=2;
             enemy_map1[5].face='G';
+            enemy_map1[5].exe=1;
             map1[y][x]=enemy_map1[5].face;
             break;
         }
@@ -4422,6 +4430,7 @@ void placing_enemy_map2(){
             enemy_map2[0].following_distance=2;
             enemy_map2[0].damage_distance=2;
             enemy_map2[0].face='D';
+            enemy_map2[0].exe=1;
             map2[y][x]=enemy_map2[0].face;
             break;
         }
@@ -4439,6 +4448,7 @@ void placing_enemy_map2(){
             enemy_map2[1].following_distance=3;
             enemy_map2[1].damage_distance=3;
             enemy_map2[1].face='U';
+            enemy_map2[1].exe=1;
             map2[y][x]=enemy_map2[1].face;
             break;
         }
@@ -4456,6 +4466,7 @@ void placing_enemy_map2(){
             enemy_map2[2].following_distance=100;
             enemy_map2[2].damage_distance=6;
             enemy_map2[2].face='S';
+            enemy_map2[2].exe=1;
             map2[y][x]=enemy_map2[2].face;
             break;
         }
@@ -4473,6 +4484,7 @@ void placing_enemy_map2(){
             enemy_map2[3].following_distance=4;
             enemy_map2[3].damage_distance=2;
             enemy_map2[3].face='F';
+            enemy_map2[3].exe=1;
             map2[y][x]=enemy_map2[3].face;
             break;
         }
@@ -4490,6 +4502,7 @@ void placing_enemy_map2(){
             enemy_map2[4].following_distance=3;
             enemy_map2[4].damage_distance=3;
             enemy_map2[4].face='U';
+            enemy_map2[4].exe=1;
             map2[y][x]=enemy_map2[4].face;
             break;
         }
@@ -4509,6 +4522,7 @@ void placing_enemy_map3(){
             enemy_map3[0].following_distance=100;
             enemy_map3[0].damage_distance=6;
             enemy_map3[0].face='S';
+            enemy_map3[0].exe=1;
             map3[y][x]=enemy_map3[0].face;
             break;
         }
@@ -4526,6 +4540,7 @@ void placing_enemy_map3(){
             enemy_map3[1].following_distance=4;
             enemy_map3[1].damage_distance=2;
             enemy_map3[1].face='F';
+            enemy_map3[1].exe=1;
             map3[y][x]=enemy_map3[1].face;
             break;
         }
@@ -4543,6 +4558,7 @@ void placing_enemy_map3(){
             enemy_map3[2].following_distance=3;
             enemy_map3[2].damage_distance=3;
             enemy_map3[2].face='U';
+            enemy_map3[2].exe=1;
             map3[y][x]=enemy_map3[2].face;
             break;
         }
@@ -4560,6 +4576,7 @@ void placing_enemy_map3(){
             enemy_map3[3].following_distance=5;
             enemy_map3[3].damage_distance=2;
             enemy_map3[3].face='G';
+            enemy_map3[3].exe=1;
             map3[y][x]=enemy_map3[3].face;
             break;
         }
@@ -4579,6 +4596,7 @@ void placing_enemy_map4(){
             enemy_map4[0].following_distance=5;
             enemy_map4[0].damage_distance=2;
             enemy_map4[0].face='G';
+            enemy_map4[0].exe=1;
             map4[y][x]=enemy_map4[0].face;
             break;
         }
@@ -4596,6 +4614,7 @@ void placing_enemy_map4(){
             enemy_map4[1].following_distance=0;
             enemy_map4[1].damage_distance=3;
             enemy_map4[1].face='D';
+            enemy_map4[1].exe=1;
             map4[y][x]=enemy_map4[1].face;
             break;
         }
@@ -4613,6 +4632,7 @@ void placing_enemy_map4(){
             enemy_map4[2].following_distance=4;
             enemy_map4[2].damage_distance=2;
             enemy_map4[2].face='F';
+            enemy_map4[2].exe=1;
             map4[y][x]=enemy_map4[2].face;
             break;
         }
@@ -4630,6 +4650,7 @@ void placing_enemy_map4(){
             enemy_map4[3].following_distance=3;
             enemy_map4[3].damage_distance=3;
             enemy_map4[3].face='U';
+            enemy_map4[3].exe=1;
             map4[y][x]=enemy_map4[3].face;
             break;
         }
@@ -4647,6 +4668,7 @@ void placing_enemy_map4(){
             enemy_map4[4].following_distance=100;
             enemy_map4[4].damage_distance=6;
             enemy_map4[4].face='S';
+            enemy_map4[4].exe=1;
             map4[y][x]=enemy_map4[4].face;
             break;
         }
@@ -4666,7 +4688,7 @@ void draw_enemy(Player *player){
     if(gmsign1!=0){
         int new_x,new_y;
         if(l_user.level_num==1){
-            if(get_room_id(player->x,player->y)==1){
+            if(get_room_id(player->x,player->y)==1&&enemy_map1[0].exe==1){
                 if(abs(player->x - enemy_map1[0].x) < enemy_map1[0].following_distance && abs(player->y - enemy_map1[0].y) < enemy_map1[0].following_distance){
                     damage_player(&enemy_map1[0],player);
                     new_x=enemy_map1[0].x;
@@ -4682,6 +4704,7 @@ void draw_enemy(Player *player){
                     else if (player->y < enemy_map1[0].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map1)){
                         if(flag==0){
+                            enemy_map1[0].exe=1;
                             map1[y0][x0]='.';
                             flag=1;
                         }
@@ -4693,6 +4716,10 @@ void draw_enemy(Player *player){
                         mvprintw(enemy_map1[0].y,enemy_map1[0].x,"%c",enemy_map1[0].face);
                     }
                 }
+            }
+            else if(enemy_map1[0].exe==0){
+                map1[enemy_map1[0].y][enemy_map1[0].x]='.';
+                clear_enemy(enemy_map1[0]);
             }
             if(get_room_id(player->x,player->y)==2){
                 if(abs(player->x - enemy_map1[1].x) < enemy_map1[1].following_distance && abs(player->y - enemy_map1[1].y) < enemy_map1[1].following_distance){
@@ -5442,41 +5469,95 @@ int weapon_table(){
     }
     clear();
 }
-int damage_enemy(int level,int room,char weapon){
+int damage_enemy(int level,int room,char weapon,Player *player){
+    attron(COLOR_PAIR(3));
+    mvprintw(1,COLS/2-10,"ENTER DIRECTION");
+    attroff(COLOR_PAIR(3));
     int direction = getch();
+    mvprintw(1,COLS/2-10,"               ");
     int aim;
     switch (direction)
     {
     case '8':
+        aim=1;
         break;
     case '4':
+        aim=2;
         break;
     case '2':
+        aim=3;
         break;
     case '6':
+        aim=4;
         break;
     default:
         break;
     }
     int damage;
+    int damage_distance;
     switch(weapon){
         case 'm':
         damage=5;
+        damage_distance=1;
+        break;
         case 'd':
         damage=12;
+        damage_distance=5;
+        l_user.weapon_bar.dagger--;
+        break;
         case 'w':
         damage=15;
+        damage_distance=10;
+        l_user.weapon_bar.magic_wand--;
+        break;
         case 'a':
         damage=5;
+        damage_distance=5;
+        l_user.weapon_bar.arrow--;
+        break;
         case 's':
+        damage_distance=1;
         damage=10;
+        break;
     }
     if(level==1){
         if(room==1){
-
+            if(((player->x==enemy_map1[0].x&&player->y >= enemy_map1[0].y&&aim==1)||
+                (player->x==enemy_map1[0].x&&player->y <= enemy_map1[0].y&&aim==3)||
+                (player->y==enemy_map1[0].y&&player->x >= enemy_map1[0].x&&aim==2)||
+                (player->y==enemy_map1[0].y&&player->x <= enemy_map1[0].x&&aim==4))&& (abs(player->x-enemy_map1[0].x)<=damage_distance&&abs(player->y-enemy_map1[0].y)<=damage_distance)){
+                    enemy_map1[0].health-=damage;
+                    attron(COLOR_PAIR(3));
+                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
+                    attroff(COLOR_PAIR(3));
+                    getch();
+                    mvprintw(1,1,"                           ");
+                    if(enemy_map1[0].health<=0){
+                        enemy_map1[0].exe=0;
+                        killing_message();
+                    }
+               }
         }
         else if(room==2){
-            
+            if((player->x==enemy_map1[1].x&&player->y >= enemy_map1[1].y&&aim==1)||
+               (player->x==enemy_map1[1].x&&player->y <= enemy_map1[1].y&&aim==3)||
+               (player->y==enemy_map1[1].y&&player->x >= enemy_map1[1].x&&aim==2)||
+               (player->y==enemy_map1[1].y&&player->x <= enemy_map1[1].x&&aim==4)){
+                if(damage_distance==20){
+                    enemy_map1[1].health-=damage;
+                    attron(COLOR_PAIR(3));
+                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
+                    attroff(COLOR_PAIR(3));
+                    getch();
+                    mvprintw(1,1,"                           ");
+                }
+                else if(abs(player->x-enemy_map1[1].x)<=1 && abs(player->y-enemy_map1[1].y)<=1){
+                    enemy_map1[1].health-=damage;
+                }
+                if(enemy_map1[1].health<=0){
+                    enemy_map1[1].exe=0;
+                }
+               }
         }
         else if(room==3){
             
@@ -5501,7 +5582,34 @@ int damage_enemy(int level,int room,char weapon){
         
     }
 }
-
+void killing_message(){
+        int yMax, xMax;
+        getmaxyx(stdscr, yMax, xMax);
+        int startY = (yMax - 3) / 2;
+        int startX = (xMax - 40) / 2;
+        
+        for (int i = 0; i < 40; i++) {
+            mvaddch(startY, startX + i, '-');
+            mvaddch(startY + 3 - 1, startX + i, '-');
+        }
+        for (int i = 0; i < 3; i++) {
+            mvaddch(startY + i, startX, '|');
+            mvaddch(startY + i, startX + 40 - 1, '|');
+        }
+        mvaddch(startY, startX, '+');
+        mvaddch(startY, startX + 40 - 1, '+');
+        mvaddch(startY + 3 - 1, startX, '+');
+        mvaddch(startY + 3 - 1, startX + 40 - 1, '+');
+        attron(COLOR_PAIR(3));
+        mvprintw(startY+1, startX + (40 - 6) / 3, "  ELIMINATED");
+        attroff(COLOR_PAIR(3));
+        getch();        
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 40; j++) {
+                mvaddch(startY + i, startX + j, ' ');
+            }
+        }
+}
 
 
 
