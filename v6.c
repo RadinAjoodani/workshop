@@ -1,4 +1,3 @@
-
 #include<ncurses.h>
 #include<string.h>
 #include<stdlib.h>
@@ -8,6 +7,7 @@
 
 #define MAP_HEIGHT 50
 #define MAP_WIDTH 200
+
 typedef struct{
     int normal;
     int special;
@@ -18,6 +18,13 @@ typedef struct{
     int G;
 }Spell;
 typedef struct{
+    int mace;
+    int dagger;
+    int magic_wand;
+    int arrow;
+    int sword;
+}Weapon;
+typedef struct{
     char password[50];
     char email[50];
     char username[50];
@@ -26,13 +33,13 @@ typedef struct{
     int gold;
     int health;
     int power;
-    char weapon;
-    char spell;
     int difficulty;
     int color;
     int level_num;
     Food food_bar;
     Spell spell_bar;
+    Weapon weapon_bar;
+    char current_weapon;
 }User;
 typedef struct{
     int x,y;
@@ -50,6 +57,7 @@ typedef struct{
     char face;
     char perv;
 }Enemy;
+
 char map1[MAP_HEIGHT][MAP_WIDTH];
 char map2[MAP_HEIGHT][MAP_WIDTH];
 char map3[MAP_HEIGHT][MAP_WIDTH];
@@ -68,6 +76,9 @@ Enemy enemy_map4[8];
 int fmsign=0;
 int gmsign1=0;
 int gmsign2=0;
+int sign_d=0;
+int sign_w=0;
+int sign_a=0;
 User l_user;
 User s_user;
 int is_logged_in=0;
@@ -143,6 +154,9 @@ int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]);
 void draw_enemy(Player *player);
 void clear_enemy(Enemy enemy);
 void damage_player(Enemy *enemy,Player *player);
+int weapon_manager(char weapon);
+int weapon_table();
+int damage_enemy(int level,int room,char weapon);
 // void save_information(User user);
 
 int main(){
@@ -163,7 +177,6 @@ int main(){
     getch();
     endwin();
 }
-
 
 void main_menu(){
     curs_set(0);
@@ -548,6 +561,13 @@ void play_as_guest(){
     l_user.spell_bar.H=0;
     l_user.spell_bar.S=0;
     l_user.spell_bar.G=0;
+    l_user.weapon_bar.mace=1;
+    l_user.weapon_bar.dagger=0;
+    l_user.weapon_bar.arrow=0;
+    l_user.weapon_bar.magic_wand=0;
+    l_user.weapon_bar.sword=0;
+    l_user.current_weapon='m';
+    show_count = 0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     placing_enemy_map1();
@@ -830,6 +850,13 @@ void start_new_game(){
     l_user.spell_bar.H=0;
     l_user.spell_bar.S=0;
     l_user.spell_bar.G=0;
+    l_user.weapon_bar.mace=1;
+    l_user.weapon_bar.dagger=0;
+    l_user.weapon_bar.arrow=0;
+    l_user.weapon_bar.magic_wand=0;
+    l_user.weapon_bar.sword=0;
+    l_user.current_weapon='m';
+    show_count = 0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     placing_enemy_map1();
@@ -891,7 +918,7 @@ void continue_last_game(){
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     char ch = map[y][x];
     return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='Q'||ch=='T'||ch=='Z'
-    ||ch=='X'||ch=='%'|ch=='R'|ch=='H'|ch=='8'||ch=='^'||ch=='?';
+    ||ch=='X'||ch=='%'|ch=='R'|ch=='H'|ch=='8'||ch=='^'||ch=='?'||ch=='L'||ch=='J'||ch=='/'||ch=='*';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -1065,6 +1092,22 @@ int create_map1() {
             map1[x][y]='8';
         }
     }
+    int s1 = rand() % 2 + 1 ;
+    for (int i = 0 ; i < s1 ;i++){
+        int x = rand() % 5 + 4;
+        int y = rand() % 19 + 4;
+        if(map1[x][y]!='.'){
+            continue;
+            i--;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map1[x][y]='/';
+        }
+        else if(p==1){
+            map1[x][y]='*';
+        }
+    }
     
 
     map1[5][23] = '+';
@@ -1132,7 +1175,22 @@ int create_map1() {
     map1[18][65] = '+';
     map1[14][55] = 'o';
     map1[8][56] = 'o';
-
+    int s2 = rand() % 3 + 2;
+    for (int i = 0 ; i < s2 ;i++){
+        int x = rand() % 12 + 8;
+        int y = rand() % 14 + 51;
+        if(map1[x][y]!='.'){
+            continue;
+            i--;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map1[x][y]='/';
+        }
+        else if(p==1){
+            map1[x][y]='*';
+        }
+    }
     //  room ۳
     for (int i = 6; i < 17; i++) {
         map1[i][100] = '|';
@@ -1194,7 +1252,22 @@ int create_map1() {
     map1[10][105] = 'o';
     map1[14][102] = 'o';
     map1[15][109] = 'o';
-
+    int s3 = rand() % 2 + 1 ;
+    for (int i = 0 ; i < s3 ;i++){
+        int x = rand() % 9 + 7;
+        int y = rand() % 10 + 101;
+        if(map1[x][y]!='.'){
+            continue;
+            i--;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map1[x][y]='/';
+        }
+        else if(p==1){
+            map1[x][y]='*';
+        }
+    }
     //  room ۴
     for (int i = 20; i < 30; i++) {
         map1[i][150] = '|';
@@ -1253,6 +1326,11 @@ int create_map1() {
         else if(p==2){
             map1[x][y]='8';
         }
+    }
+    for(int i = 0 ; i < 2;i++){
+        int x = rand() % 8 + 21;
+        int y = rand() % 8 + 151;
+        map1[x][y]='^';
     }
     map1[28][158] = '&';
     map1[20][152] = '+';
@@ -1317,7 +1395,16 @@ int create_map1() {
     map1[34][110] = '+';
     map1[31][99] = 'o';
     map1[33][107] = 'o';
-
+    int s5 = rand() % 2;
+    for (int i = 0 ; i < s5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map1[x][y]!='.'){
+            continue;
+            i--;
+        }
+        map1[x][y]='J';
+    }
     //  room ۶
     for (int i = 28; i < 38; i++) {
         map1[i][10] = '|';
@@ -1377,7 +1464,22 @@ int create_map1() {
     map1[30][12] = 'o';
     map1[36][17] = 'o';
     map1[36][13] = '<';
-
+    int s6 = rand() % 3 + 4 ;
+    for (int i = 0 ; i < s6 ;i++){
+        int x = rand() % 8 + 29;
+        int y = rand() % 9 + 11;
+        if(map1[x][y]!='.'){
+            continue;
+            i--;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map1[x][y]='*';
+        }
+        else if(p==1){
+            map1[x][y]='/';
+        }
+    }
     // ایجاد راهروها
     draw_path(24, 5, 59, 6,map1);
     draw_path(66,18, 100, 9,map1);
@@ -1459,12 +1561,28 @@ int create_map2() {
         }
         map2[x][y]='T';
     }
+    
     map2[6][36] = '&';
     map2[12][35] = '+';
     map2[9][48] = '@';
     map2[11][45] = 'o';
     map2[9][37] = 'o';
-
+    int s1 = rand() % 3 + 2;
+    for (int i = 0 ; i < s1 ;i++){
+        int x = rand() % 7 + 6;
+        int y = rand() % 12 + 36;
+        if(map2[x][y]!='.'){
+            continue;
+            i--;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map2[x][y]='/';
+        }
+        else if(p==1){
+            map2[x][y]='*';
+        }
+    }
     //  room ۳
     for (int i = 3; i < 13; i++) {
         map2[i][120] = '|';
@@ -1510,7 +1628,26 @@ int create_map2() {
     map2[5][126] = 'o';
     map2[6][131] = 'o';
     map2[11][122] = 'o';
-
+    int s3 = rand() % 2 +2;
+    for (int i = 0 ; i < s3 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map2[x][y]!='.'){
+            i--;
+            continue;
+            
+        }
+        int p = rand()%3;
+        if(p==0){
+            map2[x][y]='J';
+        }
+        else if(p==1){
+            map2[x][y]='L';
+        }
+        else if(p==2){
+            map2[x][y]='*';
+        }
+    }
     //  room ۴
     for (int i = 30; i < 42; i++) {
         map2[i][160] = '|';
@@ -1565,7 +1702,22 @@ int create_map2() {
     map2[39][160] = '+';
     map2[35][169] = 'o';
     map2[40][163] = 'o';
-
+    int s4 = rand() % 3 + 2;
+    for (int i = 0 ; i < s4 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map2[x][y]!='.'){
+            continue;
+            i--;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map2[x][y]='/';
+        }
+        else if(p==1){
+            map2[x][y]='*';
+        }
+    }
     //  room ۵
     for (int i = 30; i < 36; i++) {
         map2[i][94] = '|';
@@ -1666,7 +1818,22 @@ int create_map2() {
     map2[17][60] = '+';
     map2[20][53] = 'o';
     map2[19][57] = 'o';
-
+    int s6 = rand() % 3 +1;
+    for (int i = 0 ; i < s6 ;i++){
+        int x = rand() % 6 + 166;
+        int y = rand() % 9 + 51;
+        if(map2[x][y]!='.'){
+            continue;
+            i--;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map2[x][y]='/';
+        }
+        else if(p==1){
+            map2[x][y]='*';
+        }
+    }
     //  room ۷
     for (int i = 28; i < 33; i++) {
         map2[i][11] = '|';
@@ -1711,7 +1878,22 @@ int create_map2() {
     map2[28][20] = '+';
     map2[30][12] = 'o';
     map2[29][17] = 'o';
-
+    int s7 = rand() % 3 ;
+    for (int i = 0 ; i < s7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map2[x][y]!='.'){
+            i--;
+            continue;
+        }
+        int p = rand()%2 + 1;
+        if(p==1){
+            map2[x][y]='L';
+        }
+        else if(p==2){
+            map2[x][y]='J';
+        }
+    }
     // ایجاد راهروها
     draw_path(19, 7, 35, 12,map2);
     draw_path(49, 9, 120, 7,map2);
@@ -1785,7 +1967,21 @@ int create_map3() {
     map3[12][41] = '+';
     map3[11][40] = 'o';
     map3[9][37] = 'o';
-
+    int s1 = rand() % 2+1 ;
+    for (int i = 0 ; i < s1 ;i++){
+        int x = rand() % 8 + 7;
+        int y = rand() % 5 + 36;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map3[x][y]='J';
+        }
+        else if(p==1){
+            map3[x][y]='*';
+        }
+    }
     //  room ۲
     for (int i = 12; i < 17; i++) {
         map3[i][70] = '|';
@@ -1841,7 +2037,21 @@ int create_map3() {
     map3[14][84] = '+';
     map3[13][75] = 'o';
     map3[15][80] = 'o';
-
+    int s2 = rand() % 2 + 1;
+    for (int i = 0 ; i < s2 ;i++){
+        int x = rand() % 3 + 13;
+        int y = rand() % 13 + 71;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map3[x][y]='L';
+        }
+        else if(p==1){
+            map3[x][y]='J';
+        }
+    }
     //  room ۳
     for (int i = 5; i < 20; i++) {
         map3[i][125] = '|';
@@ -1906,7 +2116,21 @@ int create_map3() {
     map3[10][140] = 'o';
     map3[15][136] = 'o';
     map3[18][130] = 'o';
-
+    int s3 = rand() % 3 + 1;
+    for (int i = 0 ; i < s3 ;i++){
+        int x = rand() % 13 + 6;
+        int y = rand() % 9 + 126;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='/';
+        }
+        else if(p==1){
+            map3[x][y]='*';
+        }
+    }
     //  room ۴
     for (int i = 30; i < 42; i++) {
         map3[i][160] = '|';
@@ -2035,6 +2259,24 @@ int create_map3() {
             map3[x][y]='8';
         }
     }
+    int s5 = rand() % 2+3;
+    for (int i = 0 ; i < s5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 85;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map3[x][y]='J';
+        }
+        else if(p==1){
+            map3[x][y]='L';
+        }
+        else if(p==2){
+            map3[x][y]='*';
+        }
+    }
     //  room ۶
     for (int i = 21; i < 35; i++) {
         map3[i][12] = '|';
@@ -2088,7 +2330,21 @@ int create_map3() {
     map3[22][26] = '+';
     map3[30][20] = 'o';
     map3[30][20] = '<';
-
+    int s6 = rand() % 3 + 1;
+    for (int i = 0 ; i < s6 ;i++){
+        int x = rand() % 12 + 22;
+        int y = rand() % 13 + 13;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map3[x][y]='/';
+        }
+        else if(p==1){
+            map3[x][y]='*';
+        }
+    }
     // ایجاد راهروها
     draw_path(27, 22, 84, 32,map3);
     draw_path(101, 34, 160, 39,map3);
@@ -2098,7 +2354,6 @@ int create_map3() {
 }
 int create_map4() {
     memset(map4, ' ', sizeof(map4));
-
     //  room ۱
     for (int i = 6; i < 15; i++) {
         map4[i][10] = '|';
@@ -2143,7 +2398,27 @@ int create_map4() {
     map4[7][18] = '+';
     map4[10][12] = 'o';
     map4[8][16] = 'o';
-
+    for (int i = 0 ; i < 4 ;i++){
+        int x = rand() % 7 + 7;
+        int y = rand() % 7 + 11;
+        if(map4[x][y]!='.'){
+            i--;
+            continue;
+        }
+        int p = rand() % 4;
+        if(p==0){
+            map4[x][y]='J';
+        }
+        else if(p==1){
+            map4[x][y]='*';
+        }
+        else if(p==2){
+            map4[x][y]='L';
+        }
+        else if(p==3){
+            map4[x][y]='/';
+        }
+    }
     //  room ۲
     for (int i = 5; i < 14; i++) {
         map4[i][35] = '|';
@@ -2263,7 +2538,21 @@ int create_map4() {
     map4[5][126] = 'o';
     map4[6][131] = 'o';
     map4[11][122] = 'o';
-
+    int s3 = rand() % 2 + 1 ;
+    for (int i = 0 ; i < s3 ;i++){
+        int x = rand() % 8 + 4;
+        int y = rand() % 14 + 121;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map4[x][y]='/';
+        }
+        else if(p==1){
+            map4[x][y]='*';
+        }
+    }
     //  room ۴
     for (int i = 30; i < 42; i++) {
         map4[i][160] = '|';
@@ -2328,7 +2617,21 @@ int create_map4() {
     map4[39][160] = '+';
     map4[35][169] = 'o';
     map4[40][163] = 'o';
-
+    int s4 = rand() % 3 + 2 ;
+    for (int i = 0 ; i < s4 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map4[x][y]='/';
+        }
+        else if(p==1){
+            map4[x][y]='*';
+        }
+    }
     //  room ۵
     for (int i = 30; i < 36; i++) {
         map4[i][94] = '|';
@@ -2391,7 +2694,21 @@ int create_map4() {
     map4[32][94] = '+';
     map4[31][99] = 'o';
     map4[33][107] = 'o';
-
+    int s5 = rand() % 3 + 2 ;
+    for (int i = 0 ; i < s5 ;i++){
+        int x = rand() % 4 + 31;
+        int y = rand() % 15 + 95;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map4[x][y]='*';
+        }
+        else if(p==1){
+            map4[x][y]='/';
+        }
+    }
     //  room ۶
     for (int i = 15; i < 23; i++) {
         map4[i][50] = '|';
@@ -2448,7 +2765,7 @@ int create_map4() {
     map4[20][53] = 'o';
     map4[19][57] = 'o';
 
-    // اتاق ۷
+    // room7
     for (int i = 28; i < 33; i++) {
         map4[i][11] = '|';
         map4[i][26] = '|';
@@ -2511,7 +2828,22 @@ int create_map4() {
     map4[32][24] = '+';
     map4[30][12] = 'o';
     map4[29][17] = 'o';
-
+    int s7 = rand() % 2 + 3 ;
+    for (int i = 0 ; i < s7 ;i++){
+        int x = rand() % 3 + 29;
+        int y = rand() % 14 + 12;
+        if(map4[x][y]!='.'){
+            i--;
+            continue;
+        }
+        int p = rand()%3;
+        if(p==0){
+            map4[x][y]='*';
+        }
+        else if(p==1){
+            map4[x][y]='J';
+        }
+    }
     // room 8
     for (int i = 30; i < 42; i++) {
         map4[i][45] = '|';
@@ -2573,7 +2905,22 @@ int create_map4() {
     }
     map4[33][55] = 'o';
     map4[34][56] = 'o';
-
+    int s8 = rand() % 3 + 2 ;
+    for (int i = 0 ; i < s8 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 46;
+        if(map4[x][y]!='.'){
+            i--;
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map4[x][y]='L';
+        }
+        else if(p==1){
+            map4[x][y]='*';
+        }
+    }
     // ایجاد راهروها
     draw_path(34, 12, 18, 7,map4);
     draw_path(119, 7, 48, 9,map4);
@@ -2654,6 +3001,12 @@ int handle_input(Player *player) {
         case 'p': spell_table();
             refresh_map(player,memory_map1,map1);
             break;
+        case 'i':weapon_table();
+            refresh_map(player,memory_map1,map1);
+            break;
+        case ' ':
+            damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon);
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map1) && map1[new_y][new_x]!='<') {
@@ -2702,6 +3055,13 @@ int handle_input(Player *player) {
                     if(full_spell==0){
                         map1[new_y][new_x]='.';
                     } 
+                }
+            }
+            else if(map1[new_y][new_x]=='L'||map1[new_y][new_x]=='*'||map1[new_y][new_x]=='J'||map1[new_y][new_x]=='/')
+            {
+                if(message(5,40)=='\n'){ 
+                    weapon_manager(map1[new_y][new_x]);
+                    map1[new_y][new_x]='.';
                 }
             }
 
@@ -2772,6 +3132,9 @@ int handle_input(Player *player) {
                 show_full_map_temporarily(player);
             break;
             case 'p': spell_table();
+                refresh_map(player,memory_map2,map2);
+                break;
+            case 'i':weapon_table();
                 refresh_map(player,memory_map2,map2);
                 break;
         }
@@ -2903,6 +3266,9 @@ int handle_input(Player *player) {
             case 'p': spell_table();
                 refresh_map(player,memory_map3,map3);
                 break;
+            case 'i':weapon_table();
+                refresh_map(player,memory_map3,map3);
+                break;
         }
         
 
@@ -3031,6 +3397,9 @@ int handle_input(Player *player) {
             case 'p': spell_table();
                 refresh_map(player,memory_map4,map4);
                 break;
+            case 'i':weapon_table();
+                refresh_map(player,memory_map4,map4);
+                break;
         }
 
         if (is_valid_move(new_x, new_y,map4)) {
@@ -3137,7 +3506,7 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     draw_player(player);
     draw_bar(LINES-2, 12, 20, l_user.health, 10000, "Health");
     draw_bar(LINES-2, 72, 20, l_user.power, 100, "Power");
-    draw_bar(LINES-2, 132, 20, l_user.gold, 10000, "Gold");
+    draw_bar(LINES-2, 132, 20, l_user.gold, 100, "Gold");
     refresh();  
 }
 void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
@@ -4014,7 +4383,7 @@ void placing_enemy_map1(){
             enemy_map1[4].y=y;
             enemy_map1[4].health=30;
             enemy_map1[4].damage=30;
-            enemy_map1[4].following_distance=1000;
+            enemy_map1[4].following_distance=3;
             enemy_map1[4].damage_distance=3;
             enemy_map1[4].face='U';
             map1[y][x]=enemy_map1[4].face;
@@ -4067,7 +4436,7 @@ void placing_enemy_map2(){
             enemy_map2[1].y=y;
             enemy_map2[1].health=30;
             enemy_map2[1].damage=30;
-            enemy_map2[1].following_distance=100;
+            enemy_map2[1].following_distance=3;
             enemy_map2[1].damage_distance=3;
             enemy_map2[1].face='U';
             map2[y][x]=enemy_map2[1].face;
@@ -4118,7 +4487,7 @@ void placing_enemy_map2(){
             enemy_map2[4].y=y;
             enemy_map2[4].health=5;
             enemy_map2[4].damage=3;
-            enemy_map2[4].following_distance=1000;
+            enemy_map2[4].following_distance=3;
             enemy_map2[4].damage_distance=3;
             enemy_map2[4].face='U';
             map2[y][x]=enemy_map2[4].face;
@@ -4171,7 +4540,7 @@ void placing_enemy_map3(){
             enemy_map3[2].y=y;
             enemy_map3[2].health=30;
             enemy_map3[2].damage=30;
-            enemy_map3[2].following_distance=100;
+            enemy_map3[2].following_distance=3;
             enemy_map3[2].damage_distance=3;
             enemy_map3[2].face='U';
             map3[y][x]=enemy_map3[2].face;
@@ -4258,7 +4627,7 @@ void placing_enemy_map4(){
             enemy_map4[3].y=y;
             enemy_map4[3].health=30;
             enemy_map4[3].damage=30;
-            enemy_map4[3].following_distance=100;
+            enemy_map4[3].following_distance=3;
             enemy_map4[3].damage_distance=3;
             enemy_map4[3].face='U';
             map4[y][x]=enemy_map4[3].face;
@@ -4300,22 +4669,27 @@ void draw_enemy(Player *player){
             if(get_room_id(player->x,player->y)==1){
                 if(abs(player->x - enemy_map1[0].x) < enemy_map1[0].following_distance && abs(player->y - enemy_map1[0].y) < enemy_map1[0].following_distance){
                     damage_player(&enemy_map1[0],player);
-                    damage_player(&enemy_map1[0],player);
                     new_x=enemy_map1[0].x;
                     new_y=enemy_map1[0].y;
-                    int x0=enemy_map1[0].x;
+                    int x0 =enemy_map1[0].x;
                     int y0=enemy_map1[0].y;
-                    int s = rand()%2;
+                    int static flag;
+                    flag=0;
+                    int s = 1;
                     if (player->x > enemy_map1[0].x) if(s)new_x++;
                     else if (player->x < enemy_map1[0].x)if(s) new_x--;
                     if (player->y > enemy_map1[0].y) if(s)new_y++;
                     else if (player->y < enemy_map1[0].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map1)){
-                        map1[y0][x0]='.';
+                        if(flag==0){
+                            map1[y0][x0]='.';
+                            flag=1;
+                        }
                         enemy_map1[0].perv=map1[enemy_map1[0].y][enemy_map1[0].x];
                         clear_enemy(enemy_map1[0]);
                         enemy_map1[0].x=new_x;
                         enemy_map1[0].y=new_y;
+                        map1[new_y][new_x]=enemy_map1[0].face;
                         mvprintw(enemy_map1[0].y,enemy_map1[0].x,"%c",enemy_map1[0].face);
                     }
                 }
@@ -4327,17 +4701,24 @@ void draw_enemy(Player *player){
                     new_y=enemy_map1[1].y;
                     int x0=enemy_map1[1].x;
                     int y0=enemy_map1[1].y;
-                    int s = rand()%2;
+                    int s = 1;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map1[1].x) if(s)new_x++;
                     else if (player->x < enemy_map1[1].x) if(s)new_x--;
                     if (player->y > enemy_map1[1].y) if(s)new_y++;
                     else if (player->y < enemy_map1[1].y) if(s)new_y--;
                     if(is_valid_enemy(new_y,new_x,map1)){
+                        if(flag==0){
+                            map1[y0][x0]='.';
+                            flag=1;
+                        }
                         map1[y0][x0]='.';
                         enemy_map1[1].perv=map1[enemy_map1[1].y][enemy_map1[1].x];
                         clear_enemy(enemy_map1[1]);
                         enemy_map1[1].x=new_x;
                         enemy_map1[1].y=new_y;
+                        map1[new_y][new_x]=enemy_map1[1].face;
                         mvprintw(enemy_map1[1].y,enemy_map1[1].x,"%c",enemy_map1[1].face);
                     }
                 }
@@ -4350,16 +4731,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map1[2].x;
                     int y0=enemy_map1[2].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map1[2].x)if(s) new_x++;
                     else if (player->x < enemy_map1[2].x)if(s) new_x--;
                     if (player->y > enemy_map1[2].y)if(s) new_y++;
                     else if (player->y < enemy_map1[2].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map1)){
+                        if(flag==0){
+                            map1[y0][x0]='.';
+                            flag=1;
+                        }
                         map1[y0][x0]='.';
                         enemy_map1[2].perv=map1[enemy_map1[2].y][enemy_map1[2].x];
                         clear_enemy(enemy_map1[2]);
                         enemy_map1[2].x=new_x;
                         enemy_map1[2].y=new_y;
+                        map1[new_y][new_x]=enemy_map1[2].face;
                         mvprintw(enemy_map1[2].y,enemy_map1[2].x,"%c",enemy_map1[2].face);
                     }
                 }
@@ -4376,16 +4764,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map1[3].x;
                     int y0=enemy_map1[3].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map1[3].x)if(s) new_x++;
                     else if (player->x < enemy_map1[3].x)if(s) new_x--;
                     if (player->y > enemy_map1[3].y)if(s) new_y++;
                     else if (player->y < enemy_map1[3].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map1)){
+                        if(flag==0){
+                            map1[y0][x0]='.';
+                            flag=1;
+                        }
                         map1[y0][x0]='.';
                         enemy_map1[3].perv=map1[enemy_map1[3].y][enemy_map1[3].x];
                         clear_enemy(enemy_map1[3]);
                         enemy_map1[3].x=new_x;
                         enemy_map1[3].y=new_y;
+                        map1[new_y][new_x]=enemy_map1[3].face;
                         mvprintw(enemy_map1[3].y,enemy_map1[3].x,"%c",enemy_map1[3].face);
                     }
                 }
@@ -4398,16 +4793,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map1[4].x;
                     int y0=enemy_map1[4].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map1[4].x)if(s) new_x++;
                     else if (player->x < enemy_map1[4].x)if(s) new_x--;
                     if (player->y > enemy_map1[4].y)if(s) new_y++;
                     else if (player->y < enemy_map1[4].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map1)){
+                        if(flag==0){
+                            map1[y0][x0]='.';
+                            flag=1;
+                        }
                         map1[y0][x0]='.';
                         enemy_map1[4].perv=map1[enemy_map1[4].y][enemy_map1[4].x];
                         clear_enemy(enemy_map1[4]);
                         enemy_map1[4].x=new_x;
                         enemy_map1[4].y=new_y;
+                        map1[new_y][new_x]=enemy_map1[4].face;
                         mvprintw(enemy_map1[4].y,enemy_map1[4].x,"%c",enemy_map1[4].face);
                     }
                 }
@@ -4420,16 +4822,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map1[5].x;
                     int y0=enemy_map1[5].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map1[5].x)if(s) new_x++;
                     else if (player->x < enemy_map1[5].x)if(s) new_x--;
                     if (player->y > enemy_map1[5].y)if(s) new_y++;
                     else if (player->y < enemy_map1[5].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map1)){
+                        if(flag==0){
+                            map1[y0][x0]='.';
+                            flag=1;
+                        }
                         map1[y0][x0]='.';
                         enemy_map1[5].perv=map1[enemy_map1[5].y][enemy_map1[5].x];
                         clear_enemy(enemy_map1[5]);
                         enemy_map1[5].x=new_x;
                         enemy_map1[5].y=new_y;
+                        map1[new_y][new_x]=enemy_map1[5].face;
                         mvprintw(enemy_map1[5].y,enemy_map1[5].x,"%c",enemy_map1[5].face);
                     }
                 }
@@ -4445,16 +4854,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map2[0].x;
                     int y0=enemy_map2[0].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map2[0].x)if(s) new_x++;
                     else if (player->x < enemy_map2[0].x)if(s) new_x--;
                     if (player->y > enemy_map2[0].y)if(s) new_y++;
                     else if (player->y < enemy_map2[0].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map2)){
+                        if(flag==0){
+                            map2[y0][x0]='.';
+                            flag=1;
+                        }
                         map2[y0][x0]='.';
                         enemy_map2[0].perv=map2[enemy_map2[0].y][enemy_map2[0].x];
                         clear_enemy(enemy_map2[0]);
                         enemy_map2[0].x=new_x;
                         enemy_map2[0].y=new_y;
+                        map2[new_y][new_x]=enemy_map2[0].face;
                         mvprintw(enemy_map2[0].y,enemy_map2[0].x,"%c",enemy_map2[0].face);
                     }
                 }
@@ -4468,16 +4884,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map2[1].x;
                     int y0=enemy_map2[1].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map2[1].x)if(s) new_x++;
                     else if (player->x < enemy_map2[1].x)if(s) new_x--;
                     if (player->y > enemy_map2[1].y)if(s) new_y++;
                     else if (player->y < enemy_map2[1].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map2)){
+                        if(flag==0){
+                            map2[y0][x0]='.';
+                            flag=1;
+                        }
                         map2[y0][x0]='.';
                         enemy_map2[1].perv=map2[enemy_map2[1].y][enemy_map2[1].x];
                         clear_enemy(enemy_map2[1]);
                         enemy_map2[1].x=new_x;
                         enemy_map2[1].y=new_y;
+                        map2[new_y][new_x]=enemy_map2[1].face;
                         mvprintw(enemy_map2[1].y,enemy_map2[1].x,"%c",enemy_map2[1].face);
                     }
                 }
@@ -4490,17 +4913,24 @@ void draw_enemy(Player *player){
                     new_y=enemy_map2[2].y;
                     int x0=enemy_map2[2].x;
                     int y0=enemy_map2[2].y;
-                    int s = rand()%2;
+                    int s = 1;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map2[2].x)if(s) new_x++;
                     else if (player->x < enemy_map2[2].x)if(s) new_x--;
                     if (player->y > enemy_map2[2].y)if(s) new_y++;
                     else if (player->y < enemy_map2[2].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map2)){
+                        if(flag==0){
+                            map2[y0][x0]='.';
+                            flag=1;
+                        }
                         map2[y0][x0]='.';
                         enemy_map2[2].perv=map2[enemy_map2[2].y][enemy_map2[2].x];
                         clear_enemy(enemy_map2[2]);
                         enemy_map2[2].x=new_x;
                         enemy_map2[2].y=new_y;
+                        map2[new_y][new_x]=enemy_map2[2].face;
                         mvprintw(enemy_map2[2].y,enemy_map2[2].x,"%c",enemy_map2[2].face);
                     }
                 }
@@ -4514,16 +4944,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map2[3].x;
                     int y0=enemy_map2[3].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map2[3].x)if(s) new_x++;
                     else if (player->x < enemy_map2[3].x)if(s) new_x--;
                     if (player->y > enemy_map2[3].y)if(s) new_y++;
                     else if (player->y < enemy_map2[3].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map2)){
+                        if(flag==0){
+                            map2[y0][x0]='.';
+                            flag=1;
+                        }
                         map2[y0][x0]='.';
                         enemy_map2[3].perv=map2[enemy_map2[3].y][enemy_map2[3].x];
                         clear_enemy(enemy_map2[3]);
                         enemy_map2[3].x=new_x;
                         enemy_map2[3].y=new_y;
+                        map2[new_y][new_x]=enemy_map2[3].face;
                         mvprintw(enemy_map2[3].y,enemy_map2[3].x,"%c",enemy_map2[3].face);
                     }
                 }
@@ -4537,16 +4974,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map2[4].x;
                     int y0=enemy_map2[4].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map2[4].x)if(s) new_x++;
                     else if (player->x < enemy_map2[4].x)if(s) new_x--;
                     if (player->y > enemy_map2[4].y)if(s) new_y++;
                     else if (player->y < enemy_map2[4].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map2)){
+                        if(flag==0){
+                            map2[y0][x0]='.';
+                            flag=1;
+                        }
                         map2[y0][x0]='.';
                         enemy_map2[4].perv=map2[enemy_map2[4].y][enemy_map2[4].x];
                         clear_enemy(enemy_map2[4]);
                         enemy_map2[4].x=new_x;
                         enemy_map2[4].y=new_y;
+                        map2[new_y][new_x]=enemy_map2[4].face;
                         mvprintw(enemy_map2[4].y,enemy_map2[4].x,"%c",enemy_map2[4].face);
                     }
                 }
@@ -4561,17 +5005,24 @@ void draw_enemy(Player *player){
                     new_y=enemy_map3[0].y;
                     int x0=enemy_map3[0].x;
                     int y0=enemy_map3[0].y;
-                    int s = rand()%2;
+                    int s = 1;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map3[0].x)if(s) new_x++;
                     else if (player->x < enemy_map3[0].x)if(s) new_x--;
                     if (player->y > enemy_map3[0].y)if(s) new_y++;
                     else if (player->y < enemy_map3[0].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map3)){
+                        if(flag==0){
+                            map3[y0][x0]='.';
+                            flag=1;
+                        }
                         map3[y0][x0]='.';
                         enemy_map3[0].perv=map3[enemy_map3[0].y][enemy_map3[0].x];
                         clear_enemy(enemy_map3[0]);
                         enemy_map3[0].x=new_x;
                         enemy_map3[0].y=new_y;
+                        map3[new_y][new_x]=enemy_map3[0].face;
                         mvprintw(enemy_map3[0].y,enemy_map3[0].x,"%c",enemy_map3[0].face);
                     }
                 }
@@ -4585,16 +5036,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map3[1].x;
                     int y0=enemy_map3[1].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map3[1].x)if(s) new_x++;
                     else if (player->x < enemy_map3[1].x)if(s) new_x--;
                     if (player->y > enemy_map3[1].y)if(s) new_y++;
                     else if (player->y < enemy_map3[1].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map3)){
+                        if(flag==0){
+                            map3[y0][x0]='.';
+                            flag=1;
+                        }
                         map3[y0][x0]='.';
                         enemy_map3[1].perv=map3[enemy_map3[1].y][enemy_map3[1].x];
                         clear_enemy(enemy_map3[1]);
                         enemy_map3[1].x=new_x;
                         enemy_map3[1].y=new_y;
+                        map3[new_y][new_x]=enemy_map3[1].face;
                         mvprintw(enemy_map3[1].y,enemy_map3[1].x,"%c",enemy_map3[1].face);
                     }
                 }
@@ -4608,16 +5066,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map3[2].x;
                     int y0=enemy_map3[2].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map3[2].x)if(s) new_x++;
                     else if (player->x < enemy_map3[2].x)if(s) new_x--;
                     if (player->y > enemy_map3[2].y)if(s) new_y++;
                     else if (player->y < enemy_map3[2].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map3)){
+                        if(flag==0){
+                            map3[y0][x0]='.';
+                            flag=1;
+                        }
                         map3[y0][x0]='.';
                         enemy_map3[2].perv=map3[enemy_map3[2].y][enemy_map3[2].x];
                         clear_enemy(enemy_map3[2]);
                         enemy_map3[2].x=new_x;
                         enemy_map3[2].y=new_y;
+                        map3[new_y][new_x]=enemy_map3[2].face;
                         mvprintw(enemy_map3[2].y,enemy_map3[2].x,"%c",enemy_map3[2].face);
                     }
                 }
@@ -4631,16 +5096,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map3[3].x;
                     int y0=enemy_map3[3].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map3[3].x)if(s) new_x++;
                     else if (player->x < enemy_map3[3].x)if(s) new_x--;
                     if (player->y > enemy_map3[3].y)if(s) new_y++;
                     else if (player->y < enemy_map3[3].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map3)){
+                        if(flag==0){
+                            map3[y0][x0]='.';
+                            flag=1;
+                        }
                         map3[y0][x0]='.';
                         enemy_map3[3].perv=map3[enemy_map3[3].y][enemy_map3[3].x];
                         clear_enemy(enemy_map3[3]);
                         enemy_map3[3].x=new_x;
                         enemy_map3[3].y=new_y;
+                        map3[new_y][new_x]=enemy_map3[3].face;
                         mvprintw(enemy_map3[3].y,enemy_map3[3].x,"%c",enemy_map3[3].face);
                     }
                 }
@@ -4656,16 +5128,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map4[0].x;
                     int y0=enemy_map4[0].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map4[0].x)if(s) new_x++;
                     else if (player->x < enemy_map4[0].x)if(s) new_x--;
                     if (player->y > enemy_map4[0].y)if(s) new_y++;
                     else if (player->y < enemy_map4[0].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map4)){
+                        if(flag==0){
+                            map4[y0][x0]='.';
+                            flag=1;
+                        }
                         map4[y0][x0]='.';
                         enemy_map4[0].perv=map4[enemy_map4[0].y][enemy_map4[0].x];
                         clear_enemy(enemy_map4[0]);
                         enemy_map4[0].x=new_x;
                         enemy_map4[0].y=new_y;
+                        map4[new_y][new_x]=enemy_map4[0].face;
                         mvprintw(enemy_map4[0].y,enemy_map4[0].x,"%c",enemy_map4[0].face);
                     }
                 }
@@ -4679,16 +5158,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map4[1].x;
                     int y0=enemy_map4[1].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map4[1].x)if(s) new_x++;
                     else if (player->x < enemy_map4[1].x)if(s) new_x--;
                     if (player->y > enemy_map4[1].y)if(s) new_y++;
                     else if (player->y < enemy_map4[1].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map4)){
+                        if(flag==0){
+                            map4[y0][x0]='.';
+                            flag=1;
+                        }
                         map4[y0][x0]='.';
                         enemy_map4[1].perv=map4[enemy_map4[1].y][enemy_map4[1].x];
                         clear_enemy(enemy_map4[1]);
                         enemy_map4[1].x=new_x;
                         enemy_map4[1].y=new_y;
+                        map4[new_y][new_x]=enemy_map4[1].face;
                         mvprintw(enemy_map4[1].y,enemy_map4[1].x,"%c",enemy_map4[1].face);
                     }
                 }
@@ -4702,16 +5188,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map4[2].x;
                     int y0=enemy_map4[2].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map4[2].x)if(s) new_x++;
                     else if (player->x < enemy_map4[2].x)if(s) new_x--;
                     if (player->y > enemy_map4[2].y)if(s) new_y++;
                     else if (player->y < enemy_map4[2].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map4)){
+                        if(flag==0){
+                            map4[y0][x0]='.';
+                            flag=1;
+                        }
                         map4[y0][x0]='.';
                         enemy_map4[2].perv=map4[enemy_map4[2].y][enemy_map4[2].x];
                         clear_enemy(enemy_map4[2]);
                         enemy_map4[2].x=new_x;
                         enemy_map4[2].y=new_y;
+                        map4[new_y][new_x]=enemy_map4[2].face;
                         mvprintw(enemy_map4[2].y,enemy_map4[2].x,"%c",enemy_map4[2].face);
                     }
                 }
@@ -4725,16 +5218,23 @@ void draw_enemy(Player *player){
                     int x0=enemy_map4[3].x;
                     int y0=enemy_map4[3].y;
                     int s = rand()%2;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map4[3].x)if(s) new_x++;
                     else if (player->x < enemy_map4[3].x)if(s) new_x--;
                     if (player->y > enemy_map4[3].y)if(s) new_y++;
                     else if (player->y < enemy_map4[3].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map4)){
+                        if(flag==0){
+                            map4[y0][x0]='.';
+                            flag=1;
+                        }
                         map4[y0][x0]='.';
                         enemy_map4[3].perv=map4[enemy_map4[3].y][enemy_map4[3].x];
                         clear_enemy(enemy_map4[3]);
                         enemy_map4[3].x=new_x;
                         enemy_map4[3].y=new_y;
+                        map4[new_y][new_x]=enemy_map4[3].face;
                         mvprintw(enemy_map4[3].y,enemy_map4[3].x,"%c",enemy_map4[3].face);
                     }
                 }
@@ -4747,17 +5247,24 @@ void draw_enemy(Player *player){
                     new_y=enemy_map4[4].y;
                     int x0=enemy_map4[4].x;
                     int y0=enemy_map4[4].y;
-                    int s = rand()%2;
+                    int s = 1;
+                    int static flag;
+                    flag=0;
                     if (player->x > enemy_map4[4].x)if(s) new_x++;
                     else if (player->x < enemy_map4[4].x)if(s) new_x--;
                     if (player->y > enemy_map4[4].y)if(s) new_y++;
                     else if (player->y < enemy_map4[4].y)if(s) new_y--;
                     if(is_valid_enemy(new_y,new_x,map4)){
+                        if(flag==0){
+                            map4[y0][x0]='.';
+                            flag=1;
+                        }
                         map4[y0][x0]='.';
                         enemy_map4[4].perv=map4[enemy_map4[4].y][enemy_map4[4].x];
                         clear_enemy(enemy_map4[4]);
                         enemy_map4[4].x=new_x;
                         enemy_map4[4].y=new_y;
+                        map4[new_y][new_x]=enemy_map4[4].face;
                         mvprintw(enemy_map4[4].y,enemy_map4[4].x,"%c",enemy_map4[4].face);
                     }
                 }
@@ -4807,8 +5314,193 @@ void damage_player(Enemy *enemy,Player *player){
         }
     }
 }
+int weapon_manager(char weapon){
+    if(weapon=='/'){
+        if(sign_d==1){
+            l_user.weapon_bar.dagger++;
+        }
+        else{
+            l_user.weapon_bar.dagger+=10;
 
+        }
+    }
+    else if(weapon=='*'){
+        if(sign_d==1){
+            l_user.weapon_bar.arrow++;
+        }
+        else{
+            l_user.weapon_bar.arrow+=20;
 
+        }
+    }
+    else if(weapon=='L'){
+        l_user.weapon_bar.dagger=1;;         
+    }
+    else if(weapon=='J'){
+        if(sign_d==1){
+            l_user.weapon_bar.magic_wand++;
+        }
+        else{
+            l_user.weapon_bar.magic_wand+=8;
+
+        }
+    }
+}
+int weapon_table(){
+    clear();
+    int height = 10;
+    int width = 62;
+    int start_y = (LINES - height) / 2;  
+    int start_x = (COLS - width) / 2;   
+    for (int i = start_x; i < start_x + width; i++) {
+        mvaddch(start_y, i, ACS_HLINE);         
+        mvaddch(start_y + height - 1, i, ACS_HLINE);
+    }
+    for (int i = start_y; i < start_y + height; i++) {
+        mvaddch(i, start_x, ACS_VLINE);         
+        mvaddch(i, start_x + width - 1, ACS_VLINE); 
+    }
+    mvaddch(start_y, start_x, ACS_ULCORNER);             
+    mvaddch(start_y, start_x + width - 1, ACS_URCORNER); 
+    mvaddch(start_y + height - 1, start_x, ACS_LLCORNER);
+    mvaddch(start_y + height - 1, start_x + width - 1, ACS_LRCORNER); 
+    int center_x = start_x + width / 2;
+    for (int i = start_y + 1; i < start_y + height - 1; i++) {
+        mvaddch(i, center_x, ACS_VLINE);
+    }
+    mvprintw(start_y,start_x+9,"SHORT RANGE :");
+    mvprintw(start_y+4,start_x+6,"MACE : YOU HAVE IT");
+    if(l_user.weapon_bar.sword==1){
+        mvprintw(start_y+5,start_x+6,"SWORD :YOU HAVE IT");
+    }
+    else{
+        mvprintw(start_y+5,start_x+6,"SWORD :YOU DON'T HAVE IT");
+    }
+    mvprintw(start_y,start_x+39,"LOG RANGE :");
+    mvprintw(start_y+4,start_x+35,"NUMBER OF MAGIC WANDS : %d",l_user.weapon_bar.magic_wand);
+    mvprintw(start_y+5,start_x+35,"NUMBER OF ARROWS : %d",l_user.weapon_bar.arrow);
+    mvprintw(start_y+6,start_x+35,"NUMBER OF DAGGERS : %d",l_user.weapon_bar.dagger);
+    mvprintw(start_y+11,start_x+3,"                           MACE PRESS m");
+    mvprintw(start_y+12,start_x+3,"                           SWORD PRESS s");
+    mvprintw(start_y+13,start_x+3,"CHANGE CURRENT WEAPON TO : MAGIC WAND PRESS w");
+    mvprintw(start_y+14,start_x+3,"                           ARROWS PRESS a");
+    mvprintw(start_y+15,start_x+3,"                           DAGGERS PRESS d");
+    mvprintw(start_y+17,start_x+3,"PRESS ANY KEY TO EXIT");
+    int ch = getch();
+    switch (ch)
+    {
+    case 'm':
+        l_user.current_weapon='m';
+        mvprintw(start_y-5,start_x+26,"MACE !");
+        getch();
+        break;
+    case 's':
+    if(l_user.weapon_bar.sword==1){
+        l_user.current_weapon='s';
+        mvprintw(start_y-5,start_x+26,"SWORD !");
+    }
+    else{
+        mvprintw(start_y-5,start_x+14,"YOU DON'T HAVE ENOUGH SWORD");
+    }
+        getch();
+        break;
+    case 'w':
+    if(l_user.weapon_bar.magic_wand>0){
+        l_user.weapon_bar.magic_wand--;
+        l_user.current_weapon='w';
+        mvprintw(start_y-5,start_x+26,"MAGIC WAND !");
+    }
+    else{
+        mvprintw(start_y-5,start_x+14,"YOU DON'T HAVE ENOUGH MAGIC WAND");
+    }
+        getch();
+        break;
+    case 'a':
+        if(l_user.weapon_bar.arrow>0){
+            l_user.weapon_bar.arrow--;
+            l_user.current_weapon='a';
+            mvprintw(start_y-5,start_x+26,"ARROWS!");
+        }
+        else{
+            mvprintw(start_y-5,start_x+14,"YOU DON'T HAVE ENOUGH ARROWS");
+        }
+        getch();
+        break;
+    case 'd':
+        if(l_user.weapon_bar.dagger>0){
+            l_user.weapon_bar.dagger--;
+            l_user.current_weapon='d';
+            mvprintw(start_y-5,start_x+26,"DAGGER !");
+        }
+        else{
+            mvprintw(start_y-5,start_x+14,"YOU DON'T HAVE ENOUGH DAGGER");
+        }
+        getch();
+        break;
+    default:
+        break;
+    }
+    clear();
+}
+int damage_enemy(int level,int room,char weapon){
+    int direction = getch();
+    int aim;
+    switch (direction)
+    {
+    case '8':
+        break;
+    case '4':
+        break;
+    case '2':
+        break;
+    case '6':
+        break;
+    default:
+        break;
+    }
+    int damage;
+    switch(weapon){
+        case 'm':
+        damage=5;
+        case 'd':
+        damage=12;
+        case 'w':
+        damage=15;
+        case 'a':
+        damage=5;
+        case 's':
+        damage=10;
+    }
+    if(level==1){
+        if(room==1){
+
+        }
+        else if(room==2){
+            
+        }
+        else if(room==3){
+            
+        }
+        else if(room==4){
+            
+        }
+        else if(room==5){
+            
+        }
+        else if(room==6){
+            
+        }
+    }
+    else if(level==2){
+        
+    }
+    else if(level==3){
+        
+    }
+    else if(level==4){
+        
+    }
+}
 
 
 
