@@ -1,15 +1,15 @@
-#include<ncurses.h>
+#include<ncursesw/ncurses.h>
 #include<string.h>
 #include<stdlib.h>
 #include<unistd.h>
 #include<time.h>
 #include<math.h>
-#include<ncurses.h>
+#include<locale.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <stdbool.h>
-
+#include <wchar.h>
 #define MAP_HEIGHT 50
 #define MAP_WIDTH 200
 typedef enum {
@@ -186,10 +186,12 @@ void refresh_map2(Player *player);
 int damage_enemy2(char weapon,Player *player);
 void music();
 void displayMusicList(const char *musicFiles[], int count);
+void final_result(int x);
 // void save_information(User user);
 
 int main(){
-    initscr();        
+    initscr(); 
+    setlocale(LC_ALL, "");       
     noecho();       
     cbreak();         
     keypad(stdscr, TRUE);
@@ -591,6 +593,7 @@ void play_as_guest(){
     clear();
     l_user.level_num=1;
     l_user.gold = 0;
+    l_user.score=0;
     l_user.health=10000;
     l_user.power=100;
     l_user.difficulty=1;
@@ -619,24 +622,36 @@ void play_as_guest(){
     }
 }
 void show_table(){
-    clear();
-    mvprintw(1, 1, "Score Table:");
-
+    clear();    
+    if (has_colors()) {
+        start_color();
+        init_pair(1, COLOR_CYAN, COLOR_BLACK);     
+        init_pair(2, COLOR_YELLOW, COLOR_BLACK);   
+        init_pair(3, COLOR_GREEN, COLOR_BLACK);    
+        init_pair(4, COLOR_MAGENTA, COLOR_BLACK);   
+        init_pair(5, COLOR_BLUE, COLOR_BLACK);     
+        init_pair(6, COLOR_WHITE, COLOR_BLACK);    
+    } 
+    int table_width = 70;   
+    int start_x = (COLS - table_width) / 2;
+    int start_y = 2;
+    attron(COLOR_PAIR(1) | A_BOLD);
+    mvprintw(start_y, start_x, "SCORE TABLE");
+    attroff(COLOR_PAIR(1) | A_BOLD);
     FILE *file = fopen("users.txt", "r");
     if (!file) {
-        mvprintw(3, 1, "Error: Unable to open users file.");
+        attron(COLOR_PAIR(1));
+        mvprintw(start_y + 2, start_x, "Error: Unable to open users file.");
+        attroff(COLOR_PAIR(1));
         getch();
         return;
     }
-
     User users[100];
     int user_count = 0;
-
-    while (fscanf(file, "%s %s %s %d %d %d %d %d", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score,&users[user_count].gold,&users[user_count].game,&users[user_count].color,&users[user_count].difficulty) != EOF) {
+    while (fscanf(file, "%s %s %s %d %d %d %d %d", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score, &users[user_count].gold, &users[user_count].game, &users[user_count].color, &users[user_count].difficulty) != EOF) {
         user_count++;
     }
     fclose(file);
-
     for (int i = 0; i < user_count - 1; i++) {
         for (int j = 0; j < user_count - i - 1; j++) {
             if (users[j].score < users[j + 1].score) {
@@ -646,37 +661,42 @@ void show_table(){
             }
         }
     }
-
     for (int i = 0; i < user_count; i++) {
-        if(!strcmp(users[i].username,l_user.username)){
-            attron(COLOR_PAIR(2));
+           
+        if (!strcmp(users[i].username, l_user.username)) {
+            attron(COLOR_PAIR(2) | A_BOLD);
         }
-        if(i==0){
-            attron(A_BOLD);
-            mvprintw(3 + i, 1, "%d. %s - Score: %d gold %d: game-played: %d(THE GOAT)", i + 1, users[i].username, users[i].score,users[i].gold,users[i].game);
-            attroff(A_BOLD);
-        }
-        else if(i==1){
-            attron(A_BOLD);
-            mvprintw(3 + i, 1, "%d. %s - Score: %d gold %d: game-played: %d(ALMOST GOAT)", i + 1, users[i].username, users[i].score,users[i].gold,users[i].game);
-            attroff(A_BOLD);
-        }
-        else if(i==2){
-            attron(A_BOLD);
-            mvprintw(3 + i, 1, "%d. %s - Score: %d gold %d: game-played: %d(SEMI GOAT)", i + 1, users[i].username, users[i].score,users[i].gold,users[i].game);
-            attroff(A_BOLD);
-        }
-        else {
-            
-            mvprintw(3 + i, 1, "%d. %s - Score: %d gold %d: game-played: %d", i + 1, users[i].username, users[i].score,users[i].gold,users[i].game);
-        }
-        if(!strcmp(users[i].username,l_user.username)){
-            attroff(COLOR_PAIR(2));
+        if (i > 0) {
+            attron(COLOR_PAIR(6));
+            mvprintw(start_y + 3 + i * 2 - 1, start_x, "------------------------------------------------------");
+            attroff(COLOR_PAIR(6));
+        }   
+        if (i == 0) {
+            attron(COLOR_PAIR(3) | A_BOLD);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (THE GOAT)\u24F5", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            attroff(COLOR_PAIR(3) | A_BOLD);
+        } else if (i == 1) {
+            attron(COLOR_PAIR(4) | A_BOLD);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (ALMOST GOAT)\u24F6", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            attroff(COLOR_PAIR(4) | A_BOLD);
+        } else if (i == 2) {
+            attron(COLOR_PAIR(5) | A_BOLD);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (SEMI GOAT)\u24F7", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            attroff(COLOR_PAIR(5) | A_BOLD);
+        } else {
+            attron(COLOR_PAIR(6));
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            attroff(COLOR_PAIR(6));
+        }   
+        if (!strcmp(users[i].username, l_user.username)) {
+            attroff(COLOR_PAIR(2) | A_BOLD);
         }
     }
-
-    mvprintw(5 + user_count, 1, "Press any key to return.");
-    getch();
+    attron(COLOR_PAIR(1) | A_BOLD);
+    mvprintw(start_y + 5 + user_count * 2, start_x, "Press any key to return.");
+    attroff(COLOR_PAIR(1) | A_BOLD);
+    refresh();    
+    getch();      
 }
 void profile(){
     if(is_logged_in){
@@ -883,6 +903,7 @@ void start_new_game(){
     clear();
     l_user.level_num=1;
     l_user.gold = 0;
+    l_user.score=0;
     l_user.health=10000;
     l_user.power=100;
     l_user.food_bar.normal=0;
@@ -2978,10 +2999,7 @@ int create_map4() {
 int handle_input(Player *player) {
     if(l_user.health<=0){
         clear();
-        mvprintw(17,80,"YOU LOST");
-        mvprintw(18,80,"PRESS ANY KEY TO RETURN TO MAIN MENU");
-        getch();
-        main_menu();
+        final_result(0);
     }
     if(l_user.level_num==1){
         int ch = getch();
@@ -3614,9 +3632,28 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     draw_visible_map(player->x, player->y,memory_map,map);
     draw_enemy(player);
     draw_player(player);
-    draw_bar(LINES-2, 12, 20, l_user.health, 10000, "Health");
-    draw_bar(LINES-2, 72, 20, l_user.power, 100, "Power");
+    draw_bar(LINES-2, 5, 20, l_user.health, 10000, "Health");
+    draw_bar(LINES-2, 72, 20, l_user.score, 100, "Score");
     draw_bar(LINES-2, 132, 20, l_user.gold, 100, "Gold");
+    attron(COLOR_PAIR(10));
+    switch(l_user.current_weapon){
+        case 'm':
+            mvprintw(LINES-4,5,"current weapon : MACE");
+        break;
+        case 'd':
+            mvprintw(LINES-4,5,"current weapon : DAGGER %d",l_user.weapon_bar.dagger);
+        break;
+        case 'w':
+            mvprintw(LINES-4,5,"current weapon : MAGIC WAND %d",l_user.weapon_bar.magic_wand);
+        break;
+        case 'a':
+            mvprintw(LINES-4,5,"current weapon : ARROWS %d",l_user.weapon_bar.arrow);
+        break;
+        case 's':
+            mvprintw(LINES-4,5,"current weapon : SWORD");
+        break;
+    }
+    attroff(COLOR_PAIR(10));
     refresh();  
 }
 void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
@@ -4461,7 +4498,7 @@ void placing_enemy_map1(){
             enemy_map1[2].y=y;
             enemy_map1[2].health=5;
             enemy_map1[2].damage=3;
-            enemy_map1[2].following_distance=1;
+            enemy_map1[2].following_distance=0;
             enemy_map1[2].damage_distance=2;
             enemy_map1[2].face='D';
             enemy_map1[2].exe=1;
@@ -4535,7 +4572,7 @@ void placing_enemy_map2(){
             enemy_map2[0].y=y;
             enemy_map2[0].health=5;
             enemy_map2[0].damage=3;
-            enemy_map2[0].following_distance=2;
+            enemy_map2[0].following_distance=0;
             enemy_map2[0].damage_distance=2;
             enemy_map2[0].face='D';
             enemy_map2[0].exe=1;
@@ -4553,8 +4590,8 @@ void placing_enemy_map2(){
             enemy_map2[1].y=y;
             enemy_map2[1].health=30;
             enemy_map2[1].damage=30;
-            enemy_map2[1].following_distance=3;
-            enemy_map2[1].damage_distance=3;
+            enemy_map2[1].following_distance=2;
+            enemy_map2[1].damage_distance=2;
             enemy_map2[1].face='U';
             enemy_map2[1].exe=1;
             map2[y][x]=enemy_map2[1].face;
@@ -4572,7 +4609,7 @@ void placing_enemy_map2(){
             enemy_map2[2].health=20;
             enemy_map2[2].damage=20;
             enemy_map2[2].following_distance=100;
-            enemy_map2[2].damage_distance=6;
+            enemy_map2[2].damage_distance=3;
             enemy_map2[2].face='S';
             enemy_map2[2].exe=1;
             map2[y][x]=enemy_map2[2].face;
@@ -4607,8 +4644,8 @@ void placing_enemy_map2(){
             enemy_map2[4].y=y;
             enemy_map2[4].health=5;
             enemy_map2[4].damage=3;
-            enemy_map2[4].following_distance=3;
-            enemy_map2[4].damage_distance=3;
+            enemy_map2[4].following_distance=2;
+            enemy_map2[4].damage_distance=2;
             enemy_map2[4].face='U';
             enemy_map2[4].exe=1;
             map2[y][x]=enemy_map2[4].face;
@@ -4628,7 +4665,7 @@ void placing_enemy_map3(){
             enemy_map3[0].health=20;
             enemy_map3[0].damage=20;
             enemy_map3[0].following_distance=100;
-            enemy_map3[0].damage_distance=6;
+            enemy_map3[0].damage_distance=3;
             enemy_map3[0].face='S';
             enemy_map3[0].exe=1;
             map3[y][x]=enemy_map3[0].face;
@@ -4663,8 +4700,8 @@ void placing_enemy_map3(){
             enemy_map3[2].y=y;
             enemy_map3[2].health=30;
             enemy_map3[2].damage=30;
-            enemy_map3[2].following_distance=3;
-            enemy_map3[2].damage_distance=3;
+            enemy_map3[2].following_distance=2;
+            enemy_map3[2].damage_distance=2;
             enemy_map3[2].face='U';
             enemy_map3[2].exe=1;
             map3[y][x]=enemy_map3[2].face;
@@ -4755,8 +4792,8 @@ void placing_enemy_map4(){
             enemy_map4[3].y=y;
             enemy_map4[3].health=30;
             enemy_map4[3].damage=30;
-            enemy_map4[3].following_distance=3;
-            enemy_map4[3].damage_distance=3;
+            enemy_map4[3].following_distance=2;
+            enemy_map4[3].damage_distance=2;
             enemy_map4[3].face='U';
             enemy_map4[3].exe=1;
             map4[y][x]=enemy_map4[3].face;
@@ -4774,7 +4811,7 @@ void placing_enemy_map4(){
             enemy_map4[4].health=30;
             enemy_map4[4].damage=20;
             enemy_map4[4].following_distance=100;
-            enemy_map4[4].damage_distance=6;
+            enemy_map4[4].damage_distance=3;
             enemy_map4[4].face='S';
             enemy_map4[4].exe=1;
             map4[y][x]=enemy_map4[4].face;
@@ -4832,7 +4869,7 @@ void draw_enemy(Player *player){
                 clear_enemy(enemy_map1[0]);
             }
             if(get_room_id(player->x,player->y)==2&&enemy_map1[1].exe==1){
-                if(abs(player->x - enemy_map1[1].x) < enemy_map1[1].following_distance && abs(player->y - enemy_map1[1].y) < enemy_map1[1].following_distance){
+                if(abs(player->x - enemy_map1[1].x) <= enemy_map1[1].following_distance && abs(player->y - enemy_map1[1].y) <= enemy_map1[1].following_distance){
                     damage_player(&enemy_map1[1],player);
                     new_x=enemy_map1[1].x;
                     new_y=enemy_map1[1].y;
@@ -4850,7 +4887,6 @@ void draw_enemy(Player *player){
                             map1[y0][x0]='.';
                             flag=1;
                         }
-                        map1[y0][x0]='.';
                         enemy_map1[1].perv=map1[enemy_map1[1].y][enemy_map1[1].x];
                         clear_enemy(enemy_map1[1]);
                         enemy_map1[1].x=new_x;
@@ -4885,7 +4921,6 @@ void draw_enemy(Player *player){
                             map1[y0][x0]='.';
                             flag=1;
                         }
-                        map1[y0][x0]='.';
                         enemy_map1[2].perv=map1[enemy_map1[2].y][enemy_map1[2].x];
                         clear_enemy(enemy_map1[2]);
                         enemy_map1[2].x=new_x;
@@ -5701,30 +5736,56 @@ int damage_enemy(int level,int room,char weapon,Player *player){
     }
     int damage;
     int damage_distance;
+    attron(COLOR_PAIR(10));
     switch(weapon){
         case 'm':
         damage=5;
         damage_distance=1;
         break;
         case 'd':
+        if(l_user.weapon_bar.dagger<=0){
+            mvprintw(1,1,"NOT ENOUGH DAGGER!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage=12;
         damage_distance=5;
         l_user.weapon_bar.dagger--;
         break;
         case 'w':
+        if(l_user.weapon_bar.magic_wand<=0){
+            mvprintw(1,1,"NOT ENOUGH MAGIC WAND!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage=15;
         damage_distance=10;
         l_user.weapon_bar.magic_wand--;
         break;
         case 'a':
+        if(l_user.weapon_bar.arrow<=0){
+            mvprintw(1,1,"NOT ENOUGH ARROW!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage=5;
         damage_distance=5;
         l_user.weapon_bar.arrow--;
         break;
         case 's':
+        if(l_user.weapon_bar.sword==0){
+            mvprintw(1,1,"NOT ENOUGH SWORD!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage_distance=1;
         damage=10;
         break;
+        attroff(COLOR_PAIR(10));
     }
     if(level==1){
         if(room==1){
@@ -5738,7 +5799,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map1[0].health<=0){
+                    if(enemy_map1[0].health<=0&&enemy_map1[0].exe==1&&enemy_map1[0].exe==1){
                         enemy_map1[0].exe=0;
                         killing_message();
                     }
@@ -5756,7 +5817,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                if(enemy_map1[1].health<=0){
+                if(enemy_map1[1].health<=0&&enemy_map1[1].exe==1){
                     enemy_map1[1].exe=0;
                     killing_message();
                 }
@@ -5775,7 +5836,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     mvprintw(20,20,"%d",enemy_map1[2].health);
                     getch();
                     mvprintw(1,1,"                           ");
-                if(enemy_map1[2].health<=0){
+                if(enemy_map1[2].health<=0&&enemy_map1[2].exe==1){
                     enemy_map1[2].exe=0;
                     killing_message();
                 }
@@ -5794,7 +5855,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     mvprintw(20,20,"%d",enemy_map1[3].health);
                     getch();
                     mvprintw(1,1,"                           ");
-                if(enemy_map1[3].health<=0){
+                if(enemy_map1[3].health<=0&&enemy_map1[3].exe==1){
                     enemy_map1[3].exe=0;
                     killing_message();
                 }
@@ -5813,7 +5874,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     mvprintw(20,20,"%d",enemy_map1[4].health);
                     getch();
                     mvprintw(1,1,"                           ");
-                if(enemy_map1[4].health<=0){
+                if(enemy_map1[4].health<=0&&enemy_map1[4].exe==1){
                     enemy_map1[4].exe=0;
                     killing_message();
                 }
@@ -5832,7 +5893,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     mvprintw(20,20,"%d",enemy_map1[5].health);
                     getch();
                     mvprintw(1,1,"                           ");
-                if(enemy_map1[5].health<=0){
+                if(enemy_map1[5].health<=0&&enemy_map1[5].exe==1){
                     enemy_map1[5].exe=0;
                     killing_message();
                 }
@@ -5851,7 +5912,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map2[0].health<=0){
+                    if(enemy_map2[0].health<=0&&enemy_map2[0].exe==1){
                         enemy_map2[0].exe=0;
                         killing_message();
                     }
@@ -5869,7 +5930,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map2[1].health<=0){
+                    if(enemy_map2[1].health<=0&&enemy_map2[1].exe==1){
                         enemy_map2[1].exe=0;
                         killing_message();
                     }
@@ -5887,7 +5948,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map2[2].health<=0){
+                    if(enemy_map2[2].health<=0&&enemy_map2[2].exe==1){
                         enemy_map2[2].exe=0;
                         killing_message();
                     }
@@ -5906,7 +5967,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map2[3].health<=0){
+                    if(enemy_map2[3].health<=0&&enemy_map2[3].exe==1){
                         enemy_map2[3].exe=0;
                         killing_message();
                     }
@@ -5924,7 +5985,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map2[4].health<=0){
+                    if(enemy_map2[4].health<=0&&enemy_map2[4].exe==1){
                         enemy_map2[4].exe=0;
                         killing_message();
                     }
@@ -5944,7 +6005,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map3[0].health<=0){
+                    if(enemy_map3[0].health<=0&&enemy_map3[0].exe==1){
                         enemy_map3[0].exe=0;
                         killing_message();
                     }
@@ -5962,7 +6023,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map3[1].health<=0){
+                    if(enemy_map3[1].health<=0&&enemy_map3[1].exe==1){
                         enemy_map3[1].exe=0;
                         killing_message();
                     }
@@ -5980,7 +6041,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map3[2].health<=0){
+                    if(enemy_map3[2].health<=0&&enemy_map3[2].exe==1){
                         enemy_map3[2].exe=0;
                         killing_message();
                     }
@@ -5998,7 +6059,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map3[3].health<=0){
+                    if(enemy_map3[3].health<=0&&enemy_map3[3].exe==1){
                         enemy_map3[3].exe=0;
                         killing_message();
                     }
@@ -6018,7 +6079,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map4[0].health<=0){
+                    if(enemy_map4[0].health<=0&&enemy_map4[0].exe==1){
                         enemy_map4[0].exe=0;
                         killing_message();
                     }
@@ -6036,7 +6097,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map4[1].health<=0){
+                    if(enemy_map4[1].health<=0&&enemy_map4[1].exe==1){
                         enemy_map4[1].exe=0;
                         killing_message();
                     }
@@ -6054,7 +6115,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map4[2].health<=0){
+                    if(enemy_map4[2].health<=0&&enemy_map4[2].exe==1){
                         enemy_map4[2].exe=0;
                         killing_message();
                     }
@@ -6072,7 +6133,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map4[3].health<=0){
+                    if(enemy_map4[3].health<=0&&enemy_map4[3].exe==1){
                         enemy_map4[3].exe=0;
                         killing_message();
                     }
@@ -6090,7 +6151,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemy_map4[4].health<=0){
+                    if(enemy_map4[4].health<=0&&enemy_map4[4].exe==1){
                         enemy_map4[4].exe=0;
                         killing_message();
                     }
@@ -6125,6 +6186,7 @@ void killing_message(){
                 mvaddch(startY + i, startX + j, ' ');
             }
         }
+        l_user.kills1++;
 }
 void create_battle_room(){
     memset(battle_room,' ',sizeof(battle_room));
@@ -6220,7 +6282,7 @@ void move_player(Player *player) {
         }
         l_user.kills2=12-x;
         if(l_user.kills2>=12){
-            mvprintw(20,1,"fdgdgdfgdfgdf");
+            final_result(1);
         }
         int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
@@ -6295,7 +6357,7 @@ void move_player(Player *player) {
 
          
         if (l_user.health <= 0) {
-            mvprintw(1,4,"Game Over! You were defeated.\n");
+            final_result(0);
         }
         for (int i = 0; i < 12; i++) {
             mvprintw(1,1,"%d",l_user.health);
@@ -6460,7 +6522,7 @@ int damage_enemy2(char weapon,Player *player){
                     attroff(COLOR_PAIR(3));
                     getch();
                     mvprintw(1,1,"                           ");
-                    if(enemies[i].health<=0){
+                    if(enemies[i].health<=0&&enemies[i].exe==1){
                         battle_room[enemies[i].y][enemies[i].x]='.';
                         enemies[i].exe=0;
                         killing_message();
@@ -6469,6 +6531,7 @@ int damage_enemy2(char weapon,Player *player){
     }
 }
 void music(){
+    attron(COLOR_PAIR(10));
     const char *musicFolder = "/home/radin-aj/Documents/University/fop/project/functions/musics/";
     const char *musicFiles[] = {
         "eminem-rap_god.mp3",
@@ -6476,9 +6539,9 @@ void music(){
         "Vaveyla _Leyli.mp3"
     };
     int musicCount = sizeof(musicFiles) / sizeof(musicFiles[0]);
-    printw("Available music files:\n");
+    mvprintw(LINES/2 - 6 ,COLS/2 -15,"Available music files:");
     displayMusicList(musicFiles, musicCount);
-    printw("Enter the number of the music file to play: ");
+    mvprintw(LINES/2 -5 + musicCount,COLS/2 -15,"Enter the number of the music file to play: ");
     refresh();
     int choice = getch() - '0';   
 
@@ -6514,8 +6577,8 @@ void music(){
         return;
     }
     Mix_PlayMusic(music, -1);   
-    printw("Playing: %s\n", fullPath);
-    printw("Press 'p' to pause/resume, 'q' to quit.\n");
+    //printw("Playing: %s\n", fullPath);
+    mvprintw(LINES/2 -5 + musicCount+1,COLS/2 -15,"Press 'p' to pause/resume, 'q' to quit.");
     refresh();
     bool isPlaying = true;   
     bool quit = false;       
@@ -6526,10 +6589,10 @@ void music(){
             case 'p':   
                 if (isPlaying) {
                     Mix_PauseMusic();   
-                    printw("Music paused. Press 'p' to resume.\n");
+                    mvprintw(LINES/2 -5 + musicCount+2,COLS/2 -15,"Music paused. Press 'p' to resume.");
                 } else {
                     Mix_ResumeMusic();   
-                    printw("Music resumed. Press 'p' to pause.\n");
+                    mvprintw(LINES/2 -5 + musicCount+2,COLS/2 -15,"Music resumed. Press 'p' to pause.");
                 }
                 isPlaying = !isPlaying;   
                 break;
@@ -6538,7 +6601,7 @@ void music(){
                 quit = true;
                 break;
         }
-
+        attroff(COLOR_PAIR(10));
         refresh();
     }
     // Mix_FreeMusic(music);
@@ -6547,10 +6610,78 @@ void music(){
 }
 void displayMusicList(const char *musicFiles[], int count) {
     for (int i = 0; i < count; i++) {
-        printw("%d. %s\n", i + 1, musicFiles[i]);
+        attron(COLOR_PAIR(10));
+        mvprintw(LINES/2-5 + i,COLS/2-15,"%d. %s\n", i + 1, musicFiles[i]);
+        attroff(COLOR_PAIR(10));
     }
 }
-
+void final_result(int x){
+    clear();
+    int height = 12;
+    int width = 50;
+    int start_y = (LINES - height) / 2;
+    int start_x = (COLS - width) / 2;
+    if (has_colors()) {
+        start_color();
+        init_pair(1, COLOR_YELLOW, COLOR_BLACK);   
+        init_pair(2, COLOR_GREEN, COLOR_BLACK);    
+        init_pair(3, COLOR_RED, COLOR_BLACK);      
+        init_pair(4, COLOR_CYAN, COLOR_BLACK);     
+        init_pair(5, COLOR_WHITE, COLOR_BLUE);     
+    }
+    attron(COLOR_PAIR(4));
+    for (int y = start_y; y < start_y + height; y++) {
+        for (int x = start_x; x < start_x + width; x++) {
+            if (y == start_y || y == start_y + height - 1 || x == start_x || x == start_x + width - 1) {
+                mvaddch(y, x, ACS_CKBOARD);   
+            }
+        }
+    }
+    attroff(COLOR_PAIR(4));
+    if(x==1){
+        attron(COLOR_PAIR(5));
+        mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU WON! ");
+        attroff(COLOR_PAIR(5));
+        attron(COLOR_PAIR(1));
+        mvprintw(start_y + 4, start_x + 5, "Gold: %d", l_user.gold);
+        attroff(COLOR_PAIR(1));
+        attron(COLOR_PAIR(2));
+        mvprintw(start_y + 5, start_x + 5, "Score: %d", l_user.score);
+        attroff(COLOR_PAIR(2));
+        attron(COLOR_PAIR(3));
+        mvprintw(start_y + 6, start_x + 5, "Kills: %d", l_user.kills1+l_user.kills2);
+        attroff(COLOR_PAIR(3));
+        attron(COLOR_PAIR(4));
+        mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
+        attroff(COLOR_PAIR(4));
+        attron(COLOR_PAIR(4));
+        mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Press any key to exit...");
+        attroff(COLOR_PAIR(4));
+    }
+    else{
+        attron(COLOR_PAIR(5));
+        mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU LOST! ");
+        attroff(COLOR_PAIR(5));
+        attron(COLOR_PAIR(1));
+        mvprintw(start_y + 4, start_x + 5, "Gold: %d", l_user.gold);
+        attroff(COLOR_PAIR(1));
+        attron(COLOR_PAIR(2));
+        mvprintw(start_y + 5, start_x + 5, "Score: %d", l_user.score);
+        attroff(COLOR_PAIR(2));
+        attron(COLOR_PAIR(3));
+        mvprintw(start_y + 6, start_x + 5, "Kills: %d", l_user.kills1+l_user.kills2);
+        attroff(COLOR_PAIR(3));
+        attron(COLOR_PAIR(4));
+        mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
+        attroff(COLOR_PAIR(4));
+        attron(COLOR_PAIR(4));
+        mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Press any key to exit...");
+        attroff(COLOR_PAIR(4));
+    }
+    refresh();
+    getch();
+    show_table();
+}
 
 // vo2d save_information(Use1 1ser){
 //     FILE *reed=fopen("users.txt","r");
