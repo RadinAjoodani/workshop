@@ -4,6 +4,11 @@
 #include<unistd.h>
 #include<time.h>
 #include<math.h>
+#include<ncurses.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 #define MAP_HEIGHT 50
 #define MAP_WIDTH 200
@@ -179,6 +184,8 @@ int start_battle();
 void draw_battle_room();
 void refresh_map2(Player *player);
 int damage_enemy2(char weapon,Player *player);
+void music();
+void displayMusicList(const char *musicFiles[], int count);
 // void save_information(User user);
 
 int main(){
@@ -188,6 +195,9 @@ int main(){
     keypad(stdscr, TRUE);
     start_color();
     srand(time(NULL));
+    init_color(8,600, 500, 0);
+    init_color(9,300, 500, 200);
+    init_color(10,1000, 500, 0);
     init_pair(1, COLOR_YELLOW, COLOR_BLACK);
     init_pair(2, COLOR_RED, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
@@ -195,6 +205,10 @@ int main(){
     init_pair(5, COLOR_BLUE, COLOR_BLACK);
     init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
     init_pair(7,COLOR_CYAN,COLOR_BLACK);
+    init_pair(8,8,COLOR_BLACK);
+    init_pair(9,9,COLOR_BLACK);
+    init_pair(10,10,COLOR_BLACK);
+    
     main_menu();
     getch();
     endwin();
@@ -209,6 +223,7 @@ void main_menu(){
         "Play as a guest",
         "Profile",
         "Scores",
+        "Play music",
         "Exit"
     };
     int n_items = sizeof(menu_items) / sizeof(menu_items[0]);
@@ -265,7 +280,8 @@ void main_menu(){
                     case 3: play_as_guest(); break;
                     case 4: profile(); break;
                     case 5: show_table(); break;
-                    case 6: eexit();return;
+                    case 6: music(); break;
+                    case 7: eexit();return;
                 }
                 break;
             default:
@@ -3544,6 +3560,7 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
                         attron(COLOR_PAIR(2));
                         mvaddch(i, j, '@');
                         attroff(COLOR_PAIR(2));
+                        attroff(COLOR_PAIR(2));
                     }
                 else if(map[i][j] == 'Q'){
                         attron(COLOR_PAIR(3));
@@ -3554,6 +3571,36 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
                     attron(COLOR_PAIR(7));
                     mvaddch(i, j,map[i][j]);
                     attroff(COLOR_PAIR(7));
+                }
+                else if(map[i][j] == 'T'||map[i][j] == 'Z'){
+                    attron(COLOR_PAIR(8));
+                    mvaddch(i, j,map[i][j]);
+                    attroff(COLOR_PAIR(8));
+                }
+                else if(map[i][j] == 'H'||map[i][j] == 'R'||map[i][j] == '8'){
+                    attron(COLOR_PAIR(6));
+                    mvaddch(i, j,map[i][j]);
+                    attroff(COLOR_PAIR(6));
+                }
+                else if(map[i][j] == '%'||map[i][j] == 'X'){
+                    attron(COLOR_PAIR(9));
+                    mvaddch(i, j,map[i][j]);
+                    attroff(COLOR_PAIR(9));
+                }
+                else if(map[i][j] == '/'||map[i][j] == 'L'||map[i][j] == 'J'||map[i][j] == '*'){
+                    attron(COLOR_PAIR(10));
+                    mvaddch(i, j,map[i][j]);
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[i][j] == 'G'||map[i][j] == 'F'||map[i][j] == 'S'||map[i][j] == 'D'||map[i][j] == 'U'||map[i][j]=='^'){
+                    attron(COLOR_PAIR(2));
+                    mvaddch(i, j,map[i][j]);
+                    attroff(COLOR_PAIR(2));
+                }
+                else if(map[i][j]=='&'){
+                    attron(COLOR_PAIR(1));
+                    mvaddch(i, j,map[i][j]);
+                    attroff(COLOR_PAIR(1));
                 }
                 else{
                     mvaddch(i, j,map[i][j]);
@@ -4378,7 +4425,7 @@ void placing_enemy_map1(){
             enemy_map1[0].y=y;
             enemy_map1[0].health=15;
             enemy_map1[0].damage=10;
-            enemy_map1[0].following_distance=5;
+            enemy_map1[0].following_distance=3;
             enemy_map1[0].damage_distance=2;
             enemy_map1[0].face='G';
             enemy_map1[0].exe=1;
@@ -4397,7 +4444,7 @@ void placing_enemy_map1(){
             enemy_map1[1].health=20;
             enemy_map1[1].damage=20;
             enemy_map1[1].following_distance=1000;
-            enemy_map1[1].damage_distance=6;
+            enemy_map1[1].damage_distance=3;
             enemy_map1[1].face='S';
             enemy_map1[1].exe=1;
             map1[y][x]=enemy_map1[1].face;
@@ -4414,7 +4461,7 @@ void placing_enemy_map1(){
             enemy_map1[2].y=y;
             enemy_map1[2].health=5;
             enemy_map1[2].damage=3;
-            enemy_map1[2].following_distance=2;
+            enemy_map1[2].following_distance=1;
             enemy_map1[2].damage_distance=2;
             enemy_map1[2].face='D';
             enemy_map1[2].exe=1;
@@ -4431,9 +4478,9 @@ void placing_enemy_map1(){
             enemy_map1[3].x=x;
             enemy_map1[3].y=y;
             enemy_map1[3].health=10;
-            enemy_map1[3].damage=7;
+            enemy_map1[3].damage=10;
             enemy_map1[3].following_distance=4;
-            enemy_map1[3].damage_distance=2;
+            enemy_map1[3].damage_distance=4;
             enemy_map1[3].face='F';
             enemy_map1[3].exe=1;
             map1[y][x]=enemy_map1[3].face;
@@ -4450,8 +4497,8 @@ void placing_enemy_map1(){
             enemy_map1[4].y=y;
             enemy_map1[4].health=30;
             enemy_map1[4].damage=30;
-            enemy_map1[4].following_distance=3;
-            enemy_map1[4].damage_distance=3;
+            enemy_map1[4].following_distance=2;
+            enemy_map1[4].damage_distance=2;
             enemy_map1[4].face='U';
             enemy_map1[4].exe=1;
             map1[y][x]=enemy_map1[4].face;
@@ -4468,7 +4515,7 @@ void placing_enemy_map1(){
             enemy_map1[5].y=y;
             enemy_map1[5].health=15;
             enemy_map1[5].damage=10;
-            enemy_map1[5].following_distance=5;
+            enemy_map1[5].following_distance=3;
             enemy_map1[5].damage_distance=2;
             enemy_map1[5].face='G';
             enemy_map1[5].exe=1;
@@ -4774,7 +4821,9 @@ void draw_enemy(Player *player){
                         enemy_map1[0].x=new_x;
                         enemy_map1[0].y=new_y;
                         map1[new_y][new_x]=enemy_map1[0].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map1[0].y,enemy_map1[0].x,"%c",enemy_map1[0].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -4807,7 +4856,9 @@ void draw_enemy(Player *player){
                         enemy_map1[1].x=new_x;
                         enemy_map1[1].y=new_y;
                         map1[new_y][new_x]=enemy_map1[1].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map1[1].y,enemy_map1[1].x,"%c",enemy_map1[1].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -4840,7 +4891,9 @@ void draw_enemy(Player *player){
                         enemy_map1[2].x=new_x;
                         enemy_map1[2].y=new_y;
                         map1[new_y][new_x]=enemy_map1[2].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map1[2].y,enemy_map1[2].x,"%c",enemy_map1[2].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -4873,7 +4926,9 @@ void draw_enemy(Player *player){
                         enemy_map1[3].x=new_x;
                         enemy_map1[3].y=new_y;
                         map1[new_y][new_x]=enemy_map1[3].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map1[3].y,enemy_map1[3].x,"%c",enemy_map1[3].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -4906,7 +4961,9 @@ void draw_enemy(Player *player){
                         enemy_map1[4].x=new_x;
                         enemy_map1[4].y=new_y;
                         map1[new_y][new_x]=enemy_map1[4].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map1[4].y,enemy_map1[4].x,"%c",enemy_map1[4].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -4939,7 +4996,9 @@ void draw_enemy(Player *player){
                         enemy_map1[5].x=new_x;
                         enemy_map1[5].y=new_y;
                         map1[new_y][new_x]=enemy_map1[5].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map1[5].y,enemy_map1[5].x,"%c",enemy_map1[5].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -4974,7 +5033,9 @@ void draw_enemy(Player *player){
                         enemy_map2[0].x=new_x;
                         enemy_map2[0].y=new_y;
                         map1[new_y][new_x]=enemy_map2[0].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map2[0].y,enemy_map2[0].x,"%c",enemy_map2[0].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5007,7 +5068,9 @@ void draw_enemy(Player *player){
                         enemy_map2[1].x=new_x;
                         enemy_map2[1].y=new_y;
                         map1[new_y][new_x]=enemy_map2[1].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map2[1].y,enemy_map2[1].x,"%c",enemy_map2[1].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5040,7 +5103,9 @@ void draw_enemy(Player *player){
                         enemy_map2[2].x=new_x;
                         enemy_map2[2].y=new_y;
                         map1[new_y][new_x]=enemy_map2[2].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map2[2].y,enemy_map2[2].x,"%c",enemy_map2[2].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5073,7 +5138,9 @@ void draw_enemy(Player *player){
                         enemy_map2[3].x=new_x;
                         enemy_map2[3].y=new_y;
                         map1[new_y][new_x]=enemy_map2[3].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map2[3].y,enemy_map2[3].x,"%c",enemy_map2[3].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5106,7 +5173,9 @@ void draw_enemy(Player *player){
                         enemy_map2[4].x=new_x;
                         enemy_map2[4].y=new_y;
                         map1[new_y][new_x]=enemy_map2[4].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map2[4].y,enemy_map2[4].x,"%c",enemy_map2[4].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5141,7 +5210,9 @@ void draw_enemy(Player *player){
                         enemy_map3[0].x=new_x;
                         enemy_map3[0].y=new_y;
                         map1[new_y][new_x]=enemy_map3[0].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map3[0].y,enemy_map3[0].x,"%c",enemy_map3[0].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5174,7 +5245,9 @@ void draw_enemy(Player *player){
                         enemy_map3[1].x=new_x;
                         enemy_map3[1].y=new_y;
                         map1[new_y][new_x]=enemy_map3[1].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map3[1].y,enemy_map3[1].x,"%c",enemy_map3[1].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5207,7 +5280,9 @@ void draw_enemy(Player *player){
                         enemy_map3[2].x=new_x;
                         enemy_map3[2].y=new_y;
                         map1[new_y][new_x]=enemy_map3[2].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map3[2].y,enemy_map3[2].x,"%c",enemy_map3[2].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5240,7 +5315,9 @@ void draw_enemy(Player *player){
                         enemy_map3[3].x=new_x;
                         enemy_map3[3].y=new_y;
                         map1[new_y][new_x]=enemy_map3[3].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map3[3].y,enemy_map3[3].x,"%c",enemy_map3[3].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5275,7 +5352,9 @@ void draw_enemy(Player *player){
                         enemy_map4[0].x=new_x;
                         enemy_map4[0].y=new_y;
                         map1[new_y][new_x]=enemy_map4[0].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map4[0].y,enemy_map4[0].x,"%c",enemy_map4[0].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5308,7 +5387,9 @@ void draw_enemy(Player *player){
                         enemy_map4[1].x=new_x;
                         enemy_map4[1].y=new_y;
                         map1[new_y][new_x]=enemy_map4[1].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map4[1].y,enemy_map4[1].x,"%c",enemy_map4[1].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5341,7 +5422,9 @@ void draw_enemy(Player *player){
                         enemy_map4[2].x=new_x;
                         enemy_map4[2].y=new_y;
                         map1[new_y][new_x]=enemy_map4[2].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map4[2].y,enemy_map4[2].x,"%c",enemy_map4[2].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5374,7 +5457,9 @@ void draw_enemy(Player *player){
                         enemy_map4[3].x=new_x;
                         enemy_map4[3].y=new_y;
                         map1[new_y][new_x]=enemy_map4[3].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map4[3].y,enemy_map4[3].x,"%c",enemy_map4[3].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -5407,7 +5492,9 @@ void draw_enemy(Player *player){
                         enemy_map4[4].x=new_x;
                         enemy_map4[4].y=new_y;
                         map1[new_y][new_x]=enemy_map4[4].face;
+                        attron(COLOR_PAIR(2));
                         mvprintw(enemy_map4[4].y,enemy_map4[4].x,"%c",enemy_map4[4].face);
+                        attroff(COLOR_PAIR(2));
                     }
                 }
             }
@@ -6381,8 +6468,88 @@ int damage_enemy2(char weapon,Player *player){
         }
     }
 }
+void music(){
+    const char *musicFolder = "/home/radin-aj/Documents/University/fop/project/functions/musics/";
+    const char *musicFiles[] = {
+        "eminem-rap_god.mp3",
+        "GTA_IV.mp3",
+        "Vaveyla _Leyli.mp3"
+    };
+    int musicCount = sizeof(musicFiles) / sizeof(musicFiles[0]);
+    printw("Available music files:\n");
+    displayMusicList(musicFiles, musicCount);
+    printw("Enter the number of the music file to play: ");
+    refresh();
+    int choice = getch() - '0';   
 
+    if (choice < 1 || choice > musicCount) {
+        printw("Invalid choice! Exiting...\n");
+        refresh();
+        getch();
+        endwin();
+        return;
+    }
+    char fullPath[256];
+    snprintf(fullPath, sizeof(fullPath), "%s%s", musicFolder, musicFiles[choice - 1]);  
+    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+        printw("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        refresh();
+        getch();
+        endwin();
+        return;
+    }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        printw("SDL_mixer could not initialize! Mix_Error: %s\n", Mix_GetError());
+        refresh();
+        getch();
+        endwin();
+        return;
+    }
+    Mix_Music *music = Mix_LoadMUS(fullPath);
+    if (!music) {
+        printw("Failed to load music! Mix_Error: %s\n", Mix_GetError());
+        refresh();
+        getch();
+        endwin();
+        return;
+    }
+    Mix_PlayMusic(music, -1);   
+    printw("Playing: %s\n", fullPath);
+    printw("Press 'p' to pause/resume, 'q' to quit.\n");
+    refresh();
+    bool isPlaying = true;   
+    bool quit = false;       
+    while (!quit) {
+        int ch = getch();   
 
+        switch (ch) {
+            case 'p':   
+                if (isPlaying) {
+                    Mix_PauseMusic();   
+                    printw("Music paused. Press 'p' to resume.\n");
+                } else {
+                    Mix_ResumeMusic();   
+                    printw("Music resumed. Press 'p' to pause.\n");
+                }
+                isPlaying = !isPlaying;   
+                break;
+
+            case 'q':   
+                quit = true;
+                break;
+        }
+
+        refresh();
+    }
+    // Mix_FreeMusic(music);
+    // Mix_CloseAudio();
+    // SDL_Quit();
+}
+void displayMusicList(const char *musicFiles[], int count) {
+    for (int i = 0; i < count; i++) {
+        printw("%d. %s\n", i + 1, musicFiles[i]);
+    }
+}
 
 
 // vo2d save_information(Use1 1ser){
