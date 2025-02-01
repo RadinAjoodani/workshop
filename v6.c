@@ -491,7 +491,8 @@ void log_in(){
                 return;
             }
             int valid = 0;
-            while (fscanf(fptr, "%s %s %s %d %d %d %d %d", user.username, user.password, user.email, &user.score, &user.gold, &user.game, &user.color, &user.difficulty) != EOF) {
+            while (fscanf(fptr, "%s %s %s %d %d %d %d %d %d", user.username, user.password, user.email,
+            &user.score, &user.gold, &user.game, &user.color, &user.difficulty , &user.kills1) != EOF) {
                 if (strcmp(l_user.username, user.username) == 0 && strcmp(l_user.password, user.password) == 0) {
                     valid = 1;
                     strcpy(l_user.username, user.username);
@@ -502,6 +503,7 @@ void log_in(){
                     l_user.game = user.game;
                     l_user.color = user.color;
                     l_user.difficulty = user.difficulty;
+                    l_user.kills1 = user.kills1;
                     l_user.level_num = 1;
                     break;
                 }
@@ -536,7 +538,7 @@ int username_check(char *username){
         return 0;
     }
     User user;
-    while (fscanf(fptr, "%s %s %s %d %d %d %d %d", user.username, user.password, user.email, &user.score,&user.gold,&user.game,&user.color,&user.difficulty) != EOF) {
+    while (fscanf(fptr, "%s %s %s %d %d %d %d %d %d", user.username, user.password, user.email, &user.score,&user.gold,&user.game,&user.color,&user.difficulty, &user.kills1) != EOF) {
         if (strcmp(user.username, username) == 0) {
             fclose(fptr);
             return 1;
@@ -709,8 +711,10 @@ void show_table(){
     }
     User users[100];
     int user_count = 0;
-    while (fscanf(file, "%s %s %s %d %d %d %d %d", users[user_count].username, users[user_count].password, users[user_count].email, &users[user_count].score, &users[user_count].gold, &users[user_count].game, &users[user_count].color, &users[user_count].difficulty) != EOF) {
-        user_count++;
+    while (fscanf(file, "%s %s %s %d %d %d %d %d %d", users[user_count].username, users[user_count].password, 
+    users[user_count].email, &users[user_count].score, &users[user_count].gold, &users[user_count].game, 
+    &users[user_count].color, &users[user_count].difficulty ,&users[user_count].kills1) != EOF) {
+    user_count++;
     }
     fclose(file);
     for (int i = 0; i < user_count - 1; i++) {
@@ -735,19 +739,19 @@ void show_table(){
         } 
         if (i == 0) {
             attron(COLOR_PAIR(3) | A_BOLD);
-            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (THE GOAT)\u24F5", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (THE GOAT)\u24F5", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
             attroff(COLOR_PAIR(3) | A_BOLD);
         } else if (i == 1) {
             attron(COLOR_PAIR(6) | A_BOLD);
-            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (ALMOST GOAT)\u24F6", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (ALMOST GOAT)\u24F6", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
             attroff(COLOR_PAIR(6) | A_BOLD);
         } else if (i == 2) {
             attron(COLOR_PAIR(5) | A_BOLD);
-            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (SEMI GOAT)\u24F7", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (SEMI GOAT)\u24F7", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
             attroff(COLOR_PAIR(5) | A_BOLD);
         } else {
             attron(COLOR_PAIR(4));
-            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
             attroff(COLOR_PAIR(4));
         }   
         if (!strcmp(users[i].username, l_user.username)) {
@@ -770,6 +774,7 @@ void profile(){
             mvprintw(5,1,"Email: %s",l_user.email);
             mvprintw(6,1,"Score: %d",l_user.score);
             mvprintw(7,1,"Gold: %d",l_user.gold);
+            mvprintw(7,1,"Kills: %d",l_user.kills1);
             mvprintw(8,1,"Game-played numbers: %d",l_user.game);
             
 
@@ -803,7 +808,7 @@ void save_user() {
         exit(1);
     }
 
-    fprintf(file, "%s %s %s %d %d %d %d %d\n", s_user.username, s_user.password, s_user.email, s_user.score,s_user.gold,s_user.game,s_user.color,s_user.difficulty);
+    fprintf(file, "%s %s %s %d %d %d %d %d %d\n", s_user.username, s_user.password, s_user.email, s_user.score,s_user.gold,s_user.game,s_user.color,s_user.difficulty,s_user.kills1);
     fclose(file);
 }
 void settings_menu() {
@@ -7046,8 +7051,6 @@ void save_map(char map[MAP_HEIGHT][MAP_WIDTH]){
     mvprintw(1,80,"             ");
 }
 int save_info(){
-    l_user.gold+=p_user.gold;
-    l_user.score+=p_user.score;
     const char *filename = "users.txt";
     User users[200];
     int num_users = 0;
@@ -7059,14 +7062,13 @@ int save_info(){
     char current_username[50];
     strcpy(current_username,l_user.username);
     User *user = find_user(users, num_users, current_username);
-    user->gold += 10;
+    user->gold += p_user.gold;
+    user->score += p_user.score;
+    user->kills1 += p_user.kills1;
     if (!write_users(filename, users, num_users)) {
         return 1;
     }
-    mvprintw(20,1,"%d",l_user.gold);
-    mvprintw(21,1,"%d",l_user.score);
     refresh();
-    getch();
 }
 int read_users(const char *filename, User users[], int *num_users) {
     FILE *file = fopen(filename, "r");
@@ -7078,7 +7080,7 @@ int read_users(const char *filename, User users[], int *num_users) {
     *num_users = 0;
     char line[200];
     while (fgets(line, sizeof(line), file)) {
-        sscanf(line, "%s %s %s %d %d %d %d %d",
+        sscanf(line, "%s %s %s %d %d %d %d %d %d",
                users[*num_users].username,
                users[*num_users].password,
                users[*num_users].email,
@@ -7086,7 +7088,8 @@ int read_users(const char *filename, User users[], int *num_users) {
                &users[*num_users].gold,
                &users[*num_users].game,
                &users[*num_users].color,
-               &users[*num_users].difficulty);
+               &users[*num_users].difficulty,
+               &users[*num_users].kills1);
         (*num_users)++;
     }
 
@@ -7101,7 +7104,7 @@ int write_users(const char *filename, User users[], int num_users) {
     }
 
     for (int i = 0; i < num_users; i++) {
-        fprintf(file, "%s %s %s %d %d %d %d %d\n",
+        fprintf(file, "%s %s %s %d %d %d %d %d %d\n",
                 users[i].username,
                 users[i].password,
                 users[i].email,
@@ -7109,7 +7112,8 @@ int write_users(const char *filename, User users[], int num_users) {
                 users[i].gold,
                 users[i].game,
                 users[i].color,
-                users[i].difficulty);
+                users[i].difficulty,
+                users[i].kills1);
     }
 
     fclose(file);
