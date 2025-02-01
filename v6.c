@@ -53,6 +53,7 @@ typedef struct{
     char current_weapon;
     int kills1;
     int kills2;
+    int hunger;
 }User;
 typedef struct{
     int x,y;
@@ -187,6 +188,7 @@ int damage_enemy2(char weapon,Player *player);
 void music();
 void displayMusicList(const char *musicFiles[], int count);
 void final_result(int x);
+void draw_robot_art(int start_y, int start_x);
 // void save_information(User user);
 
 int main(){
@@ -216,7 +218,7 @@ int main(){
     endwin();
 }
 
-void main_menu(){
+void main_menu() {
     curs_set(0);
     char *menu_items[] = {
         "Sign up",
@@ -236,36 +238,48 @@ void main_menu(){
     while (1) {
         clear();
         getmaxyx(stdscr, rows, cols);
-        attron(COLOR_PAIR(3));
-        for(int i = LINES/2-4 ; i < LINES/2+5 ; i++ ){
-            mvprintw(i,COLS/2-17,"||");
-            mvprintw(i,COLS/2+12,"||");
+        attron(COLOR_PAIR(6));
+        for (int i = 1; i < rows - 1; i++) {
+            mvprintw(i, 1, "|");
+            mvprintw(i, cols - 2, "|");
         }
-        mvprintw(LINES/2+5,COLS/2-14,"=========================");
-        mvprintw(LINES/2-5,COLS/2-14,"=========================");
-        attroff(COLOR_PAIR(3));
-        attron(COLOR_PAIR(2));
-        mvprintw(LINES/2,COLS/2-10,"ENJOY THE GAME :)");
-        attroff(COLOR_PAIR(2));
-        
-        // mvprintw(LINES/2,1,"%d %d",LINES,COLS);
-        
+        for (int j = 1; j < cols - 1; j++) {
+            mvprintw(1, j, "=");
+            mvprintw(rows - 2, j, "=");
+        }
+        mvprintw(1, 1, "+");
+        mvprintw(1, cols - 2, "+");
+        mvprintw(rows - 2, 1, "+");
+        mvprintw(rows - 2, cols - 2, "+");
+        attroff(COLOR_PAIR(6));
+        draw_robot_art(2, cols / 2 - 10);
+
+        attron(COLOR_PAIR(10) | A_BOLD);
+        mvprintw(rows / 2 + 1, cols / 2 - 10, "ROBOT GAME MENU");
+        attroff(COLOR_PAIR(10) | A_BOLD);
         for (int i = 0; i < n_items; i++) {
-            if (i == choice)
-                attron(COLOR_PAIR(2));
-            mvprintw(i + 1, 1, "%s", menu_items[i]);
-            if (i == choice)
-                attroff(COLOR_PAIR(2));
+            if (i == choice) {
+                attron(COLOR_PAIR(3) | A_BOLD);
+            } else {
+                attron(COLOR_PAIR(7));
+            }
+            mvprintw(rows / 2 + 2 + i, cols / 2 - 8, "  %s", menu_items[i]);
+            if (i == choice) {
+                attroff(COLOR_PAIR(3) | A_BOLD);
+            } else {
+                attroff(COLOR_PAIR(7));
+            }
         }
 
+        attron(COLOR_PAIR(10));
         if (is_logged_in) {
             mvprintw(rows - 1, 1, "Logged in as: %s | Score: %d", l_user.username, l_user.score);
         } else {
             mvprintw(rows - 1, 1, "Not logged in. Please log in or sign up.");
         }
+        attroff(COLOR_PAIR(10));
 
         key = getch();
-
         switch (key) {
             case KEY_UP:
                 choice = (choice - 1 + n_items) % n_items;
@@ -283,7 +297,7 @@ void main_menu(){
                     case 4: profile(); break;
                     case 5: show_table(); break;
                     case 6: music(); break;
-                    case 7: eexit();return;
+                    case 7: eexit(); return;
                 }
                 break;
             default:
@@ -292,152 +306,197 @@ void main_menu(){
     }
 }
 void sign_up(){
-    int sign=0;
-    attron(COLOR_PAIR(3));
-    mvprintw(1, 1, "Sign up menu");
+    int sign = 0;
+    int start_y = LINES / 2 - 8;  
+    int start_x;                  
+
+     
+    clear();
+
+     
+    attron(COLOR_PAIR(3));  
+    start_x = COLS / 2 - 20;  
+    mvprintw(start_y, start_x-10, "+========================================+");
+    mvprintw(start_y + 1, start_x-10, "|          SIGN UP MENU                  |");
+    mvprintw(start_y + 2, start_x-10, "+========================================+");
     attroff(COLOR_PAIR(3));
-    attron(COLOR_PAIR(1));
-        while(1){
-            mvprintw(2, 1, "Enter your username: ");
-            clrtoeol();
-            echo();
-            getstr(s_user.username);
-            noecho();
-            if(username_check(s_user.username)){
-                mvprintw(3, 1, "Username already exists. Try again.");
-                clrtoeol();
-                mvprintw(4, 1, "press q to exit");
-                if(getch()=='q'){
-                    return;
-                }
-                else{
-                    move(3, 1);
-                    clrtoeol();
-                    move(4, 1);
-                    clrtoeol();
-                }
-            } else {
-                mvprintw(3, 1, "Username is ok");
-                clrtoeol();
-                sign++;
-                break;
-            }
-        }
-        while(1){
-            mvprintw(5, 1, "Enter your password: ");
-            clrtoeol();
-            echo();
-            getstr(s_user.password);
-            noecho();
 
-            if(!pass_check(s_user.password)){
-                mvprintw(6, 1, "Password does not meet requirements. Try again.");
-                clrtoeol();
-                mvprintw(7, 1, "press q to exit");
-                if(getch()=='q'){
-                    return;
-                }
-                else{
-                    move(6, 1);
-                    clrtoeol();
-                    move(7, 1);
-                    clrtoeol();
-                }
-            } else {
-                mvprintw(6, 1, "Password is ok");
-                clrtoeol();
-                sign++;
-                break;
-            }
-        }
-        while(1){
-            mvprintw(8, 1, "Enter your email: ");
-            clrtoeol();
-            echo();
-            getstr(s_user.email);
-            noecho();
+    while (1) {
+        attron(COLOR_PAIR(1));  
+        start_x = COLS / 2 - 20;  
+        mvprintw(start_y + 4, start_x, "Enter your username: ");
+        clrtoeol();
+        echo();
+        getstr(s_user.username);
+        noecho();
 
-            if(!email_check(s_user.email)){
-                mvprintw(9, 1, "Email format is incorrect. Try again.");
-                clrtoeol();
-                mvprintw(10, 1, "press q to exit");
-                if(getch()=='q'){
-                    return;
-                }
-                else{
-                    move(9, 1);
-                    clrtoeol();
-                    move(10, 1);
-                    clrtoeol();
-                }
+        if (username_check(s_user.username)) {
+            attron(COLOR_PAIR(2));  
+            mvprintw(start_y + 5, start_x, "Username already exists. Try again.");
+            clrtoeol();
+            mvprintw(start_y + 6, start_x-5, "Press 'q' to exit or any other key to retry.");
+            attroff(COLOR_PAIR(2));
+
+            if (getch() == 'q') {
+                return;
             } else {
-                mvprintw(9, 1, "Email is ok");
+                move(start_y + 5, start_x);
                 clrtoeol();
-                sign++;
+                move(start_y + 6, start_x);
+                clrtoeol();
+            }
+        } else {
+            attron(COLOR_PAIR(10));  
+            mvprintw(start_y + 5, start_x, "Username is OK ");
+            clrtoeol();
+            attroff(COLOR_PAIR(10));
+            sign++;
+            break;
+        }
+    }
+
+    while (1) {
+        attron(COLOR_PAIR(1));  
+        start_x = COLS / 2 - 20;  
+        mvprintw(start_y + 7, start_x, "Enter your password: ");
+        clrtoeol();
+        echo();
+        getstr(s_user.password);
+        noecho();
+
+        if (!pass_check(s_user.password)) {
+            attron(COLOR_PAIR(2));  
+            mvprintw(start_y + 8, start_x, "Password does not meet requirements. Try again.");
+            clrtoeol();
+            mvprintw(start_y + 9, start_x, "Press 'q' to exit or any other key to retry.");
+            attroff(COLOR_PAIR(2));
+
+            if (getch() == 'q') {
+                return;
+            } else {
+                move(start_y + 8, start_x);
+                clrtoeol();
+                move(start_y + 9, start_x);
+                clrtoeol();
+            }
+        } else {
+            attron(COLOR_PAIR(10));  
+            mvprintw(start_y + 8, start_x, "Password is OK ");
+            clrtoeol();
+            attroff(COLOR_PAIR(10));
+            sign++;
+            break;
+        }
+    }
+
+    while (1) {
+        attron(COLOR_PAIR(1));  
+        start_x = COLS / 2 - 20;  
+        mvprintw(start_y + 10, start_x, "Enter your email: ");
+        clrtoeol();
+        echo();
+        getstr(s_user.email);
+        noecho();
+
+        if (!email_check(s_user.email)) {
+            attron(COLOR_PAIR(2));  
+            mvprintw(start_y + 11, start_x, "Email format is incorrect. Try again.");
+            clrtoeol();
+            mvprintw(start_y + 12, start_x-5, "Press 'q' to exit or any other key to retry.");
+            attroff(COLOR_PAIR(2));
+
+            if (getch() == 'q') {
+                return;
+            } else {
+                move(start_y + 11, start_x);
+                clrtoeol();
+                move(start_y + 12, start_x);
+                clrtoeol();
+            }
+        } else {
+            attron(COLOR_PAIR(10));  
+            mvprintw(start_y + 11, start_x, "Email is OK ");
+            clrtoeol();
+            attroff(COLOR_PAIR(10));
+            sign++;
+            break;
+        }
+    }
+
+     
+    s_user.game = 0;
+    s_user.gold = 0;
+    s_user.score = 0;
+    s_user.difficulty = 0;
+    s_user.color = 0;
+
+    if (sign == 3) {
+        save_user();
+        attron(COLOR_PAIR(5));  
+        start_x = COLS / 2 - 20;  
+        mvprintw(start_y + 13, start_x-10, "+========================================+");
+        mvprintw(start_y + 14, start_x-10, "|    ACCOUNT CREATED SUCCESSFULLY!       |");
+        mvprintw(start_y + 15, start_x-10, "+========================================+");
+        mvprintw(start_y + 16, start_x-5, "Press Enter to return to the menu.");
+        attroff(COLOR_PAIR(5));
+
+        while (1) {
+            if (getch() == '\n') {
                 break;
             }
-            s_user.game=0;
-            s_user.gold=0;
-            s_user.score=0;
-            s_user.difficulty=0;
-            s_user.color=0;
         }
-        if(sign==3){
-            save_user();
-            mvprintw(11,1,"ACCOUNT CREATED SUCCESSFULLY");
-            mvprintw(12,1,"press Enter to return to menu");
-            while(1){
-                if(getch()=='\n'){
-                    break;
-                }
-            }
-        }
-    
+    }
 }
 void log_in(){
-    if(is_logged_in==1){
-        mvprintw(1,1,"You are logged in!press any key to exit.");
+    if (is_logged_in == 1) {
+        attron(COLOR_PAIR(3));
+        mvprintw(LINES / 2, COLS / 2 - 15, "You are already logged in! Press any key to exit.");
+        attroff(COLOR_PAIR(3));
         getch();
         return;
-    }
-    else{
+    } else {
         User user;
-        int ch; 
+        int ch;
 
-        while (1) { 
+        while (1) {
             clear();
-            mvprintw(1, 1, "Log in menu");
-
-            mvprintw(3, 1, "Enter your username: ");
+            attron(COLOR_PAIR(3));
+            mvprintw(LINES / 2 - 8, COLS / 2 - 30, "+========================================+");
+            mvprintw(LINES / 2 - 7, COLS / 2 - 30, "|              LOG IN MENU               |");
+            mvprintw(LINES / 2 - 6, COLS / 2 - 30, "+========================================+");
+            attroff(COLOR_PAIR(3));
+            mvprintw(LINES / 2 - 4, COLS / 2 - 20, "Enter your username: ");
+            clrtoeol();
             echo();
             getstr(l_user.username);
             noecho();
-
-            mvprintw(5, 1, "Enter your password: ");
+            mvprintw(LINES / 2 - 2, COLS / 2 - 20, "Enter your password: ");
+            clrtoeol();
             echo();
             getstr(l_user.password);
             noecho();
 
             FILE *fptr = fopen("users.txt", "r");
             if (fptr == NULL) {
-                mvprintw(7, 1, "Error: Unable to open users file.");
+                attron(COLOR_PAIR(2));
+                mvprintw(LINES / 2, COLS / 2 - 20, "Error: Unable to open users file.");
+                attroff(COLOR_PAIR(2));
                 getch();
                 return;
             }
-
             int valid = 0;
-            while (fscanf(fptr, "%s %s %s %d %d %d %d %d", user.username, user.password, user.email, &user.score,&user.gold,&user.game,&user.color,&user.difficulty) != EOF) {
+            while (fscanf(fptr, "%s %s %s %d %d %d %d %d", user.username, user.password, user.email, &user.score, &user.gold, &user.game, &user.color, &user.difficulty) != EOF) {
                 if (strcmp(l_user.username, user.username) == 0 && strcmp(l_user.password, user.password) == 0) {
                     valid = 1;
-                    strcpy(l_user.username,user.username);
-                    strcpy(l_user.password,user.password);
-                    strcpy(l_user.email,user.email);
-                    l_user.score=user.score;
-                    l_user.gold=user.gold;
-                    l_user.game=user.game;
-                    l_user.color=user.color;                
-                    l_user.difficulty=user.difficulty;
-                    l_user.level_num=1;
+                    strcpy(l_user.username, user.username);
+                    strcpy(l_user.password, user.password);
+                    strcpy(l_user.email, user.email);
+                    l_user.score = user.score;
+                    l_user.gold = user.gold;
+                    l_user.game = user.game;
+                    l_user.color = user.color;
+                    l_user.difficulty = user.difficulty;
+                    l_user.level_num = 1;
                     break;
                 }
             }
@@ -445,15 +504,19 @@ void log_in(){
             fclose(fptr);
 
             if (valid) {
-                mvprintw(7, 1, "Login successful! Press any key to return to the main menu.");
+                attron(COLOR_PAIR(4)); 
+                mvprintw(LINES / 2, COLS / 2 - 20, "Login successful! Press any key to return to the main menu.");
+                attroff(COLOR_PAIR(4));
                 is_logged_in = 1;
                 getch();
                 return;
             } else {
-                mvprintw(7, 1, "Invalid username or password!");
-                mvprintw(9, 1, "Press 'r' to retry or any other key to return to the main menu.");
-                ch = getch();
+                attron(COLOR_PAIR(2)); 
+                mvprintw(LINES / 2, COLS / 2 - 30, "Invalid username or password!");
+                mvprintw(LINES / 2 + 2, COLS / 2 - 30, "Press 'r' to retry or any other key to return to the main menu.");
+                attroff(COLOR_PAIR(2));
 
+                ch = getch();
                 if (ch != 'r' && ch != 'R') {
                     return;
                 }
@@ -610,6 +673,7 @@ void play_as_guest(){
     l_user.current_weapon='m';
     l_user.kills1=0;
     l_user.kills2=0;
+    l_user.hunger=100;
     show_count = 0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
@@ -623,21 +687,12 @@ void play_as_guest(){
 }
 void show_table(){
     clear();    
-    if (has_colors()) {
-        start_color();
-        init_pair(1, COLOR_CYAN, COLOR_BLACK);     
-        init_pair(2, COLOR_YELLOW, COLOR_BLACK);   
-        init_pair(3, COLOR_GREEN, COLOR_BLACK);    
-        init_pair(4, COLOR_MAGENTA, COLOR_BLACK);   
-        init_pair(5, COLOR_BLUE, COLOR_BLACK);     
-        init_pair(6, COLOR_WHITE, COLOR_BLACK);    
-    } 
     int table_width = 70;   
     int start_x = (COLS - table_width) / 2;
     int start_y = 2;
-    attron(COLOR_PAIR(1) | A_BOLD);
+    attron(COLOR_PAIR(7) | A_BOLD);
     mvprintw(start_y, start_x, "SCORE TABLE");
-    attroff(COLOR_PAIR(1) | A_BOLD);
+    attroff(COLOR_PAIR(7) | A_BOLD);
     FILE *file = fopen("users.txt", "r");
     if (!file) {
         attron(COLOR_PAIR(1));
@@ -663,33 +718,34 @@ void show_table(){
     }
     for (int i = 0; i < user_count; i++) {
            
-        if (!strcmp(users[i].username, l_user.username)) {
-            attron(COLOR_PAIR(2) | A_BOLD);
-        }
+        
         if (i > 0) {
-            attron(COLOR_PAIR(6));
+            attron(COLOR_PAIR(4));
             mvprintw(start_y + 3 + i * 2 - 1, start_x, "------------------------------------------------------");
-            attroff(COLOR_PAIR(6));
-        }   
+            attroff(COLOR_PAIR(4));
+        }  
+        if (!strcmp(users[i].username, l_user.username)) {
+            attron(COLOR_PAIR(1) | A_BOLD | A_ITALIC);
+        } 
         if (i == 0) {
             attron(COLOR_PAIR(3) | A_BOLD);
             mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (THE GOAT)\u24F5", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
             attroff(COLOR_PAIR(3) | A_BOLD);
         } else if (i == 1) {
-            attron(COLOR_PAIR(4) | A_BOLD);
+            attron(COLOR_PAIR(6) | A_BOLD);
             mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (ALMOST GOAT)\u24F6", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
-            attroff(COLOR_PAIR(4) | A_BOLD);
+            attroff(COLOR_PAIR(6) | A_BOLD);
         } else if (i == 2) {
             attron(COLOR_PAIR(5) | A_BOLD);
             mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d (SEMI GOAT)\u24F7", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
             attroff(COLOR_PAIR(5) | A_BOLD);
         } else {
-            attron(COLOR_PAIR(6));
+            attron(COLOR_PAIR(4));
             mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game);
-            attroff(COLOR_PAIR(6));
+            attroff(COLOR_PAIR(4));
         }   
         if (!strcmp(users[i].username, l_user.username)) {
-            attroff(COLOR_PAIR(2) | A_BOLD);
+            attroff(COLOR_PAIR(1) | A_BOLD | A_ITALIC);
         }
     }
     attron(COLOR_PAIR(1) | A_BOLD);
@@ -918,6 +974,7 @@ void start_new_game(){
     l_user.weapon_bar.sword=0;
     l_user.kills1=0;
     l_user.kills2=0;
+    l_user.hunger=100;
     l_user.current_weapon='m';
     show_count = 0;
     memset(memory_map1,0,sizeof(memory_map1));
@@ -3001,28 +3058,60 @@ int handle_input(Player *player) {
         clear();
         final_result(0);
     }
+    if(l_user.hunger>=100){
+        l_user.hunger=100;
+        l_user.health=10000;
+    }
     if(l_user.level_num==1){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
-            if(Hspell==1){
+            if(Gspell==1&&Gspellc<=10){
+                Gspellc++;
+            }
+            else if(Gspellc>10){
+                Gspell=0;
+            }
+            if(Hspell==1&&Hspellc<=10){
                 Hspellc++;
+            }
+            else if(Hspellc>10){
+                Hspell=0;
             }
             if(Sspell==1&&Sspellc<=10){
                 pace = 2;
                 Sspellc++;
             }
-            if(Gspell==1){
-                Gspellc++;
+            else if(Sspellc>10){
+                pace = 1;
+                Sspell=0;
             }
             pace_counter1++;
             if(l_user.difficulty==0){
-                l_user.health-=5;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=5;
+                }
+                else{
+                    l_user.hunger-=1;
+                }
             }
             if(l_user.difficulty==1){
-                l_user.health-=10;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=10;
+                }
+                else{
+                    l_user.hunger-=3;
+                }
             }
             if(l_user.difficulty==2){
-                l_user.health-=20;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=20;
+                }
+                else{
+                    l_user.hunger-=5;
+                }
             }
             
         }
@@ -3141,29 +3230,58 @@ int handle_input(Player *player) {
     }
     else if(l_user.level_num==2){
         int ch = getch();
-        int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
-            if(Hspell==1){
+            if(Gspell==1&&Gspellc<=10){
+                Gspellc++;
+            }
+            else if(Gspellc>10){
+                Gspell=0;
+            }
+            if(Hspell==1&&Hspellc<=10){
                 Hspellc++;
+            }
+            else if(Hspellc>10){
+                Hspell=0;
             }
             if(Sspell==1&&Sspellc<=10){
                 pace = 2;
                 Sspellc++;
             }
-            if(Gspell==1){
-                Gspellc++;
-            }
-            if(l_user.difficulty==0){
-                l_user.health-=5;
-            }
-            if(l_user.difficulty==1){
-                l_user.health-=10;
-            }
-            if(l_user.difficulty==2){
-                l_user.health-=20;
+            else if(Sspellc>10){
+                pace = 1;
+                Sspell=0;
             }
             pace_counter1++;
+            if(l_user.difficulty==0){
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=5;
+                }
+                else{
+                    l_user.hunger-=1;
+                }
+            }
+            if(l_user.difficulty==1){
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=10;
+                }
+                else{
+                    l_user.hunger-=3;
+                }
+            }
+            if(l_user.difficulty==2){
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=20;
+                }
+                else{
+                    l_user.hunger-=5;
+                }
+            }
+            
         }
+        int new_x = player->x, new_y = player->y;
         if (ch == 's' && pace_counter2<5) {
         pace=2;
         pace_counter1=0;
@@ -3283,33 +3401,62 @@ int handle_input(Player *player) {
     }
     else if(l_user.level_num==3){
         int ch = getch();
-        int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
-            if(Hspell==1){
+            if(Gspell==1&&Gspellc<=10){
+                Gspellc++;
+            }
+            else if(Gspellc>10){
+                Gspell=0;
+            }
+            if(Hspell==1&&Hspellc<=10){
                 Hspellc++;
+            }
+            else if(Hspellc>10){
+                Hspell=0;
             }
             if(Sspell==1&&Sspellc<=10){
                 pace = 2;
                 Sspellc++;
             }
-            if(Gspell==1){
-                Gspellc++;
+            else if(Sspellc>10){
+                pace = 1;
+                Sspell=0;
             }
             pace_counter1++;
             if(l_user.difficulty==0){
-                l_user.health-=5;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=5;
+                }
+                else{
+                    l_user.hunger-=1;
+                }
             }
             if(l_user.difficulty==1){
-                l_user.health-=10;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=10;
+                }
+                else{
+                    l_user.hunger-=3;
+                }
             }
             if(l_user.difficulty==2){
-                l_user.health-=20;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=20;
+                }
+                else{
+                    l_user.hunger-=5;
+                }
             }
+            
         }
+        int new_x = player->x, new_y = player->y;
         if (ch == 's' && pace_counter2<5) {
-            pace=2;
-            pace_counter1=0;
-            pace_counter2++;
+        pace=2;
+        pace_counter1=0;
+        pace_counter2++;
 
         }
         if(pace_counter1>=5 || Sspellc>=10){
@@ -3423,36 +3570,65 @@ int handle_input(Player *player) {
     }
     else if(l_user.level_num==4){
         int ch = getch();
-        int new_x = player->x, new_y = player->y;
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
-            pace_counter1++;
-            if(Hspell==1){
+            if(Gspell==1&&Gspellc<=10){
+                Gspellc++;
+            }
+            else if(Gspellc>10){
+                Gspell=0;
+            }
+            if(Hspell==1&&Hspellc<=10){
                 Hspellc++;
+            }
+            else if(Hspellc>10){
+                Hspell=0;
             }
             if(Sspell==1&&Sspellc<=10){
                 pace = 2;
                 Sspellc++;
             }
-            if(Gspell==1){
-                Gspellc++;
+            else if(Sspellc>10){
+                pace = 1;
+                Sspell=0;
             }
+            pace_counter1++;
             if(l_user.difficulty==0){
-                l_user.health-=5;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=5;
+                }
+                else{
+                    l_user.hunger-=1;
+                }
             }
             if(l_user.difficulty==1){
-                l_user.health-=10;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=10;
+                }
+                else{
+                    l_user.hunger-=3;
+                }
             }
             if(l_user.difficulty==2){
-                l_user.health-=20;
+                if(l_user.hunger<=0){
+                    l_user.hunger=0;
+                    l_user.health-=20;
+                }
+                else{
+                    l_user.hunger-=5;
+                }
             }
+            
         }
+        int new_x = player->x, new_y = player->y;
         if (ch == 's' && pace_counter2<5) {
-            pace=2;
-            pace_counter1=0;
-            pace_counter2++;
+        pace=2;
+        pace_counter1=0;
+        pace_counter2++;
 
         }
-        if(pace_counter1>=5 && Sspellc>=10){
+        if(pace_counter1>=5 || Sspellc>=10){
             pace = 1;
         }
         switch (ch) {
@@ -3632,28 +3808,51 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     draw_visible_map(player->x, player->y,memory_map,map);
     draw_enemy(player);
     draw_player(player);
-    draw_bar(LINES-2, 5, 20, l_user.health, 10000, "Health");
-    draw_bar(LINES-2, 72, 20, l_user.score, 100, "Score");
-    draw_bar(LINES-2, 132, 20, l_user.gold, 100, "Gold");
+    mvprintw(LINES-2,2,"                              ");
+    mvprintw(LINES-2,20,"                              ");
+    mvprintw(LINES-3,62,"                                         ");
+    
+    draw_bar(LINES-2, 62, 20, l_user.health, 10000, "Health");
+    draw_bar(LINES-3, 62, 20, l_user.hunger, 100, "Power");
+    attron(COLOR_PAIR(1));
+    mvprintw(LINES-2,14,"Score : %d",l_user.score);
+    mvprintw(LINES-2,2,"Gold : %d",l_user.gold);
+    mvprintw(LINES-2,26,"Kills : %d",l_user.kills1);
+    attroff(COLOR_PAIR(1));
+    mvprintw(LINES-6,2,"                              ");
+    //attron(COLOR_PAIR(7));
+    
+    //attroff(COLOR_PAIR(7));
     attron(COLOR_PAIR(10));
+    
     switch(l_user.current_weapon){
         case 'm':
-            mvprintw(LINES-4,5,"current weapon : MACE");
+            mvprintw(LINES-6,2,"current weapon : MACE");
         break;
         case 'd':
-            mvprintw(LINES-4,5,"current weapon : DAGGER %d",l_user.weapon_bar.dagger);
+            mvprintw(LINES-6,2,"current weapon : DAGGER %d",l_user.weapon_bar.dagger);
         break;
         case 'w':
-            mvprintw(LINES-4,5,"current weapon : MAGIC WAND %d",l_user.weapon_bar.magic_wand);
+            mvprintw(LINES-6,2,"current weapon : MAGIC WAND %d",l_user.weapon_bar.magic_wand);
         break;
         case 'a':
-            mvprintw(LINES-4,5,"current weapon : ARROWS %d",l_user.weapon_bar.arrow);
+            mvprintw(LINES-6,2,"current weapon : ARROWS %d",l_user.weapon_bar.arrow);
         break;
         case 's':
-            mvprintw(LINES-4,5,"current weapon : SWORD");
+            mvprintw(LINES-6,2,"current weapon : SWORD");
         break;
     }
     attroff(COLOR_PAIR(10));
+    attron(COLOR_PAIR(6));
+        mvprintw(LINES-5,2,"Health spell : %d",l_user.spell_bar.H);
+        mvprintw(LINES-4,2,"Speed  spell : %d",l_user.spell_bar.S);
+        mvprintw(LINES-3,2,"Power  spell : %d",l_user.spell_bar.G);
+    attroff(COLOR_PAIR(6));
+    attron(COLOR_PAIR(9));
+        mvprintw(LINES-5,20,"Normal food : %d",l_user.food_bar.normal);
+        mvprintw(LINES-4,20,"Speedy food : %d",l_user.food_bar.normal);
+        mvprintw(LINES-3,20,"Power  food : %d",l_user.food_bar.special);
+    attroff(COLOR_PAIR(9));
     refresh();  
 }
 void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
@@ -4169,23 +4368,21 @@ int check_code(const char *entered_code, const char *correct_code) {
     }
 }
 void draw_bar(int y, int x, int width, int value, int max_value, const char* label) {
-    if(strcmp(label,"Gold")==0){
+    if(strcmp(label,"Power")==0){
         mvprintw(y, x, "%s: ", label);
 
         int bar_length = (value * width) / max_value;
 
-        attron(COLOR_PAIR(1) | A_REVERSE); 
+        attron(COLOR_PAIR(10) | A_REVERSE); 
         for (int i = 0; i < bar_length; i++) {
-            mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+            mvaddch(y, x + strlen(label) + 3 + i, ' '); 
         }
-        attroff(COLOR_PAIR(1) | A_REVERSE);
+        attroff(COLOR_PAIR(10) | A_REVERSE);
 
-        //attron(COLOR_PAIR(1) | A_REVERSE);
         for (int i = bar_length; i < width; i++) {
-            mvaddch(y, x + strlen(label) + 2 + i, ' '); 
+            mvaddch(y, x + strlen(label) + 3 + i, ' '); 
         }
-       // attroff(COLOR_PAIR(1) | A_REVERSE);
-        mvprintw(y, x + strlen(label) + 2 + width + 1, " %d/%d", value, max_value);
+        mvprintw(y, x + strlen(label) + 3 + width + 1, "  %d/%d", value, max_value);
     }
     else{
         mvprintw(y, x, "%s: ", label);
@@ -4248,23 +4445,23 @@ void food_table(){
     int ch = getch();
     int x = rand() % 5;
     int add1 = 10;
-    int add2 = 80;
+    int add2 = 50;
     if(Hspell==1&&Hspellc<10){
         add1 = 20;
-        add2 = 160;
+        add2 = 100;
     }
     switch (ch){
         case 'n' : 
             if(x){
                 if(l_user.food_bar.normal>0){
-                    if(l_user.health>=9990&&Hspell==0||l_user.health>=9980&&Hspell==1){
+                    if(l_user.hunger>=9990&&Hspell==0||l_user.hunger>=9980&&Hspell==1){
                         mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
                         getch();
                         clear();
                     }
                     else{
                         l_user.food_bar.normal--;
-                        l_user.health+=add1;
+                        l_user.hunger+=add1;
                         mvprintw(LINES/2-3,COLS/2-20,"            Yummy!");
                         getch();
                         clear();
@@ -4279,8 +4476,8 @@ void food_table(){
                 break;
             }
             else{
-                l_user.health-=6;
-                mvprintw(LINES/2-3,COLS/2-20,"         HE HE HE HE :o");
+                l_user.health-=10;
+                mvprintw(LINES/2-3,COLS/2-20,"       HE HE HE HE :o");
                 getch();
                 clear();
                 
@@ -4290,14 +4487,14 @@ void food_table(){
         case 's' : 
             
                 if(l_user.food_bar.special>0){
-                    if(l_user.health>=9920&&Hspell==0||l_user.health>=9840&&Hspell==1){
+                    if(l_user.hunger>=9950&&Hspell==0||l_user.hunger>=9900&&Hspell==1){
                         mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
                         getch();
                         clear();
                     }
                     else{
                         l_user.food_bar.special--;
-                        l_user.health+=add2;
+                        l_user.hunger+=add2;
                         mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
                         getch();
                         clear();
@@ -4313,6 +4510,10 @@ void food_table(){
         default :
             clear();
             break;
+    }
+    if(l_user.hunger>=100){
+        l_user.hunger=100;
+        l_user.health=10000;
     }
 }
 int gold_manager(char gold){
@@ -5787,6 +5988,9 @@ int damage_enemy(int level,int room,char weapon,Player *player){
         break;
         attroff(COLOR_PAIR(10));
     }
+    if(Gspell==1){
+            damage*=2;
+    }
     if(level==1){
         if(room==1){
             if(((player->x==enemy_map1[0].x&&player->y >= enemy_map1[0].y&&aim==1)||
@@ -6681,6 +6885,38 @@ void final_result(int x){
     refresh();
     getch();
     show_table();
+}
+void draw_robot_art(int start_y, int start_x) {
+    attron(COLOR_PAIR(7));
+     mvprintw(start_y, start_x, "       _____");
+    mvprintw(start_y + 1, start_x, "      /     \\");
+    mvprintw(start_y + 2, start_x, "     | () () |");
+    mvprintw(start_y + 3, start_x, "     |   ^   |");
+    mvprintw(start_y + 4, start_x, "     |  [-]  |");
+    mvprintw(start_y + 5, start_x, "     |_______|");
+    mvprintw(start_y + 6, start_x, "      /| |\\");
+    mvprintw(start_y + 7, start_x, "     / | | \\");
+    mvprintw(start_y + 8, start_x, "    /  | |  \\");
+    mvprintw(start_y + 9, start_x, "   /   | |   \\");
+    mvprintw(start_y + 10, start_x, "  /    | |    \\");
+    mvprintw(start_y + 11, start_x, " /     | |     \\");
+    mvprintw(start_y + 12, start_x, "/______| |______\\");
+    mvprintw(start_y + 13, start_x, "       | |");
+    mvprintw(start_y + 14, start_x, "       | |");
+    mvprintw(start_y + 15, start_x, "       | |");
+    mvprintw(start_y + 16, start_x, "      _| |_");
+    mvprintw(start_y + 17, start_x, "     (_____)");
+
+    // Draw the speech cloud to the right of the robot
+    mvprintw(start_y + 4, start_x + 15, "         ___________");
+    mvprintw(start_y + 5, start_x + 18, " \\   /           \\");
+    mvprintw(start_y + 6, start_x + 18, "  \\ |    Hello,   |");
+    mvprintw(start_y + 7, start_x + 18, "    |   Welcome!  |");
+    mvprintw(start_y + 8, start_x + 18, "     \\___________/");
+    mvprintw(start_y + 9, start_x + 15, "        ");
+    mvprintw(start_y + 10, start_x + 16, "         ");
+
+    attroff(COLOR_PAIR(7));
 }
 
 // vo2d save_information(Use1 1ser){
