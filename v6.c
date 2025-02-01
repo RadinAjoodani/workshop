@@ -22,6 +22,7 @@ typedef enum {
 typedef struct{
     int normal;
     int special;
+    int speed;
 }Food;
 typedef struct{
     int H;
@@ -97,6 +98,7 @@ int sign_d=0;
 int sign_w=0;
 int sign_a=0;
 User l_user;
+User p_user;
 User s_user;
 int is_logged_in=0;
 int show_count = 0;
@@ -189,7 +191,8 @@ void music();
 void displayMusicList(const char *musicFiles[], int count);
 void final_result(int x);
 void draw_robot_art(int start_y, int start_x);
-// void save_information(User user);
+void save_map(char map[MAP_HEIGHT][MAP_WIDTH]);
+void save_info();
 
 int main(){
     initscr(); 
@@ -1038,7 +1041,8 @@ void continue_last_game(){
 int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     char ch = map[y][x];
     return ch == '.' || ch == '#' || ch == '+'||ch=='<'||ch=='&'||ch=='Q'||ch=='T'||ch=='Z'
-    ||ch=='X'||ch=='%'|ch=='R'|ch=='H'|ch=='8'||ch=='^'||ch=='?'||ch=='L'||ch=='J'||ch=='/'||ch=='*'||ch=='A';
+    ||ch=='X'||ch=='%'|ch=='R'|ch=='H'|ch=='8'||ch=='^'||ch=='?'||ch=='L'||ch=='J'||ch=='/'
+    ||ch=='*'||ch=='A'||ch=='V';
 }
 void draw_player(Player *player) {
     if(l_user.color==4){
@@ -1800,6 +1804,15 @@ int create_map2() {
         }
         map2[x][y]='T';
     }
+    int b2 = rand() % 2 + 2;
+    for (int i = 0 ; i < b2 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 161;
+        if(map2[x][y]!='.'){
+            continue;
+        }
+        map2[x][y]='V';
+    }
     int q4 = rand() % 3 + 1;
     for (int i = 0 ; i < q4 ;i++){
         int x = rand() % 10 + 31;
@@ -2170,6 +2183,21 @@ int create_map3() {
         }
         else if(p==1){
             map3[x][y]='J';
+        }
+    }
+    int b2 = rand() % 3 + 1;
+    for (int i = 0 ; i < b2 ;i++){
+        int x = rand() % 3 + 13;
+        int y = rand() % 13 + 71;
+        if(map3[x][y]!='.'){
+            continue;
+        }
+        int p = rand()%2;
+        if(p==0){
+            map3[x][y]='V';
+        }
+        else if(p==1){
+            map3[x][y]='X';
         }
     }
     //  room ۳
@@ -3044,6 +3072,15 @@ int create_map4() {
             map4[x][y]='*';
         }
     }
+    int b8 = rand() % 2 + 2 ;
+    for (int i = 0 ; i < b8 ;i++){
+        int x = rand() % 10 + 31;
+        int y = rand() % 14 + 46;
+        if(map4[x][y]!='.'){
+            continue;
+        }
+        map4[x][y]='V';
+    }
     // ایجاد راهروها
     draw_path(34, 12, 18, 7,map4);
     draw_path(119, 7, 48, 9,map4);
@@ -3137,7 +3174,10 @@ int handle_input(Player *player) {
         case 'e': food_table();
             refresh_map(player,memory_map1,map1);
             break;
-        case 'q':main_menu();
+        case 'q':
+            save_map(map1);
+            save_info();
+            main_menu();
         case 'm':
             show_count++;
             if(show_count>=4){
@@ -3158,6 +3198,10 @@ int handle_input(Player *player) {
             break;
         case ' ':
             damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
+            break;
+        case 127:
+            save_map(map1);
+            save_info();
             break;
         }
 
@@ -3183,7 +3227,7 @@ int handle_input(Player *player) {
                 }
             }
 
-            else if(map1[new_y][new_x]=='%'||map1[new_y][new_x]=='X')
+            else if(map1[new_y][new_x]=='%'||map1[new_y][new_x]=='X'||map1[new_y][new_x]=='V')
             {
                 if(message(5,40)=='\n'){ 
                     food_manager(map1[new_y][new_x]);
@@ -3325,6 +3369,10 @@ int handle_input(Player *player) {
             case ' ':
                 damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
             break;
+            case 127:
+                save_map(map2);
+                save_info();
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map2) && map2[new_y][new_x]!='<') {
@@ -3360,7 +3408,7 @@ int handle_input(Player *player) {
                     map2[32][94] = 'Q';
                 }
             }
-            else if(map2[new_y][new_x]=='%'||map2[new_y][new_x]=='X')
+            else if(map2[new_y][new_x]=='%'||map2[new_y][new_x]=='X'||map2[new_y][new_x]=='V')
             {
                 if(message(5,40)=='\n'){
                     food_manager(map2[new_y][new_x]);
@@ -3496,6 +3544,10 @@ int handle_input(Player *player) {
             case ' ':
                 damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
                 break;
+            case 127:
+                save_map(map3);
+                save_info();
+            break;
         }
         
 
@@ -3529,7 +3581,7 @@ int handle_input(Player *player) {
                     map3[13][70] = 'Q';
                 }
             }
-            else if(map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X')
+            else if(map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X'||map3[new_y][new_x]=='V')
             {
                 if(message(5,40)=='\n'){
                     food_manager(map3[new_y][new_x]);
@@ -3666,6 +3718,10 @@ int handle_input(Player *player) {
             case ' ':
                 damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
                 break;
+            case 127:
+                save_map(map4);
+                save_info();
+            break;
         }
 
         if (is_valid_move(new_x, new_y,map4)) {
@@ -3710,7 +3766,7 @@ int handle_input(Player *player) {
                     map4[12][35] = 'Q';
                 }
             }
-            else if(map4[new_y][new_x]=='%'||map4[new_y][new_x]=='X')
+            else if(map4[new_y][new_x]=='%'||map4[new_y][new_x]=='X'||map4[new_y][new_x]=='V')
             {
                 if(message(5,40)=='\n'){
                     food_manager(map4[new_y][new_x]);
@@ -3776,7 +3832,7 @@ void draw_visible_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_
                     mvaddch(i, j,map[i][j]);
                     attroff(COLOR_PAIR(6));
                 }
-                else if(map[i][j] == '%'||map[i][j] == 'X'){
+                else if(map[i][j] == '%'||map[i][j] == 'X'||map[i][j]=='V'){
                     attron(COLOR_PAIR(9));
                     mvaddch(i, j,map[i][j]);
                     attroff(COLOR_PAIR(9));
@@ -3850,7 +3906,7 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     attroff(COLOR_PAIR(6));
     attron(COLOR_PAIR(9));
         mvprintw(LINES-5,20,"Normal food : %d",l_user.food_bar.normal);
-        mvprintw(LINES-4,20,"Speedy food : %d",l_user.food_bar.normal);
+        mvprintw(LINES-4,20,"Speedy food : %d",l_user.food_bar.speed);
         mvprintw(LINES-3,20,"Power  food : %d",l_user.food_bar.special);
     attroff(COLOR_PAIR(9));
     refresh();  
@@ -4405,7 +4461,7 @@ void draw_bar(int y, int x, int width, int value, int max_value, const char* lab
 }
 int food_manager(char food){
     if(food=='%'){
-        if(l_user.food_bar.normal+l_user.food_bar.special>=5){
+        if(l_user.food_bar.normal+l_user.food_bar.special+l_user.food_bar.speed>=5){
             full_food=1;
             attron(COLOR_PAIR(2));
             mvprintw(0,0,"not enough space to restore food!");
@@ -4421,7 +4477,7 @@ int food_manager(char food){
         
     }
     else if(food=='X'){
-        if(l_user.food_bar.normal+l_user.food_bar.special>=5){
+        if(l_user.food_bar.normal+l_user.food_bar.special+l_user.food_bar.speed>=5){
             full_food=1;
             attron(COLOR_PAIR(2));
             mvprintw(0,0,"not enough space to restore food!");
@@ -4436,12 +4492,29 @@ int food_manager(char food){
         }
         
     }
+    else if(food=='V'){
+        if(l_user.food_bar.normal+l_user.food_bar.special+l_user.food_bar.speed>=5){
+            full_food=1;
+            attron(COLOR_PAIR(2));
+            mvprintw(0,0,"not enough space to restore food!");
+            attroff(COLOR_PAIR(2));
+            getch();
+            mvprintw(0,0,"                                 ");
+            
+        }
+        else{
+            full_food=0;
+            l_user.food_bar.speed += 1;
+        }
+        
+    }
 }
 void food_table(){
     clear();
-    mvprintw(LINES/2-6,COLS/2-20,"      normal food : %d",l_user.food_bar.normal);
-    mvprintw(LINES/2-5,COLS/2-20,"      special food : %d",l_user.food_bar.special);
-    mvprintw(LINES/2-4,COLS/2-50,"press n to consume normal food or press s to consume special food,to quit press any key");
+    mvprintw(LINES/2-5,COLS/2-20,"      Speedy food : %d (press r to consume speedy)",l_user.food_bar.speed);
+    mvprintw(LINES/2-7,COLS/2-20,"      normal food : %d (press n to consume normal food)",l_user.food_bar.normal);
+    mvprintw(LINES/2-6,COLS/2-20,"      special food : %d (press s to consume special)",l_user.food_bar.special);
+    mvprintw(LINES/2-4,COLS/2-50,"press any key to quit");
     int ch = getch();
     int x = rand() % 5;
     int add1 = 10;
@@ -4495,7 +4568,34 @@ void food_table(){
                     else{
                         l_user.food_bar.special--;
                         l_user.hunger+=add2;
+                        Gspell=1;
+                        Gspellc=0;
                         mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
+                        getch();
+                        clear();
+                    }
+                    
+                }
+                else{
+                    mvprintw(LINES/2-3,COLS/2-20,"You have no more special food");
+                    getch();
+                    clear();
+                }
+            break;
+        case 'r':            
+                if(l_user.food_bar.speed>0){
+                    if(l_user.hunger>=9950&&Hspell==0||l_user.hunger>=9900&&Hspell==1){
+                        mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
+                        getch();
+                        clear();
+                    }
+                    else{
+                        l_user.food_bar.speed--;
+                        l_user.hunger+=add1;
+                        Sspell=1;
+                        Sspellc=0;
+                        pace_counter1=0;
+                        mvprintw(LINES/2-3,COLS/2-20,"        Run faster!");
                         getch();
                         clear();
                     }
@@ -6918,39 +7018,29 @@ void draw_robot_art(int start_y, int start_x) {
 
     attroff(COLOR_PAIR(7));
 }
+void save_map(char map[MAP_HEIGHT][MAP_WIDTH]){
+    char filename[200];
+    snprintf(filename, sizeof(filename), "%s.txt", l_user.username);
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Failed to open file");
+        return;
+    }
 
-// vo2d save_information(Use1 1ser){
-//     FILE *reed=fopen("users.txt","r");
-//     FILE *write=fopen("temp.txt", "w");
-//     char buffer[1024];
-//     int found = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            fputc(map[y][x], file);
+        }
+        fputc('\n', file);
+    }
+    attron(COLOR_PAIR(3));
+    mvprintw(1,80,"       SAVED!");
+    attroff(COLOR_PAIR(3));
+    refresh();
+    napms(2000);
+    fclose(file);
+    mvprintw(1,80,"             ");
+}
+void save_info(){
 
-//     while (fgets(buffer, sizeof(buffer), reed) != NULL) {
-//         char currentUsername[256], currentPassword[256], currentEmail[256],currentcolor[256],currentdifficulty[256];
-//         int field1, field2, field3;
-
-         
-//         if (sscanf(buffer, "%s %s %s %d %d %d %s %s", currentUsername, currentPassword, currentEmail, &field1, &field2, &field3, currentcolor, currentdifficulty) == 8) {
-//             if (strcmp(currentUsername, l_user.username) == 0) {
-                 
-//                 fprintf(write, "%s %s %s %d %d %d %s %s\n", l_user.username, l_user.password, l_user.email, l_user.score, l_user.gold, l_user.game,l_user.color, l_user.difficulty);
-//                 found = 1;
-//             } else {
-                 
-//                 fprintf(write, "%s", buffer);
-//             }
-//         } else {
-             
-//             fprintf(write, "%s", buffer);
-//         }
-//     }
-
-//     fclose(reed);
-//     fclose(write);
-//     if (!found) {
-//     } else {
-//         if (remove("users.txt") != 0 || rename("temp.txt", "users.txt") != 0) {
-//             exit(EXIT_FAILURE);
-//         }
-//     }
-// }
+}
