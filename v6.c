@@ -3185,7 +3185,6 @@ int handle_input(Player *player) {
             break;
         case 'q':
             save_map(map1);
-            save_info();
             main_menu();
         case 'm':
             show_count++;
@@ -3210,8 +3209,7 @@ int handle_input(Player *player) {
             break;
         case 127:
             save_map(map1);
-            save_info();
-            break;
+        break;
         }
 
         if (is_valid_move(new_x, new_y,map1) && map1[new_y][new_x]!='<') {
@@ -3356,7 +3354,9 @@ int handle_input(Player *player) {
             case 'e': food_table();
             refresh_map(player,memory_map2,map2);
             break;
-            case 'q':main_menu();
+            case 'q':
+                save_map(map2);
+                main_menu();
             case 'm':        
                 show_count++;
                 if(show_count>=4){
@@ -3380,7 +3380,6 @@ int handle_input(Player *player) {
             break;
             case 127:
                 save_map(map2);
-                save_info();
             break;
         }
 
@@ -3531,7 +3530,9 @@ int handle_input(Player *player) {
         case 'e': food_table();
             refresh_map(player,memory_map3,map3);
             break;
-        case 'q':main_menu();
+        case 'q':
+            save_map(map3);
+            main_menu();
         case 'm':            
             show_count++;
             if(show_count>=4){
@@ -3705,7 +3706,9 @@ int handle_input(Player *player) {
             food_table();
             refresh_map(player,memory_map4,map4);
             break;
-        case 'q':main_menu();
+        case 'q':
+            save_map(map4);
+            main_menu();
         case 'm':
             show_count++;
             if(show_count>=4){
@@ -3729,7 +3732,6 @@ int handle_input(Player *player) {
                 break;
             case 127:
                 save_map(map4);
-                save_info();
             break;
         }
 
@@ -6970,6 +6972,7 @@ void final_result(int x){
         attron(COLOR_PAIR(4));
         mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Press any key to exit...");
         attroff(COLOR_PAIR(4));
+        save_info();
     }
     else{
         attron(COLOR_PAIR(5));
@@ -6994,6 +6997,7 @@ void final_result(int x){
     refresh();
     getch();
     show_table();
+    main_menu();
 }
 void draw_robot_art(int start_y, int start_x) {
     attron(COLOR_PAIR(7));
