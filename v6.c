@@ -97,8 +97,8 @@ int gmsign2=0;
 int sign_d=0;
 int sign_w=0;
 int sign_a=0;
-User l_user;
 User p_user;
+User l_user;
 User s_user;
 int is_logged_in=0;
 int show_count = 0;
@@ -192,7 +192,10 @@ void displayMusicList(const char *musicFiles[], int count);
 void final_result(int x);
 void draw_robot_art(int start_y, int start_x);
 void save_map(char map[MAP_HEIGHT][MAP_WIDTH]);
-void save_info();
+int save_info();
+int read_users(const char *filename, User users[], int *num_users);
+int write_users(const char *filename, User users[], int num_users);
+User* find_user(User users[], int num_users, const char *username);
 
 int main(){
     initscr(); 
@@ -614,7 +617,7 @@ void play_game(){
 
          if (is_logged_in) {
             mvprintw(0, 1, "Play Game Menu");
-            mvprintw(rows - 1, 1, "Logged in as: %s | Score: %d", l_user.username, l_user.score);
+            mvprintw(rows - 1, 1, "Logged in as: %s | Score: %d", p_user.username, p_user.score);
         } else {
             mvprintw(LINES/2, COLS/2 -20, "Not logged in. Please log in or sign up.");
             getch();
@@ -657,26 +660,26 @@ void play_game(){
 }
 void play_as_guest(){
     clear();
-    l_user.level_num=1;
-    l_user.gold = 0;
-    l_user.score=0;
-    l_user.health=10000;
-    l_user.power=100;
-    l_user.difficulty=1;
-    l_user.food_bar.normal=0;
-    l_user.food_bar.special=0;
-    l_user.spell_bar.H=0;
-    l_user.spell_bar.S=0;
-    l_user.spell_bar.G=0;
-    l_user.weapon_bar.mace=1;
-    l_user.weapon_bar.dagger=0;
-    l_user.weapon_bar.arrow=0;
-    l_user.weapon_bar.magic_wand=0;
-    l_user.weapon_bar.sword=0;
-    l_user.current_weapon='m';
-    l_user.kills1=0;
-    l_user.kills2=0;
-    l_user.hunger=100;
+    p_user.level_num=1;
+    p_user.gold = 0;
+    p_user.score=0;
+    p_user.health=10000;
+    p_user.power=100;
+    p_user.difficulty=1;
+    p_user.food_bar.normal=0;
+    p_user.food_bar.special=0;
+    p_user.spell_bar.H=0;
+    p_user.spell_bar.S=0;
+    p_user.spell_bar.G=0;
+    p_user.weapon_bar.mace=1;
+    p_user.weapon_bar.dagger=0;
+    p_user.weapon_bar.arrow=0;
+    p_user.weapon_bar.magic_wand=0;
+    p_user.weapon_bar.sword=0;
+    p_user.current_weapon='m';
+    p_user.kills1=0;
+    p_user.kills2=0;
+    p_user.hunger=100;
     show_count = 0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
@@ -890,7 +893,7 @@ void select_difficulty(int *current_difficulty) {
             case '\n':
                 *current_difficulty = choice;
                 mvprintw(n_levels + 6, 1, "Difficulty set to %s!", difficulty_levels[choice]);
-                l_user.difficulty=choice;
+                p_user.difficulty=choice;
                 getch();
                 return;
             case 27:  
@@ -938,19 +941,19 @@ void change_character_color(int *current_color) {
                 mvprintw(n_colors + 6, 1, "Color set to %s!", colors[choice]);
                 getch();
                 if(strcmp(colors[choice],"White")==0){
-                    l_user.color=4;
+                    p_user.color=4;
                 }
                 else if(strcmp(colors[choice],"Red")==0){
-                    l_user.color=2;
+                    p_user.color=2;
                 }
                 else if(strcmp(colors[choice],"Green")==0){
-                    l_user.color=3;
+                    p_user.color=3;
                 }
                 else if(strcmp(colors[choice],"Blue")==0){
-                    l_user.color=5;
+                    p_user.color=5;
                 }
                 else if(strcmp(colors[choice],"Yellow")==0){
-                    l_user.color=1;
+                    p_user.color=1;
                 }
                 return;
             case 27:  
@@ -960,26 +963,27 @@ void change_character_color(int *current_color) {
 }
 void start_new_game(){
     clear();
-    l_user.level_num=1;
-    l_user.gold = 0;
-    l_user.score=0;
-    l_user.health=10000;
-    l_user.power=100;
-    l_user.food_bar.normal=0;
-    l_user.food_bar.special=0;
-    l_user.spell_bar.H=0;
-    l_user.spell_bar.S=0;
-    l_user.spell_bar.G=0;
-    l_user.weapon_bar.mace=1;
-    l_user.weapon_bar.dagger=0;
-    l_user.weapon_bar.arrow=0;
-    l_user.weapon_bar.magic_wand=0;
-    l_user.weapon_bar.sword=0;
-    l_user.kills1=0;
-    l_user.kills2=0;
-    l_user.hunger=100;
-    l_user.current_weapon='m';
+    p_user.level_num=1;
+    p_user.gold = 0;
+    p_user.score=0;
+    p_user.health=10000;
+    p_user.power=100;
+    p_user.food_bar.normal=0;
+    p_user.food_bar.special=0;
+    p_user.spell_bar.H=0;
+    p_user.spell_bar.S=0;
+    p_user.spell_bar.G=0;
+    p_user.weapon_bar.mace=1;
+    p_user.weapon_bar.dagger=0;
+    p_user.weapon_bar.arrow=0;
+    p_user.weapon_bar.magic_wand=0;
+    p_user.weapon_bar.sword=0;
+    p_user.kills1=0;
+    p_user.kills2=0;
+    p_user.hunger=100;
+    p_user.current_weapon='m';
     show_count = 0;
+    l_user.game++;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
     placing_enemy_map1();
@@ -993,7 +997,7 @@ void start_new_game(){
 void start_level2(){
     clear();
     show_count = 0;
-    l_user.level_num=2;
+    p_user.level_num=2;
     pace_counter2=0;
     memset(memory_map2,0,sizeof(memory_map2));
     create_map2();  
@@ -1008,7 +1012,7 @@ void start_level2(){
 void start_level3(){
     clear();
     show_count = 0;
-    l_user.level_num=3;
+    p_user.level_num=3;
     pace_counter2=0;
     memset(memory_map3,0,sizeof(memory_map3)); 
     create_map3();
@@ -1024,7 +1028,7 @@ void start_level4(){
     clear();
     show_count = 0;
     pace_counter2=0;
-    l_user.level_num=4;
+    p_user.level_num=4;
     memset(memory_map4,0,sizeof(memory_map4));
     create_map4();
     placing_enemy_map4();
@@ -1045,35 +1049,35 @@ int is_valid_move(int x, int y,char map[MAP_HEIGHT][MAP_WIDTH]) {
     ||ch=='*'||ch=='A'||ch=='V';
 }
 void draw_player(Player *player) {
-    if(l_user.color==4){
+    if(p_user.color==4){
         attron(COLOR_PAIR(4));
     }
-    else if(l_user.color==2){
+    else if(p_user.color==2){
         attron(COLOR_PAIR(2));
     }
-    else if(l_user.color==3){
+    else if(p_user.color==3){
         attron(COLOR_PAIR(3));
     }
-    else if(l_user.color==5){
+    else if(p_user.color==5){
         attron(COLOR_PAIR(5));
     }
-    else if(l_user.color==1){
+    else if(p_user.color==1){
         attron(COLOR_PAIR(1));
     }
     mvprintw(player->y, player->x, "@");
-    if(l_user.color==4){
+    if(p_user.color==4){
         attroff(COLOR_PAIR(4));
     }
-    else if(l_user.color==2){
+    else if(p_user.color==2){
         attroff(COLOR_PAIR(2));
     }
-    else if(l_user.color==3){
+    else if(p_user.color==3){
         attroff(COLOR_PAIR(3));
     }
-    else if(l_user.color==5){
+    else if(p_user.color==5){
         attroff(COLOR_PAIR(5));
     }
-    else if(l_user.color==1){
+    else if(p_user.color==1){
         attroff(COLOR_PAIR(1));
     }
 }
@@ -1082,7 +1086,7 @@ void clear_player(Player *player) {
        mvprintw(player->y, player->x, "%c", '.');
        fmsign++;
     }
-    else if (l_user.level_num==1)
+    else if (p_user.level_num==1)
     {
         if(player->prev_char=='^'){
             map1[player->y][player->x]='?';
@@ -1097,7 +1101,7 @@ void clear_player(Player *player) {
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
     }
-    else if (l_user.level_num==2)
+    else if (p_user.level_num==2)
     {
         if(player->prev_char=='^'){
             map2[player->y][player->x]='?';
@@ -1112,7 +1116,7 @@ void clear_player(Player *player) {
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
     }
-    else if (l_user.level_num==3)
+    else if (p_user.level_num==3)
     {
         if(player->prev_char=='^'){
             map3[player->y][player->x]='?';
@@ -1127,7 +1131,7 @@ void clear_player(Player *player) {
             mvprintw(player->y, player->x, "%c", player->prev_char);
         }
     }
-    else if (l_user.level_num==4)
+    else if (p_user.level_num==4)
     {
         if(player->prev_char=='^'){
             map4[player->y][player->x]='?';
@@ -3091,15 +3095,15 @@ int create_map4() {
     draw_path(44, 37, 23, 33,map4);
 }
 int handle_input(Player *player) {
-    if(l_user.health<=0){
+    if(p_user.health<=0){
         clear();
         final_result(0);
     }
-    if(l_user.hunger>=100){
-        l_user.hunger=100;
-        l_user.health=10000;
+    if(p_user.hunger>=100){
+        p_user.hunger=100;
+        p_user.health=10000;
     }
-    if(l_user.level_num==1){
+    if(p_user.level_num==1){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             if(Gspell==1&&Gspellc<=10){
@@ -3123,31 +3127,31 @@ int handle_input(Player *player) {
                 Sspell=0;
             }
             pace_counter1++;
-            if(l_user.difficulty==0){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=5;
+            if(p_user.difficulty==0){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=5;
                 }
                 else{
-                    l_user.hunger-=1;
+                    p_user.hunger-=1;
                 }
             }
-            if(l_user.difficulty==1){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=10;
+            if(p_user.difficulty==1){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=10;
                 }
                 else{
-                    l_user.hunger-=3;
+                    p_user.hunger-=3;
                 }
             }
-            if(l_user.difficulty==2){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=20;
+            if(p_user.difficulty==2){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=20;
                 }
                 else{
-                    l_user.hunger-=5;
+                    p_user.hunger-=5;
                 }
             }
             
@@ -3197,7 +3201,7 @@ int handle_input(Player *player) {
             refresh_map(player,memory_map1,map1);
             break;
         case ' ':
-            damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
+            damage_enemy(p_user.level_num,get_room_id(player->x,player->y),p_user.current_weapon,player);
             break;
         case 127:
             save_map(map1);
@@ -3243,7 +3247,7 @@ int handle_input(Player *player) {
                 map1[new_y][new_x]='.';
             }
             else if(map1[new_y][new_x]=='^'){
-                l_user.health-=10;
+                p_user.health-=10;
             }
             else if(map1[new_y][new_x]=='H'||map1[new_y][new_x]=='R'||map1[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
@@ -3272,7 +3276,7 @@ int handle_input(Player *player) {
         }
         
     }
-    else if(l_user.level_num==2){
+    else if(p_user.level_num==2){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             if(Gspell==1&&Gspellc<=10){
@@ -3296,31 +3300,31 @@ int handle_input(Player *player) {
                 Sspell=0;
             }
             pace_counter1++;
-            if(l_user.difficulty==0){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=5;
+            if(p_user.difficulty==0){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=5;
                 }
                 else{
-                    l_user.hunger-=1;
+                    p_user.hunger-=1;
                 }
             }
-            if(l_user.difficulty==1){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=10;
+            if(p_user.difficulty==1){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=10;
                 }
                 else{
-                    l_user.hunger-=3;
+                    p_user.hunger-=3;
                 }
             }
-            if(l_user.difficulty==2){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=20;
+            if(p_user.difficulty==2){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=20;
                 }
                 else{
-                    l_user.hunger-=5;
+                    p_user.hunger-=5;
                 }
             }
             
@@ -3367,7 +3371,7 @@ int handle_input(Player *player) {
                 refresh_map(player,memory_map2,map2);
                 break;
             case ' ':
-                damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
+                damage_enemy(p_user.level_num,get_room_id(player->x,player->y),p_user.current_weapon,player);
             break;
             case 127:
                 save_map(map2);
@@ -3424,7 +3428,7 @@ int handle_input(Player *player) {
                 map2[new_y][new_x]='.';
             }
             else if(map2[new_y][new_x]=='^'){
-                l_user.health-=10;
+                p_user.health-=10;
             }
             else if(map2[new_y][new_x]=='H'||map2[new_y][new_x]=='R'||map2[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
@@ -3447,7 +3451,7 @@ int handle_input(Player *player) {
             start_level3();
         }
     }
-    else if(l_user.level_num==3){
+    else if(p_user.level_num==3){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             if(Gspell==1&&Gspellc<=10){
@@ -3471,31 +3475,31 @@ int handle_input(Player *player) {
                 Sspell=0;
             }
             pace_counter1++;
-            if(l_user.difficulty==0){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=5;
+            if(p_user.difficulty==0){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=5;
                 }
                 else{
-                    l_user.hunger-=1;
+                    p_user.hunger-=1;
                 }
             }
-            if(l_user.difficulty==1){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=10;
+            if(p_user.difficulty==1){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=10;
                 }
                 else{
-                    l_user.hunger-=3;
+                    p_user.hunger-=3;
                 }
             }
-            if(l_user.difficulty==2){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=20;
+            if(p_user.difficulty==2){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=20;
                 }
                 else{
-                    l_user.hunger-=5;
+                    p_user.hunger-=5;
                 }
             }
             
@@ -3542,7 +3546,7 @@ int handle_input(Player *player) {
                 refresh_map(player,memory_map3,map3);
                 break;
             case ' ':
-                damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
+                damage_enemy(p_user.level_num,get_room_id(player->x,player->y),p_user.current_weapon,player);
                 break;
             case 127:
                 save_map(map3);
@@ -3597,7 +3601,7 @@ int handle_input(Player *player) {
                 map3[new_y][new_x]='.';
             }
             else if(map3[new_y][new_x]=='^'){
-                l_user.health-=10;
+                p_user.health-=10;
             }
             else if(map3[new_y][new_x]=='H'||map3[new_y][new_x]=='R'||map3[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
@@ -3620,7 +3624,7 @@ int handle_input(Player *player) {
             start_level4();
         }
     }
-    else if(l_user.level_num==4){
+    else if(p_user.level_num==4){
         int ch = getch();
         if(ch=='1'||ch=='2'||ch=='3'||ch=='4'||ch=='6'||ch=='7'||ch=='8'||ch=='9'){
             if(Gspell==1&&Gspellc<=10){
@@ -3644,31 +3648,31 @@ int handle_input(Player *player) {
                 Sspell=0;
             }
             pace_counter1++;
-            if(l_user.difficulty==0){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=5;
+            if(p_user.difficulty==0){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=5;
                 }
                 else{
-                    l_user.hunger-=1;
+                    p_user.hunger-=1;
                 }
             }
-            if(l_user.difficulty==1){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=10;
+            if(p_user.difficulty==1){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=10;
                 }
                 else{
-                    l_user.hunger-=3;
+                    p_user.hunger-=3;
                 }
             }
-            if(l_user.difficulty==2){
-                if(l_user.hunger<=0){
-                    l_user.hunger=0;
-                    l_user.health-=20;
+            if(p_user.difficulty==2){
+                if(p_user.hunger<=0){
+                    p_user.hunger=0;
+                    p_user.health-=20;
                 }
                 else{
-                    l_user.hunger-=5;
+                    p_user.hunger-=5;
                 }
             }
             
@@ -3716,7 +3720,7 @@ int handle_input(Player *player) {
                 refresh_map(player,memory_map4,map4);
                 break;
             case ' ':
-                damage_enemy(l_user.level_num,get_room_id(player->x,player->y),l_user.current_weapon,player);
+                damage_enemy(p_user.level_num,get_room_id(player->x,player->y),p_user.current_weapon,player);
                 break;
             case 127:
                 save_map(map4);
@@ -3781,7 +3785,7 @@ int handle_input(Player *player) {
                 map4[new_y][new_x]='.';
             }
             else if(map4[new_y][new_x]=='^'){
-                l_user.health-=10;
+                p_user.health-=10;
             }
             else if(map4[new_y][new_x]=='H'||map4[new_y][new_x]=='R'||map4[new_y][new_x]=='8'){
                 if(message(5,40)=='\n'){
@@ -3868,12 +3872,12 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     mvprintw(LINES-2,20,"                              ");
     mvprintw(LINES-3,62,"                                         ");
     
-    draw_bar(LINES-2, 62, 20, l_user.health, 10000, "Health");
-    draw_bar(LINES-3, 62, 20, l_user.hunger, 100, "Power");
+    draw_bar(LINES-2, 62, 20, p_user.health, 10000, "Health");
+    draw_bar(LINES-3, 62, 20, p_user.hunger, 100, "Power");
     attron(COLOR_PAIR(1));
-    mvprintw(LINES-2,14,"Score : %d",l_user.score);
-    mvprintw(LINES-2,2,"Gold : %d",l_user.gold);
-    mvprintw(LINES-2,26,"Kills : %d",l_user.kills1);
+    mvprintw(LINES-2,14,"Score : %d",p_user.score);
+    mvprintw(LINES-2,2,"Gold : %d",p_user.gold);
+    mvprintw(LINES-2,26,"Kills : %d",p_user.kills1);
     attroff(COLOR_PAIR(1));
     mvprintw(LINES-6,2,"                              ");
     //attron(COLOR_PAIR(7));
@@ -3881,18 +3885,18 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     //attroff(COLOR_PAIR(7));
     attron(COLOR_PAIR(10));
     
-    switch(l_user.current_weapon){
+    switch(p_user.current_weapon){
         case 'm':
             mvprintw(LINES-6,2,"current weapon : MACE");
         break;
         case 'd':
-            mvprintw(LINES-6,2,"current weapon : DAGGER %d",l_user.weapon_bar.dagger);
+            mvprintw(LINES-6,2,"current weapon : DAGGER %d",p_user.weapon_bar.dagger);
         break;
         case 'w':
-            mvprintw(LINES-6,2,"current weapon : MAGIC WAND %d",l_user.weapon_bar.magic_wand);
+            mvprintw(LINES-6,2,"current weapon : MAGIC WAND %d",p_user.weapon_bar.magic_wand);
         break;
         case 'a':
-            mvprintw(LINES-6,2,"current weapon : ARROWS %d",l_user.weapon_bar.arrow);
+            mvprintw(LINES-6,2,"current weapon : ARROWS %d",p_user.weapon_bar.arrow);
         break;
         case 's':
             mvprintw(LINES-6,2,"current weapon : SWORD");
@@ -3900,19 +3904,19 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     }
     attroff(COLOR_PAIR(10));
     attron(COLOR_PAIR(6));
-        mvprintw(LINES-5,2,"Health spell : %d",l_user.spell_bar.H);
-        mvprintw(LINES-4,2,"Speed  spell : %d",l_user.spell_bar.S);
-        mvprintw(LINES-3,2,"Power  spell : %d",l_user.spell_bar.G);
+        mvprintw(LINES-5,2,"Health spell : %d",p_user.spell_bar.H);
+        mvprintw(LINES-4,2,"Speed  spell : %d",p_user.spell_bar.S);
+        mvprintw(LINES-3,2,"Power  spell : %d",p_user.spell_bar.G);
     attroff(COLOR_PAIR(6));
     attron(COLOR_PAIR(9));
-        mvprintw(LINES-5,20,"Normal food : %d",l_user.food_bar.normal);
-        mvprintw(LINES-4,20,"Speedy food : %d",l_user.food_bar.speed);
-        mvprintw(LINES-3,20,"Power  food : %d",l_user.food_bar.special);
+        mvprintw(LINES-5,20,"Normal food : %d",p_user.food_bar.normal);
+        mvprintw(LINES-4,20,"Speedy food : %d",p_user.food_bar.speed);
+        mvprintw(LINES-3,20,"Power  food : %d",p_user.food_bar.special);
     attroff(COLOR_PAIR(9));
     refresh();  
 }
 void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP_WIDTH]) {
-    if(l_user.level_num==1){
+    if(p_user.level_num==1){
         if(is_in_room(player_x,player_y)){
             if (get_room_id(player_x,player_y)==1) {
                 for (int i = 3; i <= 9; i++) {
@@ -3974,7 +3978,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
         }
     }
-    else if (l_user.level_num == 2) {
+    else if (p_user.level_num == 2) {
         if (is_in_room(player_x, player_y)) {
             if (get_room_id(player_x, player_y) == 1) {
                 for (int i = 6; i <= 14; i++) {
@@ -4044,7 +4048,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
         }
     }
-    else if (l_user.level_num == 3) {
+    else if (p_user.level_num == 3) {
         if (is_in_room(player_x, player_y)) {
             if (get_room_id(player_x, player_y) == 1) {
                 for (int i = 6; i <= 15; i++) {  
@@ -4106,7 +4110,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
             }
         }
     }
-    else if (l_user.level_num == 4) {
+    else if (p_user.level_num == 4) {
         if (is_in_room(player_x, player_y)) {
             if (get_room_id(player_x, player_y) == 1) {
                 for (int i = 6; i <= 14; i++) {  
@@ -4187,7 +4191,7 @@ void update_memory_map(int player_x, int player_y,int memory_map[MAP_HEIGHT][MAP
     
 }
 int is_in_room(int x, int y) {
-    if(l_user.level_num==1){
+    if(p_user.level_num==1){
         if ((x >= 3 && x <= 23 && y >= 3 && y <= 9) ||  
         (x >= 50 && x <= 65 && y >= 7 && y <= 20) ||  
         (x >= 100 && x <= 111 && y >= 6 && y <= 16) ||  
@@ -4198,7 +4202,7 @@ int is_in_room(int x, int y) {
         }
     return 0;
     }
-    else if(l_user.level_num==2){
+    else if(p_user.level_num==2){
         if ((y >= 6 && y <= 14 && x >= 10 && x <= 18) ||   
         (y >= 5 && y <= 13 && x >= 35 && x <= 48) ||   
         (y >= 3 && y <= 12 && x >= 120 && x <= 135) ||   
@@ -4210,7 +4214,7 @@ int is_in_room(int x, int y) {
     }
     return 0;
     }
-    else if(l_user.level_num==3){
+    else if(p_user.level_num==3){
         if ((x >= 35 && x <= 41 && y >= 6 && y <= 15) ||   
         (x >= 70 && x <= 84 && y >= 12 && y <= 16) ||   
         (x >= 125 && x <= 145 && y >= 5 && y <= 19) ||   
@@ -4221,7 +4225,7 @@ int is_in_room(int x, int y) {
         }
     return 0;
     }
-    else if(l_user.level_num==4){
+    else if(p_user.level_num==4){
         if ((x >= 10 && x <= 18 && y >= 6 && y <= 14) ||   
         (x >= 35 && x <= 48 && y >= 5 && y <= 13) ||   
         (x >= 120 && x <= 135 && y >= 3 && y <= 12) ||   
@@ -4237,7 +4241,7 @@ int is_in_room(int x, int y) {
     
 }
 int get_room_id(int x, int y) {
-    if(l_user.level_num==1){
+    if(p_user.level_num==1){
         if (x >= 4 && x <= 23 && y >= 4 && y <= 10) return 1;
         if (x >= 51 && x <= 65 && y >= 7 && y <= 20) return 2;
         if (x >= 101 && x <= 111 && y >= 7 && y <= 16) return 3;
@@ -4246,7 +4250,7 @@ int get_room_id(int x, int y) {
         if (x >= 11 && x <= 20 && y >= 29 && y <= 37) return 6;
         return 0;
     }
-    else if(l_user.level_num==2){
+    else if(p_user.level_num==2){
         if (y >= 6 && y <= 14 && x >= 10 && x <= 18) return 1;   
         if (y >= 5 && y <= 13 && x >= 35 && x <= 48) return 2;   
         if (y >= 3 && y <= 12 && x >= 120 && x <= 135) return 3;   
@@ -4256,7 +4260,7 @@ int get_room_id(int x, int y) {
         if (y >= 28 && y <= 32 && x >= 11 && x <= 26) return 7;    
         return 0;
     }
-    else if(l_user.level_num==3){
+    else if(p_user.level_num==3){
         if (x >= 35 && x <= 41 && y >= 6 && y <= 15) return 1;  
         if (x >= 70 && x <= 84 && y >= 12 && y <= 16) return 2;  
         if (x >= 125 && x <= 145 && y >= 6 && y <= 20) return 3;  
@@ -4267,7 +4271,7 @@ int get_room_id(int x, int y) {
             }  
         return 0;
     }
-    else if(l_user.level_num==4){
+    else if(p_user.level_num==4){
         if (x >= 10 && x <= 18 && y >= 6 && y <= 14) return 1;  
         if (x >= 35 && x <= 48 && y >= 5 && y <= 13) return 2;  
         if (x >= 120 && x <= 135 && y >= 3 && y <= 12) return 3;  
@@ -4280,7 +4284,7 @@ int get_room_id(int x, int y) {
     }
 }
 void show_full_map_temporarily(Player *player) {
-    if(l_user.level_num==1){
+    if(p_user.level_num==1){
         for (int i = 0; i < MAP_HEIGHT; i++) {
             for (int j = 0; j < MAP_WIDTH; j++) {
                 mvaddch(i, j, map1[i][j]);
@@ -4299,7 +4303,7 @@ void show_full_map_temporarily(Player *player) {
         }
         timeout(-1);
     }
-    else if(l_user.level_num==2){
+    else if(p_user.level_num==2){
         for (int i = 0; i < MAP_HEIGHT; i++) {
             for (int j = 0; j < MAP_WIDTH; j++) {
                 mvaddch(i, j, map2[i][j]);
@@ -4318,7 +4322,7 @@ void show_full_map_temporarily(Player *player) {
         }
         timeout(-1);
     }
-    else if(l_user.level_num==3){
+    else if(p_user.level_num==3){
         for (int i = 0; i < MAP_HEIGHT; i++) {
             for (int j = 0; j < MAP_WIDTH; j++) {
                 mvaddch(i, j, map3[i][j]);
@@ -4337,7 +4341,7 @@ void show_full_map_temporarily(Player *player) {
         }
         timeout(-1);
     }
-    else if(l_user.level_num==4){
+    else if(p_user.level_num==4){
         for (int i = 0; i < MAP_HEIGHT; i++) {
             for (int j = 0; j < MAP_WIDTH; j++) {
                 mvaddch(i, j, map4[i][j]);
@@ -4461,7 +4465,7 @@ void draw_bar(int y, int x, int width, int value, int max_value, const char* lab
 }
 int food_manager(char food){
     if(food=='%'){
-        if(l_user.food_bar.normal+l_user.food_bar.special+l_user.food_bar.speed>=5){
+        if(p_user.food_bar.normal+p_user.food_bar.special+p_user.food_bar.speed>=5){
             full_food=1;
             attron(COLOR_PAIR(2));
             mvprintw(0,0,"not enough space to restore food!");
@@ -4472,12 +4476,12 @@ int food_manager(char food){
         }
         else{
             full_food=0;
-            l_user.food_bar.normal += 1;
+            p_user.food_bar.normal += 1;
         }
         
     }
     else if(food=='X'){
-        if(l_user.food_bar.normal+l_user.food_bar.special+l_user.food_bar.speed>=5){
+        if(p_user.food_bar.normal+p_user.food_bar.special+p_user.food_bar.speed>=5){
             full_food=1;
             attron(COLOR_PAIR(2));
             mvprintw(0,0,"not enough space to restore food!");
@@ -4488,12 +4492,12 @@ int food_manager(char food){
         }
         else{
             full_food=0;
-            l_user.food_bar.special += 1;
+            p_user.food_bar.special += 1;
         }
         
     }
     else if(food=='V'){
-        if(l_user.food_bar.normal+l_user.food_bar.special+l_user.food_bar.speed>=5){
+        if(p_user.food_bar.normal+p_user.food_bar.special+p_user.food_bar.speed>=5){
             full_food=1;
             attron(COLOR_PAIR(2));
             mvprintw(0,0,"not enough space to restore food!");
@@ -4504,16 +4508,16 @@ int food_manager(char food){
         }
         else{
             full_food=0;
-            l_user.food_bar.speed += 1;
+            p_user.food_bar.speed += 1;
         }
         
     }
 }
 void food_table(){
     clear();
-    mvprintw(LINES/2-5,COLS/2-20,"      Speedy food : %d (press r to consume speedy)",l_user.food_bar.speed);
-    mvprintw(LINES/2-7,COLS/2-20,"      normal food : %d (press n to consume normal food)",l_user.food_bar.normal);
-    mvprintw(LINES/2-6,COLS/2-20,"      special food : %d (press s to consume special)",l_user.food_bar.special);
+    mvprintw(LINES/2-5,COLS/2-20,"      Speedy food : %d (press r to consume speedy)",p_user.food_bar.speed);
+    mvprintw(LINES/2-7,COLS/2-20,"      normal food : %d (press n to consume normal food)",p_user.food_bar.normal);
+    mvprintw(LINES/2-6,COLS/2-20,"      special food : %d (press s to consume special)",p_user.food_bar.special);
     mvprintw(LINES/2-4,COLS/2-50,"press any key to quit");
     int ch = getch();
     int x = rand() % 5;
@@ -4526,15 +4530,15 @@ void food_table(){
     switch (ch){
         case 'n' : 
             if(x){
-                if(l_user.food_bar.normal>0){
-                    if(l_user.hunger>=9990&&Hspell==0||l_user.hunger>=9980&&Hspell==1){
+                if(p_user.food_bar.normal>0){
+                    if(p_user.hunger>=9990&&Hspell==0||p_user.hunger>=9980&&Hspell==1){
                         mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
                         getch();
                         clear();
                     }
                     else{
-                        l_user.food_bar.normal--;
-                        l_user.hunger+=add1;
+                        p_user.food_bar.normal--;
+                        p_user.hunger+=add1;
                         mvprintw(LINES/2-3,COLS/2-20,"            Yummy!");
                         getch();
                         clear();
@@ -4549,7 +4553,7 @@ void food_table(){
                 break;
             }
             else{
-                l_user.health-=10;
+                p_user.health-=10;
                 mvprintw(LINES/2-3,COLS/2-20,"       HE HE HE HE :o");
                 getch();
                 clear();
@@ -4559,15 +4563,15 @@ void food_table(){
         
         case 's' : 
             
-                if(l_user.food_bar.special>0){
-                    if(l_user.hunger>=9950&&Hspell==0||l_user.hunger>=9900&&Hspell==1){
+                if(p_user.food_bar.special>0){
+                    if(p_user.hunger>=9950&&Hspell==0||p_user.hunger>=9900&&Hspell==1){
                         mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
                         getch();
                         clear();
                     }
                     else{
-                        l_user.food_bar.special--;
-                        l_user.hunger+=add2;
+                        p_user.food_bar.special--;
+                        p_user.hunger+=add2;
                         Gspell=1;
                         Gspellc=0;
                         mvprintw(LINES/2-3,COLS/2-20,"        Delicous!");
@@ -4583,15 +4587,15 @@ void food_table(){
                 }
             break;
         case 'r':            
-                if(l_user.food_bar.speed>0){
-                    if(l_user.hunger>=9950&&Hspell==0||l_user.hunger>=9900&&Hspell==1){
+                if(p_user.food_bar.speed>0){
+                    if(p_user.hunger>=9950&&Hspell==0||p_user.hunger>=9900&&Hspell==1){
                         mvprintw(LINES/2-3,COLS/2-20,"           FULL!");
                         getch();
                         clear();
                     }
                     else{
-                        l_user.food_bar.speed--;
-                        l_user.hunger+=add1;
+                        p_user.food_bar.speed--;
+                        p_user.hunger+=add1;
                         Sspell=1;
                         Sspellc=0;
                         pace_counter1=0;
@@ -4611,21 +4615,21 @@ void food_table(){
             clear();
             break;
     }
-    if(l_user.hunger>=100){
-        l_user.hunger=100;
-        l_user.health=10000;
+    if(p_user.hunger>=100){
+        p_user.hunger=100;
+        p_user.health=10000;
     }
 }
 int gold_manager(char gold){
     if(gold=='T'){
-        l_user.gold+=5;
+        p_user.gold+=5;
     }
     else{
-        l_user.gold+=30;
+        p_user.gold+=30;
     }
 }
 int spell_manager(char spell){
-    if(l_user.spell_bar.H+l_user.spell_bar.S+l_user.spell_bar.G>=15){
+    if(p_user.spell_bar.H+p_user.spell_bar.S+p_user.spell_bar.G>=15){
         full_spell=1;
         attron(COLOR_PAIR(2));
         mvprintw(0,0,"not enough space to restore spell!");
@@ -4636,26 +4640,26 @@ int spell_manager(char spell){
     else{
         full_spell=0;
         if(spell=='H'){
-            l_user.spell_bar.H++;
+            p_user.spell_bar.H++;
         }
         else if(spell=='R'){
-            l_user.spell_bar.S++;
+            p_user.spell_bar.S++;
         }
         else if(spell=='8'){
-            l_user.spell_bar.G++;
+            p_user.spell_bar.G++;
         } 
     }
 }
 int spell_table(){
     clear();
-    mvprintw(LINES/2-4,COLS/2-27,"Health spell : %d press h to consume Health spell",l_user.spell_bar.H);
-    mvprintw(LINES/2-3,COLS/2-27,"Speed  spell : %d press r to consume Speed  spell",l_user.spell_bar.S);
-    mvprintw(LINES/2-2,COLS/2-27,"Power  spell : %d press p to consume Power  spell",l_user.spell_bar.G);
+    mvprintw(LINES/2-4,COLS/2-27,"Health spell : %d press h to consume Health spell",p_user.spell_bar.H);
+    mvprintw(LINES/2-3,COLS/2-27,"Speed  spell : %d press r to consume Speed  spell",p_user.spell_bar.S);
+    mvprintw(LINES/2-2,COLS/2-27,"Power  spell : %d press p to consume Power  spell",p_user.spell_bar.G);
     mvprintw(LINES/2,COLS/2-27,"            press any other key to quit");
     int ch = getch();
     switch(ch){
         case 'h':
-        if(l_user.spell_bar.H<=0){
+        if(p_user.spell_bar.H<=0){
             mvprintw(LINES/2+2,COLS/2-27,"               not enough spell!");
             getch();
             clear();
@@ -4663,7 +4667,7 @@ int spell_table(){
         }
         else{
             mvprintw(LINES/2+1,COLS/2-27,"                    Healthy!");
-            l_user.spell_bar.H--;
+            p_user.spell_bar.H--;
             Hspell=1;
             Hspellc=0;
             getch();
@@ -4672,7 +4676,7 @@ int spell_table(){
         }
             
         case 'r':
-        if(l_user.spell_bar.S<=0){
+        if(p_user.spell_bar.S<=0){
             mvprintw(LINES/2+2,COLS/2-27,"               not enough spell!");
             getch();
             clear();
@@ -4680,7 +4684,7 @@ int spell_table(){
         }
         else{
             mvprintw(LINES/2+1,COLS/2-27,"                    Speedy!");
-            l_user.spell_bar.S--;
+            p_user.spell_bar.S--;
             Sspell=1;
             Sspellc=0;
             getch();
@@ -4689,7 +4693,7 @@ int spell_table(){
         }
             
         case 'p':
-        if(l_user.spell_bar.G<=0){
+        if(p_user.spell_bar.G<=0){
             mvprintw(LINES/2+2,COLS/2-27,"               not enough spell!");
             getch();
             clear();
@@ -4697,7 +4701,7 @@ int spell_table(){
         }
         else{
             mvprintw(LINES/2+1,COLS/2-27,"                   Powerful!");
-            l_user.spell_bar.G--;
+            p_user.spell_bar.G--;
             Gspell=1;
             Gspellc=0;
             getch();
@@ -5133,7 +5137,7 @@ int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]){
 void draw_enemy(Player *player){
     if(gmsign1!=0){
         int new_x,new_y;
-        if(l_user.level_num==1){
+        if(p_user.level_num==1){
             if(get_room_id(player->x,player->y)==1&&enemy_map1[0].exe==1){
                 if(abs(player->x - enemy_map1[0].x) < enemy_map1[0].following_distance && abs(player->y - enemy_map1[0].y) < enemy_map1[0].following_distance){
                     damage_player(&enemy_map1[0],player);
@@ -5343,7 +5347,7 @@ void draw_enemy(Player *player){
                 clear_enemy(enemy_map1[5]);
             }
         }
-        else if(l_user.level_num==2){
+        else if(p_user.level_num==2){
             if(get_room_id(player->x,player->y)==1&&enemy_map2[0].exe==1){
                 if(abs(player->x - enemy_map2[0].x) < enemy_map2[0].following_distance && abs(player->y - enemy_map2[0].y) < enemy_map2[0].following_distance){
                     damage_player(&enemy_map2[0],player);
@@ -5520,7 +5524,7 @@ void draw_enemy(Player *player){
                 clear_enemy(enemy_map2[4]);
             }
         }
-        else if(l_user.level_num==3){
+        else if(p_user.level_num==3){
             if(get_room_id(player->x,player->y)==1&&enemy_map3[0].exe==1){
                 if(abs(player->x - enemy_map3[0].x) < enemy_map3[0].following_distance && abs(player->y - enemy_map3[0].y) < enemy_map3[0].following_distance){
                     damage_player(&enemy_map3[0],player);
@@ -5662,7 +5666,7 @@ void draw_enemy(Player *player){
                 clear_enemy(enemy_map3[3]);
             }
         }
-        else if(l_user.level_num==4){
+        else if(p_user.level_num==4){
             if(get_room_id(player->x,player->y)==8&&enemy_map4[0].exe==1){
                 if(abs(player->x - enemy_map4[0].x) < enemy_map4[0].following_distance && abs(player->y - enemy_map4[0].y) < enemy_map4[0].following_distance){
                     damage_player(&enemy_map4[0],player);
@@ -5853,7 +5857,7 @@ void clear_enemy(Enemy enemy){
 }
 void damage_player(Enemy *enemy,Player *player){
     if (abs(player->x - enemy->x) <= enemy->damage_distance && abs(player->y - enemy->y) <= enemy->damage_distance) {
-        l_user.health -= enemy->damage;
+        p_user.health -= enemy->damage;
         int yMax, xMax;
         getmaxyx(stdscr, yMax, xMax);
         int startY = (yMax - 3) / 2;
@@ -5886,31 +5890,31 @@ void damage_player(Enemy *enemy,Player *player){
 int weapon_manager(char weapon){
     if(weapon=='/'){
         if(sign_d==1){
-            l_user.weapon_bar.dagger++;
+            p_user.weapon_bar.dagger++;
         }
         else{
-            l_user.weapon_bar.dagger+=10;
+            p_user.weapon_bar.dagger+=10;
 
         }
     }
     else if(weapon=='*'){
         if(sign_d==1){
-            l_user.weapon_bar.arrow++;
+            p_user.weapon_bar.arrow++;
         }
         else{
-            l_user.weapon_bar.arrow+=20;
+            p_user.weapon_bar.arrow+=20;
 
         }
     }
     else if(weapon=='L'){
-        l_user.weapon_bar.dagger=1;;         
+        p_user.weapon_bar.dagger=1;;         
     }
     else if(weapon=='J'){
         if(sign_d==1){
-            l_user.weapon_bar.magic_wand++;
+            p_user.weapon_bar.magic_wand++;
         }
         else{
-            l_user.weapon_bar.magic_wand+=8;
+            p_user.weapon_bar.magic_wand+=8;
 
         }
     }
@@ -5939,16 +5943,16 @@ int weapon_table(){
     }
     mvprintw(start_y,start_x+9,"SHORT RANGE :");
     mvprintw(start_y+4,start_x+6,"MACE : YOU HAVE IT");
-    if(l_user.weapon_bar.sword==1){
+    if(p_user.weapon_bar.sword==1){
         mvprintw(start_y+5,start_x+6,"SWORD :YOU HAVE IT");
     }
     else{
         mvprintw(start_y+5,start_x+6,"SWORD :YOU DON'T HAVE IT");
     }
     mvprintw(start_y,start_x+39,"LOG RANGE :");
-    mvprintw(start_y+4,start_x+35,"NUMBER OF MAGIC WANDS : %d",l_user.weapon_bar.magic_wand);
-    mvprintw(start_y+5,start_x+35,"NUMBER OF ARROWS : %d",l_user.weapon_bar.arrow);
-    mvprintw(start_y+6,start_x+35,"NUMBER OF DAGGERS : %d",l_user.weapon_bar.dagger);
+    mvprintw(start_y+4,start_x+35,"NUMBER OF MAGIC WANDS : %d",p_user.weapon_bar.magic_wand);
+    mvprintw(start_y+5,start_x+35,"NUMBER OF ARROWS : %d",p_user.weapon_bar.arrow);
+    mvprintw(start_y+6,start_x+35,"NUMBER OF DAGGERS : %d",p_user.weapon_bar.dagger);
     mvprintw(start_y+11,start_x+3,"                           MACE PRESS m");
     mvprintw(start_y+12,start_x+3,"                           SWORD PRESS s");
     mvprintw(start_y+13,start_x+3,"CHANGE CURRENT WEAPON TO : MAGIC WAND PRESS w");
@@ -5959,13 +5963,13 @@ int weapon_table(){
     switch (ch)
     {
     case 'm':
-        l_user.current_weapon='m';
+        p_user.current_weapon='m';
         mvprintw(start_y-5,start_x+26,"MACE !");
         getch();
         break;
     case 's':
-    if(l_user.weapon_bar.sword==1){
-        l_user.current_weapon='s';
+    if(p_user.weapon_bar.sword==1){
+        p_user.current_weapon='s';
         mvprintw(start_y-5,start_x+26,"SWORD !");
     }
     else{
@@ -5974,9 +5978,9 @@ int weapon_table(){
         getch();
         break;
     case 'w':
-    if(l_user.weapon_bar.magic_wand>0){
-        l_user.weapon_bar.magic_wand--;
-        l_user.current_weapon='w';
+    if(p_user.weapon_bar.magic_wand>0){
+        p_user.weapon_bar.magic_wand--;
+        p_user.current_weapon='w';
         mvprintw(start_y-5,start_x+26,"MAGIC WAND !");
     }
     else{
@@ -5985,9 +5989,9 @@ int weapon_table(){
         getch();
         break;
     case 'a':
-        if(l_user.weapon_bar.arrow>0){
-            l_user.weapon_bar.arrow--;
-            l_user.current_weapon='a';
+        if(p_user.weapon_bar.arrow>0){
+            p_user.weapon_bar.arrow--;
+            p_user.current_weapon='a';
             mvprintw(start_y-5,start_x+26,"ARROWS!");
         }
         else{
@@ -5996,9 +6000,9 @@ int weapon_table(){
         getch();
         break;
     case 'd':
-        if(l_user.weapon_bar.dagger>0){
-            l_user.weapon_bar.dagger--;
-            l_user.current_weapon='d';
+        if(p_user.weapon_bar.dagger>0){
+            p_user.weapon_bar.dagger--;
+            p_user.current_weapon='d';
             mvprintw(start_y-5,start_x+26,"DAGGER !");
         }
         else{
@@ -6044,7 +6048,7 @@ int damage_enemy(int level,int room,char weapon,Player *player){
         damage_distance=1;
         break;
         case 'd':
-        if(l_user.weapon_bar.dagger<=0){
+        if(p_user.weapon_bar.dagger<=0){
             mvprintw(1,1,"NOT ENOUGH DAGGER!!!");
             getch();
             mvprintw(1,1,"                    ");
@@ -6052,10 +6056,10 @@ int damage_enemy(int level,int room,char weapon,Player *player){
         }
         damage=12;
         damage_distance=5;
-        l_user.weapon_bar.dagger--;
+        p_user.weapon_bar.dagger--;
         break;
         case 'w':
-        if(l_user.weapon_bar.magic_wand<=0){
+        if(p_user.weapon_bar.magic_wand<=0){
             mvprintw(1,1,"NOT ENOUGH MAGIC WAND!!!");
             getch();
             mvprintw(1,1,"                    ");
@@ -6063,10 +6067,10 @@ int damage_enemy(int level,int room,char weapon,Player *player){
         }
         damage=15;
         damage_distance=10;
-        l_user.weapon_bar.magic_wand--;
+        p_user.weapon_bar.magic_wand--;
         break;
         case 'a':
-        if(l_user.weapon_bar.arrow<=0){
+        if(p_user.weapon_bar.arrow<=0){
             mvprintw(1,1,"NOT ENOUGH ARROW!!!");
             getch();
             mvprintw(1,1,"                    ");
@@ -6074,10 +6078,10 @@ int damage_enemy(int level,int room,char weapon,Player *player){
         }
         damage=5;
         damage_distance=5;
-        l_user.weapon_bar.arrow--;
+        p_user.weapon_bar.arrow--;
         break;
         case 's':
-        if(l_user.weapon_bar.sword==0){
+        if(p_user.weapon_bar.sword==0){
             mvprintw(1,1,"NOT ENOUGH SWORD!!!");
             getch();
             mvprintw(1,1,"                    ");
@@ -6490,7 +6494,7 @@ void killing_message(){
                 mvaddch(startY + i, startX + j, ' ');
             }
         }
-        l_user.kills1++;
+        p_user.kills1++;
 }
 void create_battle_room(){
     memset(battle_room,' ',sizeof(battle_room));
@@ -6584,8 +6588,8 @@ void move_player(Player *player) {
         for(int i=0 ; i<12 ;i++){
             x+=enemies[i].exe;
         }
-        l_user.kills2=12-x;
-        if(l_user.kills2>=12){
+        p_user.kills2=12-x;
+        if(p_user.kills2>=12){
             final_result(1);
         }
         int new_x = player->x, new_y = player->y;
@@ -6601,14 +6605,14 @@ void move_player(Player *player) {
             if(Gspell==1){
                 Gspellc++;
             }
-            if(l_user.difficulty==0){
-                l_user.health-=5;
+            if(p_user.difficulty==0){
+                p_user.health-=5;
             }
-            if(l_user.difficulty==1){
-                l_user.health-=10;
+            if(p_user.difficulty==1){
+                p_user.health-=10;
             }
-            if(l_user.difficulty==2){
-                l_user.health-=20;
+            if(p_user.difficulty==2){
+                p_user.health-=20;
             }
         }
         if (ch == 's' && pace_counter2<5) {
@@ -6650,7 +6654,7 @@ void move_player(Player *player) {
             case 'i':weapon_table();
                 break;
             case ' ':
-                damage_enemy2(l_user.current_weapon,player);                
+                damage_enemy2(p_user.current_weapon,player);                
                 break;
         }
         for (int i = 0; i < 12; i++) {
@@ -6660,11 +6664,11 @@ void move_player(Player *player) {
         }
 
          
-        if (l_user.health <= 0) {
+        if (p_user.health <= 0) {
             final_result(0);
         }
         for (int i = 0; i < 12; i++) {
-            mvprintw(1,1,"%d",l_user.health);
+            mvprintw(1,1,"%d",p_user.health);
         }
         if (is_valid_move2(new_x, new_y)) {
             clear_player2(player);
@@ -6684,24 +6688,24 @@ int enemy_checker(Player *player, Enemy *enemy) {
         if (distance <= enemy->damage_distance&&enemy->exe==1) {
             switch (enemy->type) {
                 case DEAMON:
-                    l_user.health -= enemy->damage;
-                    mvprintw(1,1,"Deamon attacked you! Health: %d\n", l_user.health);
+                    p_user.health -= enemy->damage;
+                    mvprintw(1,1,"Deamon attacked you! Health: %d\n", p_user.health);
                     break;
                 case FIRE:
-                    l_user.health -= enemy->damage;
-                    mvprintw(1,1,"Fire attacked you! Health: %d\n", l_user.health);
+                    p_user.health -= enemy->damage;
+                    mvprintw(1,1,"Fire attacked you! Health: %d\n", p_user.health);
                     break;
                 case GIANT:
-                    l_user.health -= enemy->damage;
-                    mvprintw(1,1,"Giant attacked you! Health: %d\n", l_user.health);
+                    p_user.health -= enemy->damage;
+                    mvprintw(1,1,"Giant attacked you! Health: %d\n", p_user.health);
                     break;
                 case SNAKE:
-                    l_user.health -= enemy->damage;
-                    mvprintw(1,1,"Snake attacked you! Health: %d\n", l_user.health);
+                    p_user.health -= enemy->damage;
+                    mvprintw(1,1,"Snake attacked you! Health: %d\n", p_user.health);
                     break;
                 case UNDEAD:
-                    l_user.health -= enemy->damage;
-                    mvprintw(1,1,"Undead attacked you! Health: %d\n", l_user.health);
+                    p_user.health -= enemy->damage;
+                    mvprintw(1,1,"Undead attacked you! Health: %d\n", p_user.health);
                     break;
             }
         } 
@@ -6731,10 +6735,10 @@ int is_valid_move2(int x, int y) {
 void refresh_map2(Player *player) {
     draw_player(player);
     draw_battle_room();
-    draw_bar(LINES-2, 12, 20, l_user.health, 10000, "Health");
-    draw_bar(LINES-2, 72, 20, l_user.power, 100, "Power");
-    draw_bar(LINES-2, 132, 20, l_user.gold, 100, "Gold");
-    draw_bar(LINES-3, 132, 20, l_user.kills2, 12, "kills");
+    draw_bar(LINES-2, 12, 20, p_user.health, 10000, "Health");
+    draw_bar(LINES-2, 72, 20, p_user.power, 100, "Power");
+    draw_bar(LINES-2, 132, 20, p_user.gold, 100, "Gold");
+    draw_bar(LINES-3, 132, 20, p_user.kills2, 12, "kills");
     refresh();  
 }
 int start_battle(){
@@ -6796,17 +6800,17 @@ int damage_enemy2(char weapon,Player *player){
         case 'd':
         damage=12;
         damage_distance=5;
-        l_user.weapon_bar.dagger--;
+        p_user.weapon_bar.dagger--;
         break;
         case 'w':
         damage=15;
         damage_distance=10;
-        l_user.weapon_bar.magic_wand--;
+        p_user.weapon_bar.magic_wand--;
         break;
         case 'a':
         damage=5;
         damage_distance=5;
-        l_user.weapon_bar.arrow--;
+        p_user.weapon_bar.arrow--;
         break;
         case 's':
         damage_distance=1;
@@ -6947,13 +6951,13 @@ void final_result(int x){
         mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU WON! ");
         attroff(COLOR_PAIR(5));
         attron(COLOR_PAIR(1));
-        mvprintw(start_y + 4, start_x + 5, "Gold: %d", l_user.gold);
+        mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
         attroff(COLOR_PAIR(1));
         attron(COLOR_PAIR(2));
-        mvprintw(start_y + 5, start_x + 5, "Score: %d", l_user.score);
+        mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
         attroff(COLOR_PAIR(2));
         attron(COLOR_PAIR(3));
-        mvprintw(start_y + 6, start_x + 5, "Kills: %d", l_user.kills1+l_user.kills2);
+        mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
         attroff(COLOR_PAIR(3));
         attron(COLOR_PAIR(4));
         mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
@@ -6967,13 +6971,13 @@ void final_result(int x){
         mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU LOST! ");
         attroff(COLOR_PAIR(5));
         attron(COLOR_PAIR(1));
-        mvprintw(start_y + 4, start_x + 5, "Gold: %d", l_user.gold);
+        mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
         attroff(COLOR_PAIR(1));
         attron(COLOR_PAIR(2));
-        mvprintw(start_y + 5, start_x + 5, "Score: %d", l_user.score);
+        mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
         attroff(COLOR_PAIR(2));
         attron(COLOR_PAIR(3));
-        mvprintw(start_y + 6, start_x + 5, "Kills: %d", l_user.kills1+l_user.kills2);
+        mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
         attroff(COLOR_PAIR(3));
         attron(COLOR_PAIR(4));
         mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
@@ -7020,7 +7024,7 @@ void draw_robot_art(int start_y, int start_x) {
 }
 void save_map(char map[MAP_HEIGHT][MAP_WIDTH]){
     char filename[200];
-    snprintf(filename, sizeof(filename), "%s.txt", l_user.username);
+    snprintf(filename, sizeof(filename), "%s.txt", p_user.username);
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         perror("Failed to open file");
@@ -7041,6 +7045,82 @@ void save_map(char map[MAP_HEIGHT][MAP_WIDTH]){
     fclose(file);
     mvprintw(1,80,"             ");
 }
-void save_info(){
-
+int save_info(){
+    l_user.gold+=p_user.gold;
+    l_user.score+=p_user.score;
+    const char *filename = "users.txt";
+    User users[200];
+    int num_users = 0;
+    mvprintw(10,20,"%d",l_user.gold);
+    mvprintw(11,21,"%d",l_user.gold);
+    if (!read_users(filename, users, &num_users)) {
+        return 1;
+    }
+    char current_username[50];
+    strcpy(current_username,l_user.username);
+    User *user = find_user(users, num_users, current_username);
+    user->gold += 10;
+    if (!write_users(filename, users, num_users)) {
+        return 1;
+    }
+    mvprintw(20,1,"%d",l_user.gold);
+    mvprintw(21,1,"%d",l_user.score);
+    refresh();
+    getch();
 }
+int read_users(const char *filename, User users[], int *num_users) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Failed to open file");
+        return 0;
+    }
+
+    *num_users = 0;
+    char line[200];
+    while (fgets(line, sizeof(line), file)) {
+        sscanf(line, "%s %s %s %d %d %d %d %d",
+               users[*num_users].username,
+               users[*num_users].password,
+               users[*num_users].email,
+               &users[*num_users].score,
+               &users[*num_users].gold,
+               &users[*num_users].game,
+               &users[*num_users].color,
+               &users[*num_users].difficulty);
+        (*num_users)++;
+    }
+
+    fclose(file);
+    return 1;
+}
+int write_users(const char *filename, User users[], int num_users) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Failed to open file");
+        return 0;
+    }
+
+    for (int i = 0; i < num_users; i++) {
+        fprintf(file, "%s %s %s %d %d %d %d %d\n",
+                users[i].username,
+                users[i].password,
+                users[i].email,
+                users[i].score,
+                users[i].gold,
+                users[i].game,
+                users[i].color,
+                users[i].difficulty);
+    }
+
+    fclose(file);
+    return 1;
+}
+User* find_user(User users[], int num_users, const char *username) {
+    for (int i = 0; i < num_users; i++) {
+        if (strcmp(users[i].username, username) == 0) {
+            return &users[i];
+        }
+    }
+    return NULL;
+}
+
