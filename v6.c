@@ -87,9 +87,15 @@ int memory_map3[MAP_HEIGHT][MAP_WIDTH];
 int memory_map4[MAP_HEIGHT][MAP_WIDTH];
 
 Enemy enemy_map1[6];
-Enemy enemy_map2[5];
-Enemy enemy_map3[6];
-Enemy enemy_map4[8];
+Enemy enemy_map2[6];
+Enemy enemy_map3[5];
+Enemy enemy_map4[6];
+
+Enemy enemies_map1[10];
+Enemy enemies_map2[10];
+Enemy enemies_map3[10];
+Enemy enemies_map4[10];
+
 Enemy enemies[12];
 int fmsign=0;
 int gmsign1=0;
@@ -97,6 +103,7 @@ int gmsign2=0;
 int sign_d=0;
 int sign_w=0;
 int sign_a=0;
+int night=0;
 User p_user;
 User l_user;
 User s_user;
@@ -196,10 +203,12 @@ int save_info();
 int read_users(const char *filename, User users[], int *num_users);
 int write_users(const char *filename, User users[], int num_users);
 User* find_user(User users[], int num_users, const char *username);
+int telesm(Player *player);
+int enemy_checker2(Player *player);
 
 int main(){
+    setlocale(LC_ALL, "en_US.UTF-8");   
     initscr(); 
-    setlocale(LC_ALL, "");       
     noecho();       
     cbreak();         
     keypad(stdscr, TRUE);
@@ -218,6 +227,7 @@ int main(){
     init_pair(8,8,COLOR_BLACK);
     init_pair(9,9,COLOR_BLACK);
     init_pair(10,10,COLOR_BLACK);
+    init_pair(11, COLOR_WHITE, COLOR_RED);
     
     main_menu();
     getch();
@@ -227,14 +237,14 @@ int main(){
 void main_menu() {
     curs_set(0);
     char *menu_items[] = {
-        "Sign up",
-        "Log in",
-        "Play game",
+        "    Sign up",
+        "    Log in",
+        "   Play game",
         "Play as a guest",
-        "Profile",
-        "Scores",
-        "Play music",
-        "Exit"
+        "    Profile",
+        "    Scores",
+        "  Play music",
+        "     Exit"
     };
     int n_items = sizeof(menu_items) / sizeof(menu_items[0]);
     int choice = 0;
@@ -258,10 +268,10 @@ void main_menu() {
         mvprintw(rows - 2, 1, "+");
         mvprintw(rows - 2, cols - 2, "+");
         attroff(COLOR_PAIR(6));
-        draw_robot_art(2, cols / 2 - 10);
+        draw_robot_art(2, cols / 2 - 12);
 
         attron(COLOR_PAIR(10) | A_BOLD);
-        mvprintw(rows / 2 + 1, cols / 2 - 10, "ROBOT GAME MENU");
+        mvprintw(rows / 2 + 1, cols / 2 - 10, "ZRUN GAME MENU");
         attroff(COLOR_PAIR(10) | A_BOLD);
         for (int i = 0; i < n_items; i++) {
             if (i == choice) {
@@ -269,7 +279,7 @@ void main_menu() {
             } else {
                 attron(COLOR_PAIR(7));
             }
-            mvprintw(rows / 2 + 2 + i, cols / 2 - 8, "  %s", menu_items[i]);
+            mvprintw(rows / 2 + 2 + i, cols / 2 - 10 , "%s", menu_items[i]);
             if (i == choice) {
                 attroff(COLOR_PAIR(3) | A_BOLD);
             } else {
@@ -662,6 +672,22 @@ void play_game(){
 }
 void play_as_guest(){
     clear();
+    int rows,cols;
+    getmaxyx(stdscr, rows, cols);
+        attron(COLOR_PAIR(6));
+        for (int i = 0; i <= rows - 1; i++) {
+            mvprintw(i, 1, "|");
+            mvprintw(i, cols - 1, "|");
+        }
+        for (int j = 1; j <= cols - 1; j++) {
+            mvprintw(0, j, "=");
+            mvprintw(rows -1, j, "=");
+        }
+        mvprintw(0, 1, "+");
+        mvprintw(0, cols - 1, "+");
+        mvprintw(rows-1 , 1, "+");
+        mvprintw(rows -1, cols - 1, "+");
+        attroff(COLOR_PAIR(6));
     p_user.level_num=1;
     p_user.gold = 0;
     p_user.score=0;
@@ -685,7 +711,7 @@ void play_as_guest(){
     show_count = 0;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
-    placing_enemy_map1();
+    //placing_enemy_map1();
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
 
@@ -739,15 +765,15 @@ void show_table(){
         } 
         if (i == 0) {
             attron(COLOR_PAIR(3) | A_BOLD);
-            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (THE GOAT)\u24F5", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (THE GOAT)\U0001F947", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
             attroff(COLOR_PAIR(3) | A_BOLD);
         } else if (i == 1) {
             attron(COLOR_PAIR(6) | A_BOLD);
-            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (ALMOST GOAT)\u24F6", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (ALMOST GOAT)\U0001F948", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
             attroff(COLOR_PAIR(6) | A_BOLD);
         } else if (i == 2) {
             attron(COLOR_PAIR(5) | A_BOLD);
-            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (SEMI GOAT)\u24F7", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
+            mvprintw(start_y + 3 + i * 2, start_x, "%d. %s - Score: %d | Gold: %d | Games Played: %d | kills : %d (SEMI GOAT)\U0001F949", i + 1, users[i].username, users[i].score, users[i].gold, users[i].game,users[i].kills1);
             attroff(COLOR_PAIR(5) | A_BOLD);
         } else {
             attron(COLOR_PAIR(4));
@@ -968,6 +994,22 @@ void change_character_color(int *current_color) {
 }
 void start_new_game(){
     clear();
+    int rows,cols;
+    getmaxyx(stdscr, rows, cols);
+        attron(COLOR_PAIR(6));
+        for (int i = 0; i <= rows - 1; i++) {
+            mvprintw(i, 1, "|");
+            mvprintw(i, cols - 1, "|");
+        }
+        for (int j = 1; j <= cols - 1; j++) {
+            mvprintw(0, j, "=");
+            mvprintw(rows -1, j, "=");
+        }
+        mvprintw(0, 1, "+");
+        mvprintw(0, cols - 1, "+");
+        mvprintw(rows-1 , 1, "+");
+        mvprintw(rows -1, cols - 1, "+");
+        attroff(COLOR_PAIR(6));
     p_user.level_num=1;
     p_user.gold = 0;
     p_user.score=0;
@@ -991,7 +1033,7 @@ void start_new_game(){
     l_user.game++;
     memset(memory_map1,0,sizeof(memory_map1));
     create_map1();  
-    placing_enemy_map1();
+    //placing_enemy_map1();
     Player player = {5, 4, '.'};
     refresh_map(&player,memory_map1,map1);  
 
@@ -1001,12 +1043,28 @@ void start_new_game(){
 }
 void start_level2(){
     clear();
+    int rows,cols;
+    getmaxyx(stdscr, rows, cols);
+        attron(COLOR_PAIR(3));
+        for (int i = 0; i <= rows - 1; i++) {
+            mvprintw(i, 1, "|");
+            mvprintw(i, cols - 1, "|");
+        }
+        for (int j = 1; j <= cols - 1; j++) {
+            mvprintw(0, j, "=");
+            mvprintw(rows -1, j, "=");
+        }
+        mvprintw(0, 1, "+");
+        mvprintw(0, cols - 1, "+");
+        mvprintw(rows-1 , 1, "+");
+        mvprintw(rows -1, cols - 1, "+");
+        attroff(COLOR_PAIR(3));
     show_count = 0;
     p_user.level_num=2;
     pace_counter2=0;
     memset(memory_map2,0,sizeof(memory_map2));
     create_map2();  
-    placing_enemy_map2();
+    //placing_enemy_map2();
     Player player = {12,10, '.'};
     refresh_map(&player,memory_map2,map2);  
 
@@ -1016,12 +1074,28 @@ void start_level2(){
 }
 void start_level3(){
     clear();
+    int rows,cols;
+    getmaxyx(stdscr, rows, cols);
+        attron(COLOR_PAIR(10));
+        for (int i = 0; i <= rows - 1; i++) {
+            mvprintw(i, 1, "|");
+            mvprintw(i, cols - 1, "|");
+        }
+        for (int j = 1; j <= cols - 1; j++) {
+            mvprintw(0, j, "=");
+            mvprintw(rows -1, j, "=");
+        }
+        mvprintw(0, 1, "+");
+        mvprintw(0, cols - 1, "+");
+        mvprintw(rows-1 , 1, "+");
+        mvprintw(rows -1, cols - 1, "+");
+        attroff(COLOR_PAIR(10));
     show_count = 0;
     p_user.level_num=3;
     pace_counter2=0;
     memset(memory_map3,0,sizeof(memory_map3)); 
     create_map3();
-    placing_enemy_map3();
+    //placing_enemy_map3();
     Player player = {20,26, '.'};
     refresh_map(&player,memory_map3,map3);  
 
@@ -1031,12 +1105,28 @@ void start_level3(){
 }
 void start_level4(){
     clear();
+    int rows,cols;
+    getmaxyx(stdscr, rows, cols);
+        attron(COLOR_PAIR(2));
+        for (int i = 0; i <= rows - 1; i++) {
+            mvprintw(i, 1, "|");
+            mvprintw(i, cols - 1, "|");
+        }
+        for (int j = 1; j <= cols - 1; j++) {
+            mvprintw(0, j, "=");
+            mvprintw(rows -1, j, "=");
+        }
+        mvprintw(0, 1, "+");
+        mvprintw(0, cols - 1, "+");
+        mvprintw(rows-1 , 1, "+");
+        mvprintw(rows -1, cols - 1, "+");
+        attroff(COLOR_PAIR(2));
     show_count = 0;
     pace_counter2=0;
     p_user.level_num=4;
     memset(memory_map4,0,sizeof(memory_map4));
     create_map4();
-    placing_enemy_map4();
+    //placing_enemy_map4();
     Player player = {48,35, '.'};
     refresh_map(&player,memory_map4,map4);  
 
@@ -1324,6 +1414,10 @@ int create_map1() {
             map1[x][y]='*';
         }
     }
+    int x2 = rand() % 12 + 8;
+    int y2 = rand() % 14 + 51;
+    enemies_map1[0]=create_random_enemy(x2,y2);
+    map1[x2][y2]=enemies_map1[0].face;
     //  room ۳
     for (int i = 6; i < 17; i++) {
         map1[i][100] = '|';
@@ -1401,6 +1495,13 @@ int create_map1() {
             map1[x][y]='*';
         }
     }
+    for(int i=1 ; i<3 ;i++){
+        x2 = rand() % 9 + 7;
+        y2 = rand() % 10 + 101;
+        enemies_map1[i]=create_random_enemy(x2,y2);
+        map1[x2][y2]=enemies_map1[i].face;
+    }
+    
     //  room ۴
     for (int i = 20; i < 30; i++) {
         map1[i][150] = '|';
@@ -1470,7 +1571,12 @@ int create_map1() {
     map1[25][150] = '@';
     map1[22][152] = 'o';
     map1[28][156] = 'o';
-
+    for(int i=3 ; i<4 ;i++){
+        x2 = rand() % 8 + 21;
+        y2 = rand() % 8 + 151;
+        enemies_map1[i]=create_random_enemy(x2,y2);
+        map1[x2][y2]=enemies_map1[i].face;
+    }
     //  room ۵
     for (int i = 30; i < 36; i++) {
         map1[i][94] = '|';
@@ -1537,6 +1643,12 @@ int create_map1() {
             i--;
         }
         map1[x][y]='J';
+    }
+    for(int i=4 ; i<5 ;i++){
+        x2 = rand() % 4 + 31;
+        y2 = rand() % 15 + 95;
+        enemies_map1[i]=create_random_enemy(x2,y2);
+        map1[x2][y2]=enemies_map1[i].face;
     }
     //  room ۶
     for (int i = 28; i < 38; i++) {
@@ -1612,6 +1724,12 @@ int create_map1() {
         else if(p==1){
             map1[x][y]='/';
         }
+    }
+    for(int i=5 ; i<6 ;i++){
+        x2 = rand() % 8 + 29;
+        y2 = rand() % 9 + 11;
+        enemies_map1[i]=create_random_enemy(x2,y2);
+        map1[x2][y2]=enemies_map1[i].face;
     }
     // ایجاد راهروها
     draw_path(24, 5, 59, 6,map1);
@@ -1716,6 +1834,12 @@ int create_map2() {
             map2[x][y]='*';
         }
     }
+    int x2 = rand() % 7 + 6;
+    int y2 = rand() % 12 + 36;
+    for(int i=0 ; i<1 ;i++){
+        enemies_map2[i]=create_random_enemy(x2,y2);
+        map2[x2][y2]=enemies_map2[i].face;
+    }
     //  room ۳
     for (int i = 3; i < 13; i++) {
         map2[i][120] = '|';
@@ -1780,6 +1904,12 @@ int create_map2() {
         else if(p==2){
             map2[x][y]='*';
         }
+    }
+    for(int i=1 ; i<2 ;i++){
+        x2 = rand() % 8 + 4;
+        y2 = rand() % 14 + 121;
+        enemies_map2[i]=create_random_enemy(x2,y2);
+        map2[x2][y2]=enemies_map2[i].face;
     }
     //  room ۴
     for (int i = 30; i < 42; i++) {
@@ -1860,6 +1990,12 @@ int create_map2() {
             map2[x][y]='*';
         }
     }
+    for(int i=2 ; i<4 ;i++){
+        x2 = rand() % 10 + 31;
+        y2 = rand()  % 14 + 161;
+        enemies_map2[i]=create_random_enemy(x2,y2);
+        map2[x2][y2]=enemies_map2[i].face;
+    }
     //  room ۵
     for (int i = 30; i < 36; i++) {
         map2[i][94] = '|';
@@ -1932,7 +2068,7 @@ int create_map2() {
     }
     int t3 = rand() % 2 + 1;
     for (int i = 0 ; i < t3 ;i++){
-        int x = rand() % 6 + 166;
+        int x = rand() % 6 + 16;
         int y = rand() % 9 + 51;
         if(map2[x][y]!='.'){
             continue;
@@ -1941,7 +2077,7 @@ int create_map2() {
     }
     int q6 = rand() % 3 + 1;
     for (int i = 0 ; i < q6 ;i++){
-        int x = rand() % 6 + 166;
+        int x = rand() % 6 + 16;
         int y = rand() % 9 + 51;
         if(map2[x][y]!='.'){
             continue;
@@ -1962,7 +2098,7 @@ int create_map2() {
     map2[19][57] = 'o';
     int s6 = rand() % 3 +1;
     for (int i = 0 ; i < s6 ;i++){
-        int x = rand() % 6 + 166;
+        int x = rand() % 6 + 16;
         int y = rand() % 9 + 51;
         if(map2[x][y]!='.'){
             continue;
@@ -1975,6 +2111,12 @@ int create_map2() {
         else if(p==1){
             map2[x][y]='*';
         }
+    }
+    for(int i=4 ; i<5 ;i++){
+        x2 = rand() % 6 + 16;
+        y2 = rand() % 9 + 51;
+        enemies_map2[i]=create_random_enemy(x2,y2);
+        map2[x2][y2]=enemies_map2[i].face;
     }
     //  room ۷
     for (int i = 28; i < 33; i++) {
@@ -2035,6 +2177,12 @@ int create_map2() {
         else if(p==2){
             map2[x][y]='J';
         }
+    }
+    for(int i=5 ; i<6 ;i++){
+        x2 = rand() % 3 + 29;
+        y2 = rand() % 14 + 12;
+        enemies_map2[i]=create_random_enemy(x2,y2);
+        map2[x2][y2]=enemies_map2[i].face;
     }
     // ایجاد راهروها
     draw_path(19, 7, 35, 12,map2);
@@ -2109,6 +2257,12 @@ int create_map3() {
     map3[12][41] = '+';
     map3[11][40] = 'o';
     map3[9][37] = 'o';
+    int x2 = rand() % 8 + 7;
+    int y2 = rand() % 5 + 36;
+    for(int i=0 ; i<1 ;i++){
+        enemies_map3[i]=create_random_enemy(x2,y2);
+        map3[x2][y2]=enemies_map3[i].face;
+    }
     int s1 = rand() % 2+1 ;
     for (int i = 0 ; i < s1 ;i++){
         int x = rand() % 8 + 7;
@@ -2179,6 +2333,12 @@ int create_map3() {
     map3[14][84] = '+';
     map3[13][75] = 'o';
     map3[15][80] = 'o';
+    for(int i=1 ; i<2 ;i++){
+        x2=rand() % 3 + 13;
+        y2=rand() % 13 + 71;
+        enemies_map3[i]=create_random_enemy(x2,y2);
+        map3[x2][y2]=enemies_map3[i].face;
+    }
     int s2 = rand() % 2 + 1;
     for (int i = 0 ; i < s2 ;i++){
         int x = rand() % 3 + 13;
@@ -2273,6 +2433,12 @@ int create_map3() {
     map3[10][140] = 'o';
     map3[15][136] = 'o';
     map3[18][130] = 'o';
+    for(int i=2 ; i<3 ;i++){
+        x2=rand() % 13 + 6;
+        y2= rand() % 9 + 126;
+        enemies_map3[i]=create_random_enemy(x2,y2);
+        map3[x2][y2]=enemies_map3[i].face;
+    }
     int s3 = rand() % 3 + 1;
     for (int i = 0 ; i < s3 ;i++){
         int x = rand() % 13 + 6;
@@ -2351,7 +2517,12 @@ int create_map3() {
     map3[39][160] = '+';
     map3[35][169] = 'o';
     map3[40][163] = 'o';
-
+    for(int i=3 ; i<5 ;i++){
+        x2=rand() % 10 + 31;
+        y2= rand() % 14 + 161;
+        enemies_map3[i]=create_random_enemy(x2,y2);
+        map3[x2][y2]=enemies_map3[i].face;
+    }
     //  room ۵
     for (int i = 30; i < 36; i++) {
         map3[i][84] = '|';
@@ -2433,6 +2604,12 @@ int create_map3() {
         else if(p==2){
             map3[x][y]='*';
         }
+    }
+    for(int i=5 ; i<6 ;i++){
+        x2=rand() % 4 + 31;
+        y2= rand() % 15 + 85;
+        enemies_map3[i]=create_random_enemy(x2,y2);
+        map3[x2][y2]=enemies_map3[i].face;
     }
     //  room ۶
     for (int i = 21; i < 35; i++) {
@@ -2579,6 +2756,10 @@ int create_map4() {
     int x = rand() % 7 + 7;
     int y = rand() % 7 + 11;
     map4[x][y]='A';
+    for(int i=0 ; i<1 ;i++){
+        enemies_map4[i]=create_random_enemy(x,y);
+        map4[x][y]=enemies_map4[i].face;
+    }
     //  room ۲
     for (int i = 5; i < 14; i++) {
         map4[i][35] = '|';
@@ -2634,7 +2815,12 @@ int create_map4() {
     map4[9][48] = '+';
     map4[11][45] = 'o';
     map4[9][37] = 'o';
-
+    for(int i=1 ; i<2 ;i++){
+        x=rand() % 7 + 6;
+        y=rand() % 12 + 36;
+        enemies_map4[i]=create_random_enemy(x,y);
+        map4[x][y]=enemies_map4[i].face;
+    }
     //  room ۳
     for (int i = 3; i < 13; i++) {
         map4[i][120] = '|';
@@ -2777,6 +2963,12 @@ int create_map4() {
     map4[39][160] = '+';
     map4[35][169] = 'o';
     map4[40][163] = 'o';
+    for(int i=2 ; i<4 ;i++){
+        x=rand() % 10 + 31;
+        y=rand() % 14 + 161;
+        enemies_map4[i]=create_random_enemy(x,y);
+        map4[x][y]=enemies_map4[i].face;
+    }
     int s4 = rand() % 3 + 2 ;
     for (int i = 0 ; i < s4 ;i++){
         int x = rand() % 10 + 31;
@@ -2854,6 +3046,12 @@ int create_map4() {
     map4[32][94] = '+';
     map4[31][99] = 'o';
     map4[33][107] = 'o';
+    for(int i=4; i<5 ;i++){
+        x=rand() %  4 + 31;
+        y=rand() % 15 + 95;
+        enemies_map4[i]=create_random_enemy(x,y);
+        map4[x][y]=enemies_map4[i].face;
+    }
     int s5 = rand() % 3 + 2 ;
     for (int i = 0 ; i < s5 ;i++){
         int x = rand() % 4 + 31;
@@ -2988,6 +3186,12 @@ int create_map4() {
     map4[32][24] = '+';
     map4[30][12] = 'o';
     map4[29][17] = 'o';
+    for(int i=5; i<6 ;i++){
+        x=rand() % 3 + 29;
+        y=rand() % 14 + 12;
+        enemies_map4[i]=create_random_enemy(x,y);
+        map4[x][y]=enemies_map4[i].face;
+    }
     int s7 = rand() % 2 + 3 ;
     for (int i = 0 ; i < s7 ;i++){
         int x = rand() % 3 + 29;
@@ -3100,6 +3304,9 @@ int create_map4() {
     draw_path(44, 37, 23, 33,map4);
 }
 int handle_input(Player *player) {
+    night=0;
+    telesm(player);
+    enemy_checker2(player);
     if(p_user.health<=0){
         clear();
         final_result(0);
@@ -3234,7 +3441,7 @@ int handle_input(Player *player) {
                 }
             }
 
-            else if(map1[new_y][new_x]=='%'||map1[new_y][new_x]=='X'||map1[new_y][new_x]=='V')
+            else if(map1[new_y][new_x]=='%'||map1[new_y][new_x]=='X'||map1[new_y][new_x]=='V'&&night==0)
             {
                 if(message(5,40)=='\n'){ 
                     food_manager(map1[new_y][new_x]);
@@ -3244,7 +3451,7 @@ int handle_input(Player *player) {
                 }
             }
 
-            else if(map1[new_y][new_x]=='T'||map1[new_y][new_x]=='Z')
+            else if(map1[new_y][new_x]=='T'||map1[new_y][new_x]=='Z'&&night==0)
             {
                 gold_manager(map1[new_y][new_x]);
                 map1[new_y][new_x]='.';
@@ -3252,7 +3459,7 @@ int handle_input(Player *player) {
             else if(map1[new_y][new_x]=='^'){
                 p_user.health-=10;
             }
-            else if(map1[new_y][new_x]=='H'||map1[new_y][new_x]=='R'||map1[new_y][new_x]=='8'){
+            else if(map1[new_y][new_x]=='H'||map1[new_y][new_x]=='R'||map1[new_y][new_x]=='8'&&night==0){
                 if(message(5,40)=='\n'){
                     spell_manager(map1[new_y][new_x]);
                     if(full_spell==0){
@@ -3260,7 +3467,7 @@ int handle_input(Player *player) {
                     } 
                 }
             }
-            else if(map1[new_y][new_x]=='L'||map1[new_y][new_x]=='*'||map1[new_y][new_x]=='J'||map1[new_y][new_x]=='/')
+            else if(map1[new_y][new_x]=='L'||map1[new_y][new_x]=='*'||map1[new_y][new_x]=='J'||map1[new_y][new_x]=='/'&&night==0)
             {
                 if(message(5,40)=='\n'){ 
                     weapon_manager(map1[new_y][new_x]);
@@ -3271,10 +3478,10 @@ int handle_input(Player *player) {
             {
                start_battle();
             }
-
             refresh_map(player,memory_map1,map1);  
         }
         else if(map1[new_y][new_x]=='<'){
+            p_user.score+=20;
             start_level2();
         }
         
@@ -3416,7 +3623,7 @@ int handle_input(Player *player) {
                     map2[32][94] = 'Q';
                 }
             }
-            else if(map2[new_y][new_x]=='%'||map2[new_y][new_x]=='X'||map2[new_y][new_x]=='V')
+            else if((map2[new_y][new_x]=='%'||map2[new_y][new_x]=='X'||map2[new_y][new_x]=='V')&&night==0)
             {
                 if(message(5,40)=='\n'){
                     food_manager(map2[new_y][new_x]);
@@ -3426,7 +3633,7 @@ int handle_input(Player *player) {
                 }
             }
 
-            else if(map2[new_y][new_x]=='T'||map2[new_y][new_x]=='Z')
+            else if((map2[new_y][new_x]=='T'||map2[new_y][new_x]=='Z')&&night==0)
             {
                 gold_manager(map2[new_y][new_x]);
                 map2[new_y][new_x]='.';
@@ -3434,7 +3641,7 @@ int handle_input(Player *player) {
             else if(map2[new_y][new_x]=='^'){
                 p_user.health-=10;
             }
-            else if(map2[new_y][new_x]=='H'||map2[new_y][new_x]=='R'||map2[new_y][new_x]=='8'){
+            else if((map2[new_y][new_x]=='H'||map2[new_y][new_x]=='R'||map2[new_y][new_x]=='8')&&night==0){
                 if(message(5,40)=='\n'){
                     spell_manager(map2[new_y][new_x]);
                     if(full_spell==0){
@@ -3442,7 +3649,7 @@ int handle_input(Player *player) {
                     } 
                 }
             }
-            else if(map2[new_y][new_x]=='L'||map2[new_y][new_x]=='*'||map2[new_y][new_x]=='J'||map2[new_y][new_x]=='/')
+            else if((map2[new_y][new_x]=='L'||map2[new_y][new_x]=='*'||map2[new_y][new_x]=='J'||map2[new_y][new_x]=='/')&&night==0)
             {
                 if(message(5,40)=='\n'){ 
                     weapon_manager(map2[new_y][new_x]);
@@ -3452,6 +3659,7 @@ int handle_input(Player *player) {
             refresh_map(player,memory_map2,map2);
         }
         else if(map2[new_y][new_x]=='<'){
+            p_user.score+=30;
             start_level3();
         }
     }
@@ -3591,7 +3799,7 @@ int handle_input(Player *player) {
                     map3[13][70] = 'Q';
                 }
             }
-            else if(map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X'||map3[new_y][new_x]=='V')
+            else if((map3[new_y][new_x]=='%'||map3[new_y][new_x]=='X'||map3[new_y][new_x]=='V')&&night==0)
             {
                 if(message(5,40)=='\n'){
                     food_manager(map3[new_y][new_x]);
@@ -3601,7 +3809,7 @@ int handle_input(Player *player) {
                 }
             }
 
-            else if(map3[new_y][new_x]=='T'||map3[new_y][new_x]=='Z')
+            else if((map3[new_y][new_x]=='T'||map3[new_y][new_x]=='Z')&&night==0)
             {
                 gold_manager(map3[new_y][new_x]);
                 map3[new_y][new_x]='.';
@@ -3609,7 +3817,7 @@ int handle_input(Player *player) {
             else if(map3[new_y][new_x]=='^'){
                 p_user.health-=10;
             }
-            else if(map3[new_y][new_x]=='H'||map3[new_y][new_x]=='R'||map3[new_y][new_x]=='8'){
+            else if((map3[new_y][new_x]=='H'||map3[new_y][new_x]=='R'||map3[new_y][new_x]=='8')&&night==0){
                 if(message(5,40)=='\n'){
                     spell_manager(map3[new_y][new_x]);
                     if(full_spell==0){
@@ -3617,7 +3825,7 @@ int handle_input(Player *player) {
                     } 
                 }
             }
-            else if(map3[new_y][new_x]=='L'||map3[new_y][new_x]=='*'||map3[new_y][new_x]=='J'||map3[new_y][new_x]=='/')
+            else if((map3[new_y][new_x]=='L'||map3[new_y][new_x]=='*'||map3[new_y][new_x]=='J'||map3[new_y][new_x]=='/')&&night==0)
             {
                 if(message(5,40)=='\n'){ 
                     weapon_manager(map3[new_y][new_x]);
@@ -3627,6 +3835,7 @@ int handle_input(Player *player) {
             refresh_map(player,memory_map3,map3);  
         }
         else if(map3[new_y][new_x]=='<'){
+            p_user.score+=40;
             start_level4();
         }
     }
@@ -3777,7 +3986,7 @@ int handle_input(Player *player) {
                     map4[12][35] = 'Q';
                 }
             }
-            else if(map4[new_y][new_x]=='%'||map4[new_y][new_x]=='X'||map4[new_y][new_x]=='V')
+            else if((map4[new_y][new_x]=='%'||map4[new_y][new_x]=='X'||map4[new_y][new_x]=='V')&&night==0)
             {
                 if(message(5,40)=='\n'){
                     food_manager(map4[new_y][new_x]);
@@ -3786,7 +3995,7 @@ int handle_input(Player *player) {
                     } 
                 }           
             }
-            else if(map4[new_y][new_x]=='T'||map4[new_y][new_x]=='Z')
+            else if((map4[new_y][new_x]=='T'||map4[new_y][new_x]=='Z')&&night==0)
             {
                 gold_manager(map4[new_y][new_x]);
                 map4[new_y][new_x]='.';
@@ -3794,7 +4003,7 @@ int handle_input(Player *player) {
             else if(map4[new_y][new_x]=='^'){
                 p_user.health-=10;
             }
-            else if(map4[new_y][new_x]=='H'||map4[new_y][new_x]=='R'||map4[new_y][new_x]=='8'){
+            else if((map4[new_y][new_x]=='H'||map4[new_y][new_x]=='R'||map4[new_y][new_x]=='8')&&night==0){
                 if(message(5,40)=='\n'){
                     spell_manager(map4[new_y][new_x]);
                     if(full_spell==0){
@@ -3802,12 +4011,17 @@ int handle_input(Player *player) {
                     } 
                 }
             }
-            else if(map4[new_y][new_x]=='L'||map4[new_y][new_x]=='*'||map4[new_y][new_x]=='J'||map4[new_y][new_x]=='/')
+            else if((map4[new_y][new_x]=='L'||map4[new_y][new_x]=='*'||map4[new_y][new_x]=='J'||map4[new_y][new_x]=='/')&&night==0)
             {
                 if(message(5,40)=='\n'){ 
                     weapon_manager(map4[new_y][new_x]);
                     map4[new_y][new_x]='.';
                 }
+            }
+            else if(map4[new_y][new_x]=='A')
+            {
+                p_user.score+=100;
+                start_battle();
             }
             refresh_map(player,memory_map4,map4);  
         }
@@ -3879,8 +4093,8 @@ void refresh_map(Player *player,int memory_map[MAP_HEIGHT][MAP_WIDTH],char map[M
     mvprintw(LINES-2,20,"                              ");
     mvprintw(LINES-3,62,"                                         ");
     
-    draw_bar(LINES-2, 62, 20, p_user.health, 10000, "Health");
-    draw_bar(LINES-3, 62, 20, p_user.hunger, 100, "Power");
+    draw_bar(LINES-2, 68, 20, p_user.health, 10000, "Health");
+    draw_bar(LINES-3, 68, 20, p_user.hunger, 100, "Power");
     attron(COLOR_PAIR(1));
     mvprintw(LINES-2,14,"Score : %d",p_user.score);
     mvprintw(LINES-2,2,"Gold : %d",p_user.gold);
@@ -4525,7 +4739,7 @@ void food_table(){
     mvprintw(LINES/2-5,COLS/2-20,"      Speedy food : %d (press r to consume speedy)",p_user.food_bar.speed);
     mvprintw(LINES/2-7,COLS/2-20,"      normal food : %d (press n to consume normal food)",p_user.food_bar.normal);
     mvprintw(LINES/2-6,COLS/2-20,"      special food : %d (press s to consume special)",p_user.food_bar.special);
-    mvprintw(LINES/2-4,COLS/2-50,"press any key to quit");
+    mvprintw(LINES/2-3,COLS/2-20,"                          press any key to quit");
     int ch = getch();
     int x = rand() % 5;
     int add1 = 10;
@@ -4762,375 +4976,6 @@ char message(int height, int width){
         return 'a';
     }
 }
-void placing_enemy_map1(){
-    //room 1
-    //G
-    srand(time(NULL));
-    while(1){
-        int y = rand() % 5 + 4;
-        int x = rand() % 19 + 4;
-        if(is_valid_enemy(y,x,map1)){
-            enemy_map1[0].x=x;
-            enemy_map1[0].y=y;
-            enemy_map1[0].health=15;
-            enemy_map1[0].damage=10;
-            enemy_map1[0].following_distance=3;
-            enemy_map1[0].damage_distance=2;
-            enemy_map1[0].face='G';
-            enemy_map1[0].exe=1;
-            map1[y][x]=enemy_map1[0].face;
-            break;
-        }
-    }
-    //room 2
-    //S
-    while(1){
-        int y = rand() % 12 + 8;
-        int x = rand() % 14 + 51;
-        if(is_valid_enemy(y,x,map1)){
-            enemy_map1[1].x=x;
-            enemy_map1[1].y=y;
-            enemy_map1[1].health=20;
-            enemy_map1[1].damage=20;
-            enemy_map1[1].following_distance=1000;
-            enemy_map1[1].damage_distance=3;
-            enemy_map1[1].face='S';
-            enemy_map1[1].exe=1;
-            map1[y][x]=enemy_map1[1].face;
-            break;
-        }
-    }
-    //room 3
-    //D
-    while(1){
-        int y = rand() % 9 + 7;
-        int x = rand() % 10 + 101;
-        if(is_valid_enemy(y,x,map1)){
-            enemy_map1[2].x=x;
-            enemy_map1[2].y=y;
-            enemy_map1[2].health=5;
-            enemy_map1[2].damage=3;
-            enemy_map1[2].following_distance=0;
-            enemy_map1[2].damage_distance=2;
-            enemy_map1[2].face='D';
-            enemy_map1[2].exe=1;
-            map1[y][x]=enemy_map1[2].face;
-            break;
-        }
-    }
-    //room 4
-    //F
-    while(1){
-        int y = rand() % 8 + 21;
-        int x = rand() % 8 + 151;
-        if(is_valid_enemy(y,x,map1)){
-            enemy_map1[3].x=x;
-            enemy_map1[3].y=y;
-            enemy_map1[3].health=10;
-            enemy_map1[3].damage=10;
-            enemy_map1[3].following_distance=4;
-            enemy_map1[3].damage_distance=4;
-            enemy_map1[3].face='F';
-            enemy_map1[3].exe=1;
-            map1[y][x]=enemy_map1[3].face;
-            break;
-        }
-    }
-    //room 5
-    //U
-    while(1){
-        int y = (rand() % 4 )+ 31;
-        int x = (rand() % 15 )+ 95;
-        if(is_valid_enemy(y,x,map1)){
-            enemy_map1[4].x=x;
-            enemy_map1[4].y=y;
-            enemy_map1[4].health=30;
-            enemy_map1[4].damage=30;
-            enemy_map1[4].following_distance=2;
-            enemy_map1[4].damage_distance=2;
-            enemy_map1[4].face='U';
-            enemy_map1[4].exe=1;
-            map1[y][x]=enemy_map1[4].face;
-            break;
-        }
-    }
-    //room 6
-    //G
-    while(1){
-        int y = rand() % 8 + 29;
-        int x = rand() % 9 + 11;
-        if(is_valid_enemy(y,x,map1)){
-            enemy_map1[5].x=x;
-            enemy_map1[5].y=y;
-            enemy_map1[5].health=15;
-            enemy_map1[5].damage=10;
-            enemy_map1[5].following_distance=3;
-            enemy_map1[5].damage_distance=2;
-            enemy_map1[5].face='G';
-            enemy_map1[5].exe=1;
-            map1[y][x]=enemy_map1[5].face;
-            break;
-        }
-    }
-}
-void placing_enemy_map2(){
-    //room 1
-    //D
-    while(1){
-        int y = rand() % 7 + 7;
-        int x = rand() % 7 + 11;
-        if(is_valid_enemy(y,x,map2)){
-            enemy_map2[0].x=x;
-            enemy_map2[0].y=y;
-            enemy_map2[0].health=5;
-            enemy_map2[0].damage=3;
-            enemy_map2[0].following_distance=0;
-            enemy_map2[0].damage_distance=2;
-            enemy_map2[0].face='D';
-            enemy_map2[0].exe=1;
-            map2[y][x]=enemy_map2[0].face;
-            break;
-        }
-    }
-    //room 2
-    //U
-    while(1){
-        int y = rand() % 7 + 6;
-        int x = rand() % 12 + 36;
-        if(is_valid_enemy(y,x,map2)){
-            enemy_map2[1].x=x;
-            enemy_map2[1].y=y;
-            enemy_map2[1].health=30;
-            enemy_map2[1].damage=30;
-            enemy_map2[1].following_distance=2;
-            enemy_map2[1].damage_distance=2;
-            enemy_map2[1].face='U';
-            enemy_map2[1].exe=1;
-            map2[y][x]=enemy_map2[1].face;
-            break;
-        }
-    }
-    //room 4
-    //S
-    while(1){
-        int y = rand() % 10 + 31;
-        int x = rand() % 14 + 161;
-        if(is_valid_enemy(y,x,map2)){
-            enemy_map2[2].x=x;
-            enemy_map2[2].y=y;
-            enemy_map2[2].health=20;
-            enemy_map2[2].damage=20;
-            enemy_map2[2].following_distance=100;
-            enemy_map2[2].damage_distance=3;
-            enemy_map2[2].face='S';
-            enemy_map2[2].exe=1;
-            map2[y][x]=enemy_map2[2].face;
-            break;
-        }
-    }
-    //room 5
-    //F
-    while(1){
-        int y = rand() % 4 + 31;
-        int x = rand() % 15 + 95;
-        if(is_valid_enemy(y,x,map2)){
-            enemy_map2[3].x=x;
-            enemy_map2[3].y=y;
-            enemy_map2[3].health=10;
-            enemy_map2[3].damage=7;
-            enemy_map2[3].following_distance=4;
-            enemy_map2[3].damage_distance=2;
-            enemy_map2[3].face='F';
-            enemy_map2[3].exe=1;
-            map2[y][x]=enemy_map2[3].face;
-            break;
-        }
-    }
-    //room 7
-    //U
-    while(1){
-        int y = rand() % 3 + 29;
-        int x = rand() % 14 + 12;
-        if(is_valid_enemy(y,x,map2)){
-            enemy_map2[4].x=x;
-            enemy_map2[4].y=y;
-            enemy_map2[4].health=5;
-            enemy_map2[4].damage=3;
-            enemy_map2[4].following_distance=2;
-            enemy_map2[4].damage_distance=2;
-            enemy_map2[4].face='U';
-            enemy_map2[4].exe=1;
-            map2[y][x]=enemy_map2[4].face;
-            break;
-        }
-    }
-}
-void placing_enemy_map3(){
-    //room 1
-    //S
-    while(1){
-        int y = rand() % 8 + 7;
-        int x = rand() % 5 + 36;
-        if(is_valid_enemy(y,x,map3)){
-            enemy_map3[0].x=x;
-            enemy_map3[0].y=y;
-            enemy_map3[0].health=20;
-            enemy_map3[0].damage=20;
-            enemy_map3[0].following_distance=100;
-            enemy_map3[0].damage_distance=3;
-            enemy_map3[0].face='S';
-            enemy_map3[0].exe=1;
-            map3[y][x]=enemy_map3[0].face;
-            break;
-        }
-    }
-    //room 5
-    //F
-    while(1){
-        int y = rand() % 4 + 31;
-        int x = rand() % 15 + 85;
-        if(is_valid_enemy(y,x,map3)){
-            enemy_map3[1].x=x;
-            enemy_map3[1].y=y;
-            enemy_map3[1].health=10;
-            enemy_map3[1].damage=7;
-            enemy_map3[1].following_distance=4;
-            enemy_map3[1].damage_distance=2;
-            enemy_map3[1].face='F';
-            enemy_map3[1].exe=1;
-            map3[y][x]=enemy_map3[1].face;
-            break;
-        }
-    }
-    //room 4
-    //U
-    while(1){
-        int y = rand() % 10 + 31;
-        int x = rand() % 14 + 161;
-        if(is_valid_enemy(y,x,map3)){
-            enemy_map3[2].x=x;
-            enemy_map3[2].y=y;
-            enemy_map3[2].health=30;
-            enemy_map3[2].damage=30;
-            enemy_map3[2].following_distance=2;
-            enemy_map3[2].damage_distance=2;
-            enemy_map3[2].face='U';
-            enemy_map3[2].exe=1;
-            map3[y][x]=enemy_map3[2].face;
-            break;
-        }
-    }
-    //room 6
-    //G
-    while(1){
-        int y = rand() % 12 + 22;
-        int x = rand() % 13 + 13;
-        if(is_valid_enemy(y,x,map3)){
-            enemy_map3[3].x=x;
-            enemy_map3[3].y=y;
-            enemy_map3[3].health=15;
-            enemy_map3[3].damage=10;
-            enemy_map3[3].following_distance=5;
-            enemy_map3[3].damage_distance=2;
-            enemy_map3[3].face='G';
-            enemy_map3[3].exe=1;
-            map3[y][x]=enemy_map3[3].face;
-            break;
-        }
-    }
-}
-void placing_enemy_map4(){
-    //room 8
-    //G
-    while(1){
-        int y = rand() % 10 + 31;
-        int x = rand() % 14 + 46;
-        if(is_valid_enemy(y,x,map4)){
-            enemy_map4[0].x=x;
-            enemy_map4[0].y=y;
-            enemy_map4[0].health=15;
-            enemy_map4[0].damage=10;
-            enemy_map4[0].following_distance=5;
-            enemy_map4[0].damage_distance=2;
-            enemy_map4[0].face='G';
-            enemy_map4[0].exe=1;
-            map4[y][x]=enemy_map4[0].face;
-            break;
-        }
-    }
-    //room 7
-    //D
-    while(1){
-        int y = rand() % 3 + 29;
-        int x = rand() % 14 + 12;
-        if(is_valid_enemy(y,x,map4)){
-            enemy_map4[1].x=x;
-            enemy_map4[1].y=y;
-            enemy_map4[1].health=5;
-            enemy_map4[1].damage=3;
-            enemy_map4[1].following_distance=0;
-            enemy_map4[1].damage_distance=3;
-            enemy_map4[1].face='D';
-            enemy_map4[1].exe=1;
-            map4[y][x]=enemy_map4[1].face;
-            break;
-        }
-    }
-    //room 5
-    //F
-    while(1){
-        int y = rand() % 4 + 31;
-        int x = rand() % 15 + 95;
-        if(is_valid_enemy(y,x,map4)){
-            enemy_map4[2].x=x;
-            enemy_map4[2].y=y;
-            enemy_map4[2].health=10;
-            enemy_map4[2].damage=7;
-            enemy_map4[2].following_distance=4;
-            enemy_map4[2].damage_distance=2;
-            enemy_map4[2].face='F';
-            enemy_map4[2].exe=1;
-            map4[y][x]=enemy_map4[2].face;
-            break;
-        }
-    }
-    //room 4
-    //U
-    while(1){
-        int y = rand() % 10 + 31;
-        int x = rand() % 14 + 161;
-        if(is_valid_enemy(y,x,map4)){
-            enemy_map4[3].x=x;
-            enemy_map4[3].y=y;
-            enemy_map4[3].health=30;
-            enemy_map4[3].damage=30;
-            enemy_map4[3].following_distance=2;
-            enemy_map4[3].damage_distance=2;
-            enemy_map4[3].face='U';
-            enemy_map4[3].exe=1;
-            map4[y][x]=enemy_map4[3].face;
-            break;
-        }
-    }
-    //room 2
-    //S
-    while(1){
-        int y = rand() % 7 + 6;
-        int x = rand() % 12 + 36;
-        if(is_valid_enemy(y,x,map4)){
-            enemy_map4[4].x=x;
-            enemy_map4[4].y=y;
-            enemy_map4[4].health=30;
-            enemy_map4[4].damage=20;
-            enemy_map4[4].following_distance=100;
-            enemy_map4[4].damage_distance=3;
-            enemy_map4[4].face='S';
-            enemy_map4[4].exe=1;
-            map4[y][x]=enemy_map4[4].face;
-            break;
-        }
-    }
-}
 int is_valid_enemy(int y , int x,char map[MAP_HEIGHT][MAP_WIDTH]){
     if((map[y][x]=='.'||map[y][x]=='%'||map[y][x]=='T'||map[y][x]=='Z'||map[y][x]=='X'||
        map[y][x]=='H'||map[y][x]=='R'||map[y][x]=='8')&&map[y][x]!='@'&&
@@ -5194,7 +5039,7 @@ void draw_enemy(Player *player){
                     else if (player->x < enemy_map1[1].x) if(s)new_x--;
                     if (player->y > enemy_map1[1].y) if(s)new_y++;
                     else if (player->y < enemy_map1[1].y) if(s)new_y--;
-                    if(is_valid_enemy(new_y,new_x,map1)){
+                    //if(is_valid_enemy(new_y,new_x,map1)){
                         if(flag==0){
                             map1[y0][x0]='.';
                             flag=1;
@@ -5207,7 +5052,7 @@ void draw_enemy(Player *player){
                         attron(COLOR_PAIR(2));
                         mvprintw(enemy_map1[1].y,enemy_map1[1].x,"%c",enemy_map1[1].face);
                         attroff(COLOR_PAIR(2));
-                    }
+                    //}
                 }
             }
             else if(enemy_map1[1].exe==0){
@@ -6103,375 +5948,112 @@ int damage_enemy(int level,int room,char weapon,Player *player){
             damage*=2;
     }
     if(level==1){
-        if(room==1){
-            if(((player->x==enemy_map1[0].x&&player->y >= enemy_map1[0].y&&aim==1)||
-                (player->x==enemy_map1[0].x&&player->y <= enemy_map1[0].y&&aim==3)||
-                (player->y==enemy_map1[0].y&&player->x >= enemy_map1[0].x&&aim==2)||
-                (player->y==enemy_map1[0].y&&player->x <= enemy_map1[0].x&&aim==4))&& (abs(player->x-enemy_map1[0].x)<=damage_distance&&abs(player->y-enemy_map1[0].y)<=damage_distance)){
-                    enemy_map1[0].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map1[0].health<=0&&enemy_map1[0].exe==1&&enemy_map1[0].exe==1){
-                        enemy_map1[0].exe=0;
-                        killing_message();
-                    }
-               }
-        }
-        else if(room==2){
-            if((player->x==enemy_map1[1].x&&player->y >= enemy_map1[1].y&&aim==1)||
-               (player->x==enemy_map1[1].x&&player->y <= enemy_map1[1].y&&aim==3)||
-               (player->y==enemy_map1[1].y&&player->x >= enemy_map1[1].x&&aim==2)||
-               (player->y==enemy_map1[1].y&&player->x <= enemy_map1[1].x&&aim==4)&&
-               (abs(player->x-enemy_map1[1].x)<=damage_distance&&abs(player->y-enemy_map1[1].y)<=damage_distance)){
-                    enemy_map1[1].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                if(enemy_map1[1].health<=0&&enemy_map1[1].exe==1){
-                    enemy_map1[1].exe=0;
-                    killing_message();
+        for(int i=0 ; i<6 ;i++){
+            if(((player->x==enemies_map1[i].x&&player->y >= enemies_map1[i].y&&aim==1)||
+            (player->x==enemies_map1[i].x&&player->y <= enemies_map1[i].y&&aim==3)||
+            (player->y==enemies_map1[i].y&&player->x >= enemies_map1[i].x&&aim==2)||
+            (player->y==enemies_map1[i].y&&player->x <= enemies_map1[i].x&&aim==4))&&
+            (abs(player->x-enemies_map1[i].x)<=damage_distance&&abs(player->y-enemies_map1[i].y)<=damage_distance)){
+                        enemies_map1[i].health-=damage;
+                        attron(COLOR_PAIR(3));
+                        mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
+                        attroff(COLOR_PAIR(3));
+                        getch();
+                        mvprintw(1,1,"                           ");
+                        if(enemies_map1[i].health<=0&&enemies_map1[i].exe==1){
+                            map1[enemies_map1[i].y][enemies_map1[i].x]='.';
+                            enemies_map1[i].exe=0;
+                            attron(COLOR_PAIR(3));
+                            mvprintw(1,80,"ELIMINATED!!!");
+                            attroff(COLOR_PAIR(3));
+                            refresh();
+                            napms(1000);
+                            mvprintw(1,80,"             ");
+                        }
+                
                 }
-               }
-        }
-        else if(room==3){
-            if((player->x==enemy_map1[2].x&&player->y >= enemy_map1[2].y&&aim==1)||
-               (player->x==enemy_map1[2].x&&player->y <= enemy_map1[2].y&&aim==3)||
-               (player->y==enemy_map1[2].y&&player->x >= enemy_map1[2].x&&aim==2)||
-               (player->y==enemy_map1[2].y&&player->x <= enemy_map1[2].x&&aim==4)&&
-               (abs(player->x-enemy_map1[2].x)<=damage_distance&&abs(player->y-enemy_map1[2].y)<=damage_distance)){
-                    enemy_map1[2].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    mvprintw(20,20,"%d",enemy_map1[2].health);
-                    getch();
-                    mvprintw(1,1,"                           ");
-                if(enemy_map1[2].health<=0&&enemy_map1[2].exe==1){
-                    enemy_map1[2].exe=0;
-                    killing_message();
-                }
-               }
-        }
-        else if(room==4){
-            if((player->x==enemy_map1[3].x&&player->y >= enemy_map1[3].y&&aim==1)||
-               (player->x==enemy_map1[3].x&&player->y <= enemy_map1[3].y&&aim==3)||
-               (player->y==enemy_map1[3].y&&player->x >= enemy_map1[3].x&&aim==2)||
-               (player->y==enemy_map1[3].y&&player->x <= enemy_map1[3].x&&aim==4)&&
-               (abs(player->x-enemy_map1[3].x)<=damage_distance&&abs(player->y-enemy_map1[3].y)<=damage_distance)){
-                    enemy_map1[3].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    mvprintw(20,20,"%d",enemy_map1[3].health);
-                    getch();
-                    mvprintw(1,1,"                           ");
-                if(enemy_map1[3].health<=0&&enemy_map1[3].exe==1){
-                    enemy_map1[3].exe=0;
-                    killing_message();
-                }
-               }
-        }
-        else if(room==5){
-            if((player->x==enemy_map1[4].x&&player->y >= enemy_map1[4].y&&aim==1)||
-               (player->x==enemy_map1[4].x&&player->y <= enemy_map1[4].y&&aim==3)||
-               (player->y==enemy_map1[4].y&&player->x >= enemy_map1[4].x&&aim==2)||
-               (player->y==enemy_map1[4].y&&player->x <= enemy_map1[4].x&&aim==4)&&
-               (abs(player->x-enemy_map1[4].x)<=damage_distance&&abs(player->y-enemy_map1[4].y)<=damage_distance)){
-                    enemy_map1[4].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    mvprintw(20,20,"%d",enemy_map1[4].health);
-                    getch();
-                    mvprintw(1,1,"                           ");
-                if(enemy_map1[4].health<=0&&enemy_map1[4].exe==1){
-                    enemy_map1[4].exe=0;
-                    killing_message();
-                }
-               }
-        }
-        else if(room==6){
-            if((player->x==enemy_map1[5].x&&player->y >= enemy_map1[5].y&&aim==1)||
-               (player->x==enemy_map1[5].x&&player->y <= enemy_map1[5].y&&aim==3)||
-               (player->y==enemy_map1[5].y&&player->x >= enemy_map1[5].x&&aim==2)||
-               (player->y==enemy_map1[5].y&&player->x <= enemy_map1[5].x&&aim==4)&&
-               (abs(player->x-enemy_map1[5].x)<=damage_distance&&abs(player->y-enemy_map1[5].y)<=damage_distance)){
-                    enemy_map1[5].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    mvprintw(20,20,"%d",enemy_map1[5].health);
-                    getch();
-                    mvprintw(1,1,"                           ");
-                if(enemy_map1[5].health<=0&&enemy_map1[5].exe==1){
-                    enemy_map1[5].exe=0;
-                    killing_message();
-                }
-               }
         }
     }
     else if(level==2){
-        if(room==1){
-            if(((player->x==enemy_map2[0].x&&player->y >= enemy_map2[0].y&&aim==1)||
-                (player->x==enemy_map2[0].x&&player->y <= enemy_map2[0].y&&aim==3)||
-                (player->y==enemy_map2[0].y&&player->x >= enemy_map2[0].x&&aim==2)||
-                (player->y==enemy_map2[0].y&&player->x <= enemy_map2[0].x&&aim==4))&& (abs(player->x-enemy_map2[0].x)<=damage_distance&&abs(player->y-enemy_map2[0].y)<=damage_distance)){
-                    enemy_map2[0].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map2[0].health<=0&&enemy_map2[0].exe==1){
-                        enemy_map2[0].exe=0;
-                        killing_message();
-                    }
-               }
-        }
-        else if(room==2){
-            if(((player->x==enemy_map2[1].x&&player->y >= enemy_map2[1].y&&aim==1)||
-                (player->x==enemy_map2[1].x&&player->y <= enemy_map2[1].y&&aim==3)||
-                (player->y==enemy_map2[1].y&&player->x >= enemy_map2[1].x&&aim==2)||
-                (player->y==enemy_map2[1].y&&player->x <= enemy_map2[1].x&&aim==4))&&
-                (abs(player->x-enemy_map2[1].x)<=damage_distance&&abs(player->y-enemy_map2[1].y)<=damage_distance)){
-                    enemy_map2[1].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map2[1].health<=0&&enemy_map2[1].exe==1){
-                        enemy_map2[1].exe=0;
-                        killing_message();
-                    }
-               }
-        }
-        else if(room==4){
-            if(((player->x==enemy_map2[2].x&&player->y >= enemy_map2[2].y&&aim==1)||
-                (player->x==enemy_map2[2].x&&player->y <= enemy_map2[2].y&&aim==3)||
-                (player->y==enemy_map2[2].y&&player->x >= enemy_map2[2].x&&aim==2)||
-                (player->y==enemy_map2[2].y&&player->x <= enemy_map2[2].x&&aim==4))&&
-                (abs(player->x-enemy_map2[2].x)<=damage_distance&&abs(player->y-enemy_map2[2].y)<=damage_distance)){
-                    enemy_map2[2].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map2[2].health<=0&&enemy_map2[2].exe==1){
-                        enemy_map2[2].exe=0;
-                        killing_message();
-                    }
-               }
-        }
-        else if(room==5){
-            if(((player->x==enemy_map2[3].x&&player->y >= enemy_map2[3].y&&aim==1)||
-                (player->x==enemy_map2[3].x&&player->y <= enemy_map2[3].y&&aim==3)||
-                (player->y==enemy_map2[3].y&&player->x >= enemy_map2[3].x&&aim==2)||
-                (player->y==enemy_map2[3].y&&player->x <= enemy_map2[3].x&&aim==4))&&
-                (abs(player->x-enemy_map2[3].x)<=damage_distance&&abs(player->y-enemy_map2[3].y)<=damage_distance)){
-                    enemy_map2[3].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    mvprintw(20,30,"%d",enemy_map2[3].health);
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map2[3].health<=0&&enemy_map2[3].exe==1){
-                        enemy_map2[3].exe=0;
-                        killing_message();
-                    }
-               }
-        }
-        else if(room==7){
-            if(((player->x==enemy_map2[4].x&&player->y >= enemy_map2[4].y&&aim==1)||
-                (player->x==enemy_map2[4].x&&player->y <= enemy_map2[4].y&&aim==3)||
-                (player->y==enemy_map2[4].y&&player->x >= enemy_map2[4].x&&aim==2)||
-                (player->y==enemy_map2[4].y&&player->x <= enemy_map2[4].x&&aim==4))&&
-                (abs(player->x-enemy_map2[4].x)<=damage_distance&&abs(player->y-enemy_map2[4].y)<=damage_distance)){
-                    enemy_map2[4].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map2[4].health<=0&&enemy_map2[4].exe==1){
-                        enemy_map2[4].exe=0;
-                        killing_message();
-                    }
-               }
-        }
+        for(int i=0 ; i<6 ;i++){
+            if(((player->x==enemies_map2[i].x&&player->y >= enemies_map2[i].y&&aim==1)||
+            (player->x==enemies_map2[i].x&&player->y <= enemies_map2[i].y&&aim==3)||
+            (player->y==enemies_map2[i].y&&player->x >= enemies_map2[i].x&&aim==2)||
+            (player->y==enemies_map2[i].y&&player->x <= enemies_map2[i].x&&aim==4))&&
+            (abs(player->x-enemies_map2[i].x)<=damage_distance&&abs(player->y-enemies_map2[i].y)<=damage_distance)){
+                        enemies_map2[i].health-=damage;
+                        attron(COLOR_PAIR(3));
+                        mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
+                        attroff(COLOR_PAIR(3));
+                        getch();
+                        mvprintw(1,1,"                           ");
+                        if(enemies_map2[i].health<=0&&enemies_map2[i].exe==1){
+                            map2[enemies_map2[i].y][enemies_map2[i].x]='.';
+                            enemies_map2[i].exe=0;
+                            attron(COLOR_PAIR(3));
+                            mvprintw(1,80,"ELIMINATED!!!");
+                            attroff(COLOR_PAIR(3));
+                            refresh();
+                            napms(1000);
+                            mvprintw(1,80,"             ");
+                        }
+                
+                }
+            }
     }
     else if(level==3){
-        if(room==1){
-            if(((player->x==enemy_map3[0].x&&player->y >= enemy_map3[0].y&&aim==1)||
-                (player->x==enemy_map3[0].x&&player->y <= enemy_map3[0].y&&aim==3)||
-                (player->y==enemy_map3[0].y&&player->x >= enemy_map3[0].x&&aim==2)||
-                (player->y==enemy_map3[0].y&&player->x <= enemy_map3[0].x&&aim==4))&&
-                (abs(player->x-enemy_map3[0].x)<=damage_distance&&abs(player->y-enemy_map3[0].y)<=damage_distance)){
-                    enemy_map3[0].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map3[0].health<=0&&enemy_map3[0].exe==1){
-                        enemy_map3[0].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
-        else if(room==5){
-            if(((player->x==enemy_map3[1].x&&player->y >= enemy_map3[1].y&&aim==1)||
-                (player->x==enemy_map3[1].x&&player->y <= enemy_map3[1].y&&aim==3)||
-                (player->y==enemy_map3[1].y&&player->x >= enemy_map3[1].x&&aim==2)||
-                (player->y==enemy_map3[1].y&&player->x <= enemy_map3[1].x&&aim==4))&&
-                (abs(player->x-enemy_map3[1].x)<=damage_distance&&abs(player->y-enemy_map3[1].y)<=damage_distance)){
-                    enemy_map3[1].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map3[1].health<=0&&enemy_map3[1].exe==1){
-                        enemy_map3[1].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
-        else if(room==4){
-            if(((player->x==enemy_map3[2].x&&player->y >= enemy_map3[2].y&&aim==1)||
-                (player->x==enemy_map3[2].x&&player->y <= enemy_map3[2].y&&aim==3)||
-                (player->y==enemy_map3[2].y&&player->x >= enemy_map3[2].x&&aim==2)||
-                (player->y==enemy_map3[2].y&&player->x <= enemy_map3[2].x&&aim==4))&&
-                (abs(player->x-enemy_map3[2].x)<=damage_distance&&abs(player->y-enemy_map3[2].y)<=damage_distance)){
-                    enemy_map3[2].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map3[2].health<=0&&enemy_map3[2].exe==1){
-                        enemy_map3[2].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
-        else if(room==6){
-            if(((player->x==enemy_map3[3].x&&player->y >= enemy_map3[3].y&&aim==1)||
-                (player->x==enemy_map3[3].x&&player->y <= enemy_map3[3].y&&aim==3)||
-                (player->y==enemy_map3[3].y&&player->x >= enemy_map3[3].x&&aim==2)||
-                (player->y==enemy_map3[3].y&&player->x <= enemy_map3[3].x&&aim==4))&&
-                (abs(player->x-enemy_map3[3].x)<=damage_distance&&abs(player->y-enemy_map3[3].y)<=damage_distance)){
-                    enemy_map3[3].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map3[3].health<=0&&enemy_map3[3].exe==1){
-                        enemy_map3[3].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
+        for(int i=0 ; i<6 ;i++){
+            if(((player->x==enemies_map3[i].x&&player->y >= enemies_map3[i].y&&aim==1)||
+            (player->x==enemies_map3[i].x&&player->y <= enemies_map3[i].y&&aim==3)||
+            (player->y==enemies_map3[i].y&&player->x >= enemies_map3[i].x&&aim==2)||
+            (player->y==enemies_map3[i].y&&player->x <= enemies_map3[i].x&&aim==4))&&
+            (abs(player->x-enemies_map3[i].x)<=damage_distance&&abs(player->y-enemies_map3[i].y)<=damage_distance)){
+                        enemies_map3[i].health-=damage;
+                        attron(COLOR_PAIR(3));
+                        mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
+                        attroff(COLOR_PAIR(3));
+                        getch();
+                        mvprintw(1,1,"                           ");
+                        if(enemies_map3[i].health<=0&&enemies_map3[i].exe==1){
+                            map3[enemies_map3[i].y][enemies_map3[i].x]='.';
+                            enemies_map3[i].exe=0;
+                            attron(COLOR_PAIR(3));
+                            mvprintw(1,80,"ELIMINATED!!!");
+                            attroff(COLOR_PAIR(3));
+                            refresh();
+                            napms(1000);
+                            mvprintw(1,80,"             ");
+                        }
+                
+                }
+            }
     }
     else if(level==4){
-        if(room==8){
-            if(((player->x==enemy_map4[0].x&&player->y >= enemy_map4[0].y&&aim==1)||
-                (player->x==enemy_map4[0].x&&player->y <= enemy_map4[0].y&&aim==3)||
-                (player->y==enemy_map4[0].y&&player->x >= enemy_map4[0].x&&aim==2)||
-                (player->y==enemy_map4[0].y&&player->x <= enemy_map4[0].x&&aim==4))&&
-                (abs(player->x-enemy_map4[0].x)<=damage_distance&&abs(player->y-enemy_map4[0].y)<=damage_distance)){
-                    enemy_map4[0].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map4[0].health<=0&&enemy_map4[0].exe==1){
-                        enemy_map4[0].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
-        else if(room==7){
-            if(((player->x==enemy_map4[1].x&&player->y >= enemy_map4[1].y&&aim==1)||
-                (player->x==enemy_map4[1].x&&player->y <= enemy_map4[1].y&&aim==3)||
-                (player->y==enemy_map4[1].y&&player->x >= enemy_map4[1].x&&aim==2)||
-                (player->y==enemy_map4[1].y&&player->x <= enemy_map4[1].x&&aim==4))&&
-                (abs(player->x-enemy_map4[1].x)<=damage_distance&&abs(player->y-enemy_map4[1].y)<=damage_distance)){
-                    enemy_map4[1].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map4[1].health<=0&&enemy_map4[1].exe==1){
-                        enemy_map4[1].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
-        else if(room==5){
-            if(((player->x==enemy_map4[2].x&&player->y >= enemy_map4[2].y&&aim==1)||
-                (player->x==enemy_map4[2].x&&player->y <= enemy_map4[2].y&&aim==3)||
-                (player->y==enemy_map4[2].y&&player->x >= enemy_map4[2].x&&aim==2)||
-                (player->y==enemy_map4[2].y&&player->x <= enemy_map4[2].x&&aim==4))&&
-                (abs(player->x-enemy_map4[2].x)<=damage_distance&&abs(player->y-enemy_map4[2].y)<=damage_distance)){
-                    enemy_map4[2].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map4[2].health<=0&&enemy_map4[2].exe==1){
-                        enemy_map4[2].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
-        else if(room==4){
-            if(((player->x==enemy_map4[3].x&&player->y >= enemy_map4[3].y&&aim==1)||
-                (player->x==enemy_map4[3].x&&player->y <= enemy_map4[3].y&&aim==3)||
-                (player->y==enemy_map4[3].y&&player->x >= enemy_map4[3].x&&aim==2)||
-                (player->y==enemy_map4[3].y&&player->x <= enemy_map4[3].x&&aim==4))&&
-                (abs(player->x-enemy_map4[3].x)<=damage_distance&&abs(player->y-enemy_map4[3].y)<=damage_distance)){
-                    enemy_map4[3].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map4[3].health<=0&&enemy_map4[3].exe==1){
-                        enemy_map4[3].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
-        else if(room==2){
-            if(((player->x==enemy_map4[4].x&&player->y >= enemy_map4[4].y&&aim==1)||
-                (player->x==enemy_map4[4].x&&player->y <= enemy_map4[4].y&&aim==3)||
-                (player->y==enemy_map4[4].y&&player->x >= enemy_map4[4].x&&aim==2)||
-                (player->y==enemy_map4[4].y&&player->x <= enemy_map4[4].x&&aim==4))&&
-                (abs(player->x-enemy_map4[4].x)<=damage_distance&&abs(player->y-enemy_map4[4].y)<=damage_distance)){
-                    enemy_map4[4].health-=damage;
-                    attron(COLOR_PAIR(3));
-                    mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
-                    attroff(COLOR_PAIR(3));
-                    getch();
-                    mvprintw(1,1,"                           ");
-                    if(enemy_map4[4].health<=0&&enemy_map4[4].exe==1){
-                        enemy_map4[4].exe=0;
-                        killing_message();
-                    }
-               }
-        }  
+    for(int i=0 ; i<6 ;i++){
+            if(((player->x==enemies_map4[i].x&&player->y >= enemies_map4[i].y&&aim==1)||
+            (player->x==enemies_map4[i].x&&player->y <= enemies_map4[i].y&&aim==3)||
+            (player->y==enemies_map4[i].y&&player->x >= enemies_map4[i].x&&aim==2)||
+            (player->y==enemies_map4[i].y&&player->x <= enemies_map4[i].x&&aim==4))&&
+            (abs(player->x-enemies_map4[i].x)<=damage_distance&&abs(player->y-enemies_map4[i].y)<=damage_distance)){
+                        enemies_map4[i].health-=damage;
+                        attron(COLOR_PAIR(3));
+                        mvprintw(1,1,"DAMAGE TO ENEMY,KEEP GOING!");
+                        attroff(COLOR_PAIR(3));
+                        getch();
+                        mvprintw(1,1,"                           ");
+                        if(enemies_map4[i].health<=0&&enemies_map4[i].exe==1){
+                            map4[enemies_map4[i].y][enemies_map4[i].x]='.';
+                            enemies_map4[i].exe=0;
+                            attron(COLOR_PAIR(3));
+                            mvprintw(1,80,"ELIMINATED!!!");
+                            attroff(COLOR_PAIR(3));
+                            refresh();
+                            napms(1000);
+                            mvprintw(1,80,"             ");
+                        }
+                
+                }
+            }
     }
 }
 void killing_message(){
@@ -6501,6 +6083,7 @@ void killing_message(){
                 mvaddch(startY + i, startX + j, ' ');
             }
         }
+        p_user.score+=5;
         p_user.kills1++;
 }
 void create_battle_room(){
@@ -6523,6 +6106,11 @@ void create_battle_room(){
         int x = rand() % 83 + 46;
         enemies[i] = create_random_enemy(y, x);
         battle_room[y][x]=enemies[i].face;
+    }
+    for (int i = 0; i < 12; i++) {
+        int y = rand() % 29 + 6;  
+        int x = rand() % 83 + 46;
+        battle_room[y][x]='^';
     }
 }
 Enemy create_random_enemy(int y, int x) {
@@ -6587,7 +6175,18 @@ Enemy create_random_enemy(int y, int x) {
     return enemy;
 }
 void clear_player2(Player *player) {
-        battle_room[player->y][player->x]='.';
+        if(player->prev_char=='^'){
+            battle_room[player->y][player->x]='?';
+            p_user.health-=10;
+            attron(COLOR_PAIR(2));
+            mvprintw(1,80,"     TRAP!");
+            attroff(COLOR_PAIR(2));
+            refresh();
+            napms(1000);
+        }
+        else{
+            battle_room[player->y][player->x]='.';
+        } 
     }
 void move_player(Player *player) {
         int ch = getch();
@@ -6670,16 +6269,13 @@ void move_player(Player *player) {
             }
         }
 
-         
+        
         if (p_user.health <= 0) {
             final_result(0);
         }
-        for (int i = 0; i < 12; i++) {
-            mvprintw(1,1,"%d",p_user.health);
-        }
         if (is_valid_move2(new_x, new_y)) {
             clear_player2(player);
-            player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;  
+            player->prev_char = mvinch(new_y, new_x) & A_CHARTEXT;
             player->x = new_x;
             player->y = new_y;
             battle_room[player->y][player->x]='@';
@@ -6737,15 +6333,62 @@ int enemy_checker(Player *player, Enemy *enemy) {
 }
 int is_valid_move2(int x, int y) {
     char ch = mvinch(y, x) & A_CHARTEXT;
-    return ch == '.' || ch == '#' || ch == '+'||ch == '<';
+    return ch == '.' || ch == '#' || ch == '+'||ch == '<'||ch=='^';
 }
 void refresh_map2(Player *player) {
     draw_player(player);
     draw_battle_room();
-    draw_bar(LINES-2, 12, 20, p_user.health, 10000, "Health");
-    draw_bar(LINES-2, 72, 20, p_user.power, 100, "Power");
-    draw_bar(LINES-2, 132, 20, p_user.gold, 100, "Gold");
-    draw_bar(LINES-3, 132, 20, p_user.kills2, 12, "kills");
+    mvprintw(LINES-2,2,"                              ");
+    mvprintw(LINES-2,20,"                              ");
+    mvprintw(LINES-3,62,"                                         ");
+    
+    draw_bar(LINES-2, 62, 20, p_user.health, 10000, "Health");
+    draw_bar(LINES-3, 62, 20, p_user.hunger, 100, "Power");
+    attron(COLOR_PAIR(1));
+    mvprintw(LINES-2,14,"Score : %d",p_user.score);
+    mvprintw(LINES-2,2,"Gold : %d",p_user.gold);
+    mvprintw(LINES-2,26,"Kills : %d",p_user.kills1);
+    attroff(COLOR_PAIR(1));
+    mvprintw(LINES-6,2,"                              ");
+    //attron(COLOR_PAIR(7));
+    
+    //attroff(COLOR_PAIR(7));
+    attron(COLOR_PAIR(10));
+    switch(p_user.current_weapon){
+        case 'm':
+            mvprintw(LINES-6,2,"current weapon : MACE");
+        break;
+        case 'd':
+            mvprintw(LINES-6,2,"current weapon : DAGGER %d",p_user.weapon_bar.dagger);
+        break;
+        case 'w':
+            mvprintw(LINES-6,2,"current weapon : MAGIC WAND %d",p_user.weapon_bar.magic_wand);
+        break;
+        case 'a':
+            mvprintw(LINES-6,2,"current weapon : ARROWS %d",p_user.weapon_bar.arrow);
+        break;
+        case 's':
+            mvprintw(LINES-6,2,"current weapon : SWORD");
+        break;
+    }
+    attroff(COLOR_PAIR(10));
+    attron(COLOR_PAIR(6));
+        mvprintw(LINES-5,2,"Health spell : %d",p_user.spell_bar.H);
+        mvprintw(LINES-4,2,"Speed  spell : %d",p_user.spell_bar.S);
+        mvprintw(LINES-3,2,"Power  spell : %d",p_user.spell_bar.G);
+    attroff(COLOR_PAIR(6));
+    attron(COLOR_PAIR(9));
+        mvprintw(LINES-5,20,"Normal food : %d",p_user.food_bar.normal);
+        mvprintw(LINES-4,20,"Speedy food : %d",p_user.food_bar.speed);
+        mvprintw(LINES-3,20,"Power  food : %d",p_user.food_bar.special);
+    attroff(COLOR_PAIR(9));
+    attron(COLOR_PAIR(11));
+    //attron(A_REVERSE);
+    attron(A_BOLD);
+    mvprintw(3,80,"Final Kills : %d",p_user.kills2);
+    attroff(A_BOLD);
+    //attroff(A_REVERSE);
+    attroff(COLOR_PAIR(11));
     refresh();  
 }
 int start_battle(){
@@ -6763,9 +6406,19 @@ void draw_battle_room(){
     for(int i=0; i<MAP_HEIGHT ;i++){
         for(int j=0 ; j<MAP_WIDTH ;j++){
             if(battle_room[i][j]=='|'||battle_room[i][j]=='-'){
+                attron(COLOR_PAIR(1));
+                mvaddch(i,j,battle_room[i][j]);
+                attroff(COLOR_PAIR(1));
+            }
+            else if(battle_room[i][j]=='G'||battle_room[i][j]=='S'||battle_room[i][j]=='F'||battle_room[i][j]=='U'||battle_room[i][j]=='D'){
                 attron(COLOR_PAIR(2));
                 mvaddch(i,j,battle_room[i][j]);
                 attroff(COLOR_PAIR(2));
+            }
+            else if(battle_room[i][j]=='^'){
+                attron(COLOR_PAIR(1));
+                mvaddch(i,j,battle_room[i][j]);
+                attroff(COLOR_PAIR(1));
             }
             else{
                 mvaddch(i,j,battle_room[i][j]);
@@ -6799,32 +6452,60 @@ int damage_enemy2(char weapon,Player *player){
     }
     int damage;
     int damage_distance;
+    attron(COLOR_PAIR(10));
     switch(weapon){
         case 'm':
         damage=5;
         damage_distance=1;
         break;
         case 'd':
+        if(p_user.weapon_bar.dagger<=0){
+            mvprintw(1,1,"NOT ENOUGH DAGGER!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage=12;
         damage_distance=5;
         p_user.weapon_bar.dagger--;
         break;
         case 'w':
+        if(p_user.weapon_bar.magic_wand<=0){
+            mvprintw(1,1,"NOT ENOUGH MAGIC WAND!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage=15;
         damage_distance=10;
         p_user.weapon_bar.magic_wand--;
         break;
         case 'a':
+        if(p_user.weapon_bar.arrow<=0){
+            mvprintw(1,1,"NOT ENOUGH ARROW!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage=5;
         damage_distance=5;
         p_user.weapon_bar.arrow--;
         break;
         case 's':
+        if(p_user.weapon_bar.sword==0){
+            mvprintw(1,1,"NOT ENOUGH SWORD!!!");
+            getch();
+            mvprintw(1,1,"                    ");
+            return 1;
+        }
         damage_distance=1;
         damage=10;
         break;
+        attroff(COLOR_PAIR(10));
     }
-    
+    if(Gspell==1){
+            damage*=2;
+    }
     for(int i=0 ; i<12 ;i++){
         if(((player->x==enemies[i].x&&player->y >= enemies[i].y&&aim==1)||
         (player->x==enemies[i].x&&player->y <= enemies[i].y&&aim==3)||
@@ -6840,7 +6521,12 @@ int damage_enemy2(char weapon,Player *player){
                     if(enemies[i].health<=0&&enemies[i].exe==1){
                         battle_room[enemies[i].y][enemies[i].x]='.';
                         enemies[i].exe=0;
-                        killing_message();
+                        attron(COLOR_PAIR(3));
+                        mvprintw(1,80,"ELIMINATED!!!");
+                        attroff(COLOR_PAIR(3));
+                        refresh();
+                        napms(1000);
+                        mvprintw(1,80,"             ");
                     }
         }
     }
@@ -6936,15 +6622,8 @@ void final_result(int x){
     int width = 50;
     int start_y = (LINES - height) / 2;
     int start_x = (COLS - width) / 2;
-    if (has_colors()) {
-        start_color();
-        init_pair(1, COLOR_YELLOW, COLOR_BLACK);   
-        init_pair(2, COLOR_GREEN, COLOR_BLACK);    
-        init_pair(3, COLOR_RED, COLOR_BLACK);      
-        init_pair(4, COLOR_CYAN, COLOR_BLACK);     
-        init_pair(5, COLOR_WHITE, COLOR_BLUE);     
-    }
-    attron(COLOR_PAIR(4));
+
+    attron(COLOR_PAIR(7));
     for (int y = start_y; y < start_y + height; y++) {
         for (int x = start_x; x < start_x + width; x++) {
             if (y == start_y || y == start_y + height - 1 || x == start_x || x == start_x + width - 1) {
@@ -6952,47 +6631,48 @@ void final_result(int x){
             }
         }
     }
-    attroff(COLOR_PAIR(4));
+    attroff(COLOR_PAIR(7));
     if(x==1){
-        attron(COLOR_PAIR(5));
+        p_user.score+=200;
+        attron(COLOR_PAIR(3));
         mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU WON! ");
-        attroff(COLOR_PAIR(5));
+        attroff(COLOR_PAIR(3));
         attron(COLOR_PAIR(1));
         mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
         attroff(COLOR_PAIR(1));
-        attron(COLOR_PAIR(2));
+        attron(COLOR_PAIR(10));
         mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
-        attroff(COLOR_PAIR(2));
-        attron(COLOR_PAIR(3));
+        attroff(COLOR_PAIR(10));
+        attron(COLOR_PAIR(2));
         mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
-        attroff(COLOR_PAIR(3));
-        attron(COLOR_PAIR(4));
+        attroff(COLOR_PAIR(2));
+        attron(COLOR_PAIR(7));
         mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
-        attroff(COLOR_PAIR(4));
-        attron(COLOR_PAIR(4));
+        attroff(COLOR_PAIR(7));
+        attron(COLOR_PAIR(8));
         mvprintw(start_y + height - 2, start_x + (width - 20) / 2-5, "Press any key to exit...");
-        attroff(COLOR_PAIR(4));
+        attroff(COLOR_PAIR(8));
         save_info();
     }
     else{
-        attron(COLOR_PAIR(5));
+        attron(COLOR_PAIR(2));
         mvprintw(start_y + 2, start_x + (width - 10) / 2, " YOU LOST! ");
-        attroff(COLOR_PAIR(5));
+        attroff(COLOR_PAIR(2));
         attron(COLOR_PAIR(1));
         mvprintw(start_y + 4, start_x + 5, "Gold: %d", p_user.gold);
         attroff(COLOR_PAIR(1));
-        attron(COLOR_PAIR(2));
+        attron(COLOR_PAIR(10));
         mvprintw(start_y + 5, start_x + 5, "Score: %d", p_user.score);
-        attroff(COLOR_PAIR(2));
-        attron(COLOR_PAIR(3));
+        attroff(COLOR_PAIR(10));
+        attron(COLOR_PAIR(2));
         mvprintw(start_y + 6, start_x + 5, "Kills: %d", p_user.kills1+p_user.kills2);
-        attroff(COLOR_PAIR(3));
-        attron(COLOR_PAIR(4));
+        attroff(COLOR_PAIR(2));
+        attron(COLOR_PAIR(7));
         mvprintw(start_y + height - 3, start_x + 5, "----------------------------------------");
-        attroff(COLOR_PAIR(4));
-        attron(COLOR_PAIR(4));
+        attroff(COLOR_PAIR(7));
+        attron(COLOR_PAIR(8));
         mvprintw(start_y + height - 2, start_x + (width - 20) / 2 -5, "Press any key to exit...");
-        attroff(COLOR_PAIR(4));
+        attroff(COLOR_PAIR(8));
     }
     refresh();
     getch();
@@ -7131,4 +6811,253 @@ User* find_user(User users[], int num_users, const char *username) {
     }
     return NULL;
 }
+int telesm(Player *player){
+    attron(COLOR_PAIR(6));
+    if(p_user.level_num==1){
+        if(get_room_id(player->x,player->y)==5){
+            mvprintw(2,74,"YOU ARE IN ENCHANTED ROOM :o");
+            p_user.health-=20;
+        }
+        else{
+            mvprintw(2,74,"                            ");
+        }
+    }
+    else if(p_user.level_num==2){
+        if(get_room_id(player->x,player->y)==5||get_room_id(player->x,player->y)==1){
+            mvprintw(2,74,"YOU ARE IN ENCHANTED ROOM :o");
+            p_user.health-=10;
+        }
+        else if(get_room_id(player->x,player->y)==3){
+            mvprintw(2,74,"YOU ARE IN NIGHTMARE ROOM :o");
+            night=1;
+        }
+        else{
+            night=0;
+            mvprintw(2,74,"                            ");
+        }
+    }
+    else if(p_user.level_num==3){
+        if(get_room_id(player->x,player->y)==6){
+            mvprintw(2,74,"YOU ARE IN ENCHANTED ROOM :o");
+            p_user.health-=10;
+        }
+        else if(get_room_id(player->x,player->y)==2||get_room_id(player->x,player->y)==5){
+            mvprintw(2,74,"YOU ARE IN NIGHTMARE ROOM :o");
+            night=1;
+        }
+        else{
+            night=0;
+            mvprintw(2,74,"                            ");
+        }
 
+    }
+    else if(p_user.level_num==4){
+        if(get_room_id(player->x,player->y)==3||get_room_id(player->x,player->y)==6||get_room_id(player->x,player->y)==8){
+            mvprintw(2,74,"YOU ARE IN ENCHANTED ROOM :o");
+            p_user.health-=10;
+        }
+        else if(get_room_id(player->x,player->y)==7){
+            mvprintw(2,74,"YOU ARE IN NIGHTMARE ROOM :o");
+            night=1;
+        }
+        else{
+            night=0;
+            mvprintw(2,74,"                            ");
+        }
+    }
+    attroff(COLOR_PAIR(6));
+}
+int enemy_checker2(Player *player){
+    if(p_user.level_num==1){
+        for(int i=0 ; i<=5 ; i++){
+            int distance = abs(player->x - enemies_map1[i].x) + abs(player->y - enemies_map1[i].y);
+                if (distance <= enemies_map1[i].following_distance) {
+                enemies_map1[i].following = 1;
+            
+                if (distance <= enemies_map1[i].damage_distance&&enemies_map1[i].exe==1) {
+                    switch (enemies_map1[i].type) {
+                        case DEAMON:
+                            p_user.health -= enemies_map1[i].damage;
+                            mvprintw(1,1,"Deamon attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case FIRE:
+                            p_user.health -= enemies_map1[i].damage;
+                            mvprintw(1,1,"Fire attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case GIANT:
+                            p_user.health -= enemies_map1[i].damage;
+                            mvprintw(1,1,"Giant attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case SNAKE:
+                            p_user.health -= enemies_map1[i].damage;
+                            mvprintw(1,1,"Snake attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case UNDEAD:
+                            p_user.health -= enemies_map1[i].damage;
+                            mvprintw(1,1,"Undead attacked you! Health: %d\n", p_user.health);
+                            break;
+                    }
+                } 
+                else if(enemies_map1[i].exe==1){
+                    int x =enemies_map1[i].x;
+                    int y =enemies_map1[i].y;
+                    if (player->x > enemies_map1[i].x) x++;
+                    else if (player->x < enemies_map1[i].x) x--;
+                    
+                    if (player->y > enemies_map1[i].y) y++;
+                    else if (player->y < enemies_map1[i].y) y--;
+                    if(map1[y][x]=='.'){
+                        map1[enemies_map1[i].y][enemies_map1[i].x]='.';
+                        enemies_map1[i].x=x;
+                        enemies_map1[i].y=y;
+                        map1[enemies_map1[i].y][enemies_map1[i].x]=enemies_map1[i].face;
+                    }
+                }
+            }
+        }
+    }
+    else if(p_user.level_num==2){
+        for(int i=0 ; i<=5 ; i++){
+            int distance = abs(player->x - enemies_map2[i].x) + abs(player->y - enemies_map2[i].y);
+                if (distance <= enemies_map2[i].following_distance) {
+                enemies_map2[i].following = 1;
+            
+                if (distance <= enemies_map2[i].damage_distance&&enemies_map2[i].exe==1) {
+                    switch (enemies_map2[i].type) {
+                        case DEAMON:
+                            p_user.health -= enemies_map2[i].damage;
+                            mvprintw(1,1,"Deamon attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case FIRE:
+                            p_user.health -= enemies_map2[i].damage;
+                            mvprintw(1,1,"Fire attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case GIANT:
+                            p_user.health -= enemies_map2[i].damage;
+                            mvprintw(1,1,"Giant attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case SNAKE:
+                            p_user.health -= enemies_map2[i].damage;
+                            mvprintw(1,1,"Snake attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case UNDEAD:
+                            p_user.health -= enemies_map2[i].damage;
+                            mvprintw(1,1,"Undead attacked you! Health: %d\n", p_user.health);
+                            break;
+                    }
+                } 
+                else if(enemies_map2[i].exe==1){
+                    int x =enemies_map2[i].x;
+                    int y =enemies_map2[i].y;
+                    if (player->x > enemies_map2[i].x) x++;
+                    else if (player->x < enemies_map2[i].x) x--;
+                    
+                    if (player->y > enemies_map2[i].y) y++;
+                    else if (player->y < enemies_map2[i].y) y--;
+                    if(map2[y][x]=='.'){
+                        map2[enemies_map2[i].y][enemies_map2[i].x]='.';
+                        enemies_map2[i].x=x;
+                        enemies_map2[i].y=y;
+                        map2[enemies_map2[i].y][enemies_map2[i].x]=enemies_map2[i].face;
+                    }
+                }
+            }
+        }
+    }
+    else if(p_user.level_num==3){
+        for(int i=0 ; i<=5 ; i++){
+            int distance = abs(player->x - enemies_map3[i].x) + abs(player->y - enemies_map3[i].y);
+                if (distance <= enemies_map3[i].following_distance) {
+                enemies_map3[i].following = 1;
+            
+                if (distance <= enemies_map3[i].damage_distance&&enemies_map3[i].exe==1) {
+                    switch (enemies_map3[i].type) {
+                        case DEAMON:
+                            p_user.health -= enemies_map3[i].damage;
+                            mvprintw(1,1,"Deamon attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case FIRE:
+                            p_user.health -= enemies_map3[i].damage;
+                            mvprintw(1,1,"Fire attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case GIANT:
+                            p_user.health -= enemies_map3[i].damage;
+                            mvprintw(1,1,"Giant attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case SNAKE:
+                            p_user.health -= enemies_map3[i].damage;
+                            mvprintw(1,1,"Snake attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case UNDEAD:
+                            p_user.health -= enemies_map3[i].damage;
+                            mvprintw(1,1,"Undead attacked you! Health: %d\n", p_user.health);
+                            break;
+                    }
+                } 
+                else if(enemies_map3[i].exe==1){
+                    int x =enemies_map3[i].x;
+                    int y =enemies_map3[i].y;
+                    if (player->x > enemies_map3[i].x) x++;
+                    else if (player->x < enemies_map3[i].x) x--;
+                    
+                    if (player->y > enemies_map3[i].y) y++;
+                    else if (player->y < enemies_map3[i].y) y--;
+                    if(map3[y][x]=='.'){
+                        map3[enemies_map3[i].y][enemies_map3[i].x]='.';
+                        enemies_map3[i].x=x;
+                        enemies_map3[i].y=y;
+                        map3[enemies_map3[i].y][enemies_map3[i].x]=enemies_map3[i].face;
+                    }
+                }
+            }
+        }
+    }
+    else if(p_user.level_num==4){
+        for(int i=0 ; i<=5 ; i++){
+            int distance = abs(player->x - enemies_map4[i].x) + abs(player->y - enemies_map4[i].y);
+                if (distance <= enemies_map4[i].following_distance) {
+                enemies_map4[i].following = 1;
+            
+                if (distance <= enemies_map4[i].damage_distance&&enemies_map4[i].exe==1) {
+                    switch (enemies_map4[i].type) {
+                        case DEAMON:
+                            p_user.health -= enemies_map4[i].damage;
+                            mvprintw(1,1,"Deamon attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case FIRE:
+                            p_user.health -= enemies_map4[i].damage;
+                            mvprintw(1,1,"Fire attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case GIANT:
+                            p_user.health -= enemies_map4[i].damage;
+                            mvprintw(1,1,"Giant attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case SNAKE:
+                            p_user.health -= enemies_map4[i].damage;
+                            mvprintw(1,1,"Snake attacked you! Health: %d\n", p_user.health);
+                            break;
+                        case UNDEAD:
+                            p_user.health -= enemies_map4[i].damage;
+                            mvprintw(1,1,"Undead attacked you! Health: %d\n", p_user.health);
+                            break;
+                    }
+                } 
+                else if(enemies_map4[i].exe==1){
+                    int x =enemies_map4[i].x;
+                    int y =enemies_map4[i].y;
+                    if (player->x > enemies_map4[i].x) x++;
+                    else if (player->x < enemies_map4[i].x) x--;
+                    
+                    if (player->y > enemies_map4[i].y) y++;
+                    else if (player->y < enemies_map4[i].y) y--;
+                    if(map4[y][x]=='.'){
+                        map4[enemies_map4[i].y][enemies_map4[i].x]='.';
+                        enemies_map4[i].x=x;
+                        enemies_map4[i].y=y;
+                        map4[enemies_map4[i].y][enemies_map4[i].x]=enemies_map4[i].face;
+                    }
+                }
+            }
+        }
+    }
+}
